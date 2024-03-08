@@ -23,8 +23,12 @@ _start:
     cli
     jmp     continue
 
+
+
+
 continue:
     # Load the GDT
+   lgdt gdtr_struct            # DAVID made this the new var gdtr struct
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going

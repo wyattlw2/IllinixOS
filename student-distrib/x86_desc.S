@@ -11,9 +11,15 @@
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
 .globl idt_desc_ptr, idt
+.globl gdt_size # DAVID ADDED THIS VAR
+.globl gdtr_struct
 
 .align 4
 
+gdtr_struct:                # DAVID made a struct that defines both the size and the starting addr of gdt
+    .word gdt_bottom - gdt - 1
+    .long gdt # gdt or gdt_ptr
+    .align 16
 
 tss_size:
     .long tss_bottom - tss - 1
@@ -39,8 +45,7 @@ gdt:
 _gdt:
 
     # First GDT entry cannot be used
-    .quad 0
-
+    .quad 0   
     # NULL entry
     .quad 0
 
@@ -76,12 +81,15 @@ gdt_ptr:
 
     # Set up an entry for TSS
 tss_desc_ptr:
-    .quad 0
-
+     .quad 0           # DAVID MADE THIS tss_desc_ptr
+    # .long 0
+    # .long tss_desc_ptr
     # Set up one LDT
 ldt_desc_ptr:
-    .quad 0
+     .quad 0           # DAVID MADE THIS ldt_desc
 
+    # .long 0
+    # .long ldt_desc_ptr
 gdt_bottom:
 
     .align 16
