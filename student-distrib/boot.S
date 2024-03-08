@@ -33,6 +33,11 @@ continue:
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
 
+    # Load the IDT Register -- DAVID ADDED
+    lidt idt_desc_ptr
+
+
+
 keep_going:
     # Set up ESP so we can have an initial stack
     movl    $0x800000, %esp

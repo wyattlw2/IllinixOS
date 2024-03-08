@@ -122,7 +122,6 @@ extern seg_desc_t gdt_ptr;
 //extern seg_desc_t gdt_ptr;
 
 extern uint32_t ldt;
-extern uint32_t gdt_size; //DAVID ADDED THIS VAR
 
 extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;
@@ -149,7 +148,7 @@ do {                                                            \
 } while (0)
 
 /* An interrupt descriptor entry (goes into the IDT) */
-typedef union idt_desc_t {
+typedef union idt_desc_t { // MOST OF THIS WILL BE THE SAME, MAKE NOTE OF WHEN TO USE TRAP GATE VS INTERRUPT vs SYSCALL vs EXCEPTION, reserve bits will change -- DVT
     uint32_t val[2];
     struct {
         uint16_t offset_15_00;
@@ -167,7 +166,7 @@ typedef union idt_desc_t {
 } idt_desc_t;
 
 /* The IDT itself (declared in x86_desc.S */
-extern idt_desc_t idt[NUM_VEC];
+extern idt_desc_t idt[NUM_VEC];                     //ACCORDING TO THE TA, THIS ARRAY IS ALREADY GOING INTO THE IDT TABLE AS DEFINED IN BOOT.S -- DVT
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
 
