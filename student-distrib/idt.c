@@ -26,6 +26,26 @@
 // ^^^^ THIS IS JUST FOR REFERENCE
 
 
+extern void de(void);
+extern void db(void);
+extern void nmi(void);
+extern void bp(void);
+extern void of(void);
+extern void br(void);
+extern void ud(void);
+extern void nm(void);
+extern void df(void);
+extern void cso(void);
+extern void ts(void);
+extern void np(void);
+extern void ss(void);
+extern void gp(void);
+extern void pf(void);
+extern void mf(void);
+extern void ac(void);
+extern void mc(void);
+extern void xf(void);
+extern void sys_call(void);
 
 
 /*
@@ -54,27 +74,6 @@ void intr_handler(int vec) {
     printf(vec);
     while(1){}
 }
-
-extern void de(void);
-extern void db(void);
-extern void nmi(void);
-extern void bp(void);
-extern void of(void);
-extern void br(void);
-extern void ud(void);
-extern void nm(void);
-extern void df(void);
-extern void cso(void);
-extern void ts(void);
-extern void np(void);
-extern void ss(void);
-extern void gp(void);
-extern void pf(void);
-extern void mf(void);
-extern void ac(void);
-extern void mc(void);
-extern void xf(void);
-extern void sys_call(void);
 
 #define         NUMBER_OF_VECTORS           256
 #define         NUMBER_OF_EXCEPTIONS_DEFINING        20      //based on what the CA said, it seems like we only need these 20 exceptions 
