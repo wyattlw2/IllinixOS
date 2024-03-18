@@ -38,9 +38,26 @@
 //20 exceptions on osdev
 //rtc, keyboard , PIT (for scheduling comes later)
 
+// handler for exceptions -- James
+void exec_handler(int vec) {
+    printf(&vec);
+    while(1){}
+}
+// handler for sys_calls -- James
+void sys_handler(int vec) {
+    printf(&vec);
+    while(1){}
+}
+// for future
+// handler for interrupt calls -- James
+void intr_handler(int vec) {
+    printf(&vec);
+    while(1){}
+}
+
 #define         NUMBER_OF_VECTORS           256
 #define         NUMBER_OF_EXCEPTIONS_DEFINING        20      //based on what the CA said, it seems like we only need these 20 exceptions 
-
+#define         NUMBER_OF_SYS_CALLS         10 // for letter check points, for now we just have a simply handle for sys calls -- James
 void initialize_idt(){ // need to set all 256 to something, zero everything out and then specify the ones we care about
     int i;
 
@@ -51,7 +68,7 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
         idt[i].val[1] = 0x00000000;
     }
     for(i=0;i< NUMBER_OF_EXCEPTIONS_DEFINING; i++){
-        set_exception_params(idt[i]);
+        set_exception_params(idt[i], i);
     }
 
 }
@@ -63,8 +80,24 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
 *   Side Effects:   The idt[0->20] array will be set and ready to be imported into the idt table that is defined in x86_desc.S
 *   https://wiki.osdev.org/Exceptions // FILL THESE VALUES IN WITH THE INFO FROM THIS
 */      
-void set_exception_params(idt_desc_t idt_array_index){
-    idt_array_index.val[0]
-
+void set_exception_params(idt_desc_t idt_array_index, int vec){
+    // do the below for every interrupt -- James 
+    // set dpl to 0 for hardware interrupts and exception
+    // sys call's dpl should be set to 3
+    // set all segment selector to kernel_CS descriptor
+    // size is always 1
+    // present is always 1 (I think? Only 99% sure)
+    // for reserve3...0, remember it's 0 size 1 1 0 <- intr gate, 0 size 1 1 1 <- trap gate
+    //      for the 20 exceptions, only vector nr 2 (non-maskable interrupt) is intr gate, others are trap gate
+    // to call SET_IDT_ENTRY make sure we use the right macro as there are interrupts
+    // that have error code and we must pop if off. refer to intel doc to what has error code
+    if (vec == 8 || vec == 10 || vec == 11 || vec == 12 || vec == 13 || vec == 14 || vec == 17) {
+        SET_IDT_ENTRY(idt_array_index.struct, MY_ASM_MACRO_ERR_CODE(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
+                                                                                // also dk how to call set_idt_entry correctly? feel free to help-- James
+    } else {
+        SET_IDT_ENTRY(idt_array_index.struct, MY_ASM_MACRO(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
+                                                                                // also dk how to call set_idt_entry correctly? feel free to help-- James
+    }
+    
 }
 //GOING TO HAVE A FUNCTION THAT FILLS IN A MAJORITY OF THE STRUCT, probs will take a few parameters and then change the things that need to be changed

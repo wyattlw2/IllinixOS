@@ -101,8 +101,8 @@ ldt_bottom:
 .align 4
     .word 0 # Padding
 idt_desc_ptr:
-    .word idt_bottom - idt - 1
-    .long idt
+    .word idt_bottom - idt - 1 # size
+    .long idt # offset 
 
 
     .align  16
@@ -113,3 +113,5 @@ _idt:
     .endr
 
 idt_bottom:
+
+    .align 16
