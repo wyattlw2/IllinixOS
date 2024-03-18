@@ -70,7 +70,10 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     for(i=0;i< NUMBER_OF_EXCEPTIONS_DEFINING; i++){
         set_exception_params(idt[i], i);
     }
-
+    // for 0x80 sys call for now, we jsut acknowledge it in our sys handler
+    // change the fields like in the function below for this sys call 
+    SET_IDT_ENTRY(idt[0x80], MY_ASM_MACRO(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
+                                                                            // also dk how to call set_idt_entry correctly? feel free to help-- James 
 }
 
 /*
@@ -92,10 +95,10 @@ void set_exception_params(idt_desc_t idt_array_index, int vec){
     // to call SET_IDT_ENTRY make sure we use the right macro as there are interrupts
     // that have error code and we must pop if off. refer to intel doc to what has error code
     if (vec == 8 || vec == 10 || vec == 11 || vec == 12 || vec == 13 || vec == 14 || vec == 17) {
-        SET_IDT_ENTRY(idt_array_index.struct, MY_ASM_MACRO_ERR_CODE(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
+        SET_IDT_ENTRY(idt_array_index, MY_ASM_MACRO_ERR_CODE(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
                                                                                 // also dk how to call set_idt_entry correctly? feel free to help-- James
     } else {
-        SET_IDT_ENTRY(idt_array_index.struct, MY_ASM_MACRO(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
+        SET_IDT_ENTRY(idt_array_index, MY_ASM_MACRO(t, exec_handler, vec));    // not sure if this is how you actually pass to the macro
                                                                                 // also dk how to call set_idt_entry correctly? feel free to help-- James
     }
     
