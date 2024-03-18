@@ -4,7 +4,7 @@
 
 
 #include "idt.h"
-
+#include "lib.h"
 
 // ALL OF THIS IS FOR REFERENCE
 // typedef union idt_desc_t { // MOST OF THIS WILL BE THE SAME, NAKE NOTE OF WHEN TO USE TRAP GATE VS INTERRUPT vs SYSCALL vs EXCEPTION -- DVT
@@ -40,18 +40,18 @@
 
 // handler for exceptions -- James
 void exec_handler(int vec) {
-    printf(&vec);
+    printf(vec);
     while(1){}
 }
 // handler for sys_calls -- James
 void sys_handler(int vec) {
-    printf(&vec);
+    printf(vec);
     while(1){}
 }
 // for future
 // handler for interrupt calls -- James
 void intr_handler(int vec) {
-    printf(&vec);
+    printf(vec);
     while(1){}
 }
 
