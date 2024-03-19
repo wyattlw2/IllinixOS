@@ -24,46 +24,67 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 void i8259_init(void) {
 
     
-    outb(PIC1_DATA, 0xff);
-    outb(PIC2_DATA, 0xff);
+    // outb(PIC1_DATA, 0xff);
+    // outb(PIC2_DATA, 0xff);
+
+   // outb (0xff, PIC1_DATA);
+   // outb( 0xff, PIC2_DATA);
+
+    disable_irq(1);
 
     uint8_t a1, a2;
     a1 = inb(ICW2_MASTER);
     a2 = inb(ICW2_SLAVE);
-	outb(ICW2_MASTER , ICW1 | ICW4);  // starts the initialization sequence (in cascade mode)
-	outb(ICW2_SLAVE, ICW1 | ICW4);	
-	outb(PIC1_DATA, MASTER_OFFSET);                 // ICW2: Master PIC vector offset
-	outb(PIC2_DATA, SLAVE_OFFSET);                 // ICW2: Slave PIC vector offset
-	outb(PIC1_DATA, 4);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-	outb(PIC2_DATA, 2);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
+	outb(ICW1 | ICW4, ICW2_MASTER);  // starts the initialization sequence (in cascade mode)
+	outb(ICW1 | ICW4, ICW2_SLAVE);	
+	outb(MASTER_OFFSET, PIC1_DATA);                 // ICW2: Master PIC vector offset
+	outb(SLAVE_OFFSET, PIC2_DATA);                 // ICW2: Slave PIC vector offset
+	outb(4, PIC1_DATA);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	outb(2, PIC2_DATA);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
  
-	outb(PIC1_DATA, ICW4_8086);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
-	outb(PIC2_DATA, ICW4_8086);
+	outb(ICW4_8086, PIC1_DATA);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+	outb(ICW4_8086, PIC2_DATA);
  
-	outb(ICW2_MASTER, a1);   // restore saved masks.
-	outb(ICW2_SLAVE, a2);
+	outb(a1, ICW2_MASTER);   // restore saved masks.
+	outb(a2, ICW2_SLAVE);
+
+    // outb(ICW2_MASTER , ICW1 | ICW4);  // starts the initialization sequence (in cascade mode)
+	// outb(ICW2_SLAVE, ICW1 | ICW4);	
+	// outb(PIC1_DATA, MASTER_OFFSET);                 // ICW2: Master PIC vector offset
+	// outb(PIC2_DATA, SLAVE_OFFSET);                 // ICW2: Slave PIC vector offset
+	// outb(PIC1_DATA, 4);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	// outb(PIC2_DATA, 2);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
+ 
+	// outb(PIC1_DATA, ICW4_8086);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+	// outb(PIC2_DATA, ICW4_8086);
+ 
+	// outb(ICW2_MASTER, a1);   // restore saved masks.
+	// outb(ICW2_SLAVE, a2);
+
+
 }
 
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
-    cli();
+    // cli();
     uint16_t port;
     uint8_t value;
  
     if(irq_num < 8) {
         port = PIC1_DATA;
     } else {
-        port = PIC2_DATA;
         irq_num -= 8;
+        port = PIC2_DATA;
     }
     value = inb(port) | (1 << irq_num);
-    outb(port, value);        
-    sti();
+    outb(value, port);  
+    // outb(port, value);        
+    // sti();
 }
 
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
-    cli();
+    // cli();
 	uint16_t port;
     uint8_t value;
  
@@ -74,16 +95,24 @@ void disable_irq(uint32_t irq_num) {
         irq_num -= 8;
     }
     value = inb(port) & ~(1 << irq_num);
-    outb(port, value);
-    sti();        
+    outb(value, port);
+    // outb(port, value);
+    // sti();        
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
-    cli();
-	if(irq_num >= 8)
-		outb(PIC2_COMMAND, EOI);
+    // cli();
+	if(irq_num >= 8){
+		outb(EOI | 2, PIC1_COMMAND);
+		outb(EOI | (irq_num - 8), PIC2_COMMAND);
+    }else{
+    	outb(EOI | irq_num, PIC1_COMMAND);
+    }
+
+    // if(irq_num >= 8)
+	// 	outb(PIC2_COMMAND, EOI);
  
-	outb(PIC1_COMMAND, EOI);
-    sti();
+	// outb(PIC1_COMMAND, EOI);
+    // sti();
 }

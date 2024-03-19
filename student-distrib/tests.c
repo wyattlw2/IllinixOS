@@ -49,6 +49,22 @@ int idt_test(){
 	return result;
 }
 
+
+int div_zero_test(){
+	TEST_HEADER;
+	// while(1){
+	// 	printf("\n We haven't gotten to the divide by zero part yet");
+	// }
+	//int temp = 5000/0;
+	
+	asm volatile ("int $0");
+	//int temp = 40/0;
+	// while(1){
+	// 	printf("\n THIS is after the divide by zero part");
+	// }
+	return 0;
+}
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -58,11 +74,14 @@ int idt_test(){
 
 
 /* Test suite entry point */
-void launch_tests(){
+// void launch_tests(){
 
-	// while(1){
-	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
-	// }
-	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
-}
+// 	// while(1){
+// 	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
+// 	// }
+// 	TEST_OUTPUT("idt_test", idt_test());
+
+
+// 	TEST_OUTPUT("Divide By Zero Test", div_zero_test());
+// 	// launch your tests here
+// }

@@ -6,4 +6,13 @@ Solution: Initialize GDT
 
 
 
-2. 
+2. We had an issue where the idt offset values weren't populating with anything, they were only null the whole time. The issue had to do with the way we were accessing the memory.
+We weren't using the pointer notation, but were instead using the . notation, but the way we were modifying the variables meant that this wasn't changing the value outside the scope of the function. 
+
+Solution: To fix this all we had to do was to use the pointer notation and pass in addresses to the function so that it actually modified the global values.
+
+
+
+3. Upon calling inititalize_keyboard(), bootloader would loop endlessly
+
+Solution: Keyboard interrupt vector was not correctly mapped to keyboard's ISR. Fixed mapping through the idt.c file and everything ended up fine

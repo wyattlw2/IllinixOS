@@ -9,8 +9,9 @@
 #include "debug.h"
 #include "tests.h"
 #include "idt.h"
+#include "keyboard.h"
 
-#define RUN_TESTS
+#define RUN_TESTS   
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -145,10 +146,12 @@ void entry(unsigned long magic, unsigned long addr) {
     // }
     i8259_init();
 
-
-
     initialize_idt(); // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
+
+    initialize_keyboard();  // Supposed to initialize keyboard upon boot
     
+    //int temp = 6000/0;
+
     //while(1)
     //printf("\n IDT 0 :    %d  \n", (int) idt[0].val[0]);
     // launch_tests();
@@ -165,7 +168,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    // launch_tests(); // DAVID COMMENTED THIS LINE
+    //launch_tests(); // DAVID COMMENTED THIS LINE
 #endif
     /* Execute the first program ("shell") ... */
 

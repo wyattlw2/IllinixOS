@@ -3,6 +3,7 @@
         "*.s": "c",
         "lib.h": "c",
         "x86_desc.h": "c",
-        "multiboot.h": "c"
+        "multiboot.h": "c",
+        "keyboard.h": "c"
     }
 }
