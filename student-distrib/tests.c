@@ -58,26 +58,7 @@ int exception_test(){
 	//int temp = 5000/0;
 	
 	asm volatile ("int $0");
-	//asm volatile ("int $1");
-	// asm volatile ("int $2");
-	// asm volatile ("int $3");
-	// asm volatile ("int $4");
-	// asm volatile ("int $5");
-	// asm volatile ("int $6");
-	// asm volatile ("int $7");
-	// asm volatile ("int $8");
-	// asm volatile ("int $9");
-	// asm volatile ("int $10");
-	// asm volatile ("int $11");
-	// asm volatile ("int $12");
-	// asm volatile ("int $13");
-	// asm volatile ("int $14");
-	// asm volatile ("int $15");
-	// asm volatile ("int $16");
-	// asm volatile ("int $17");
-	// asm volatile ("int $18");
-	// asm volatile ("int $19");
-	//asm volatile ("int $20");
+	
 	
 	//int temp = 40/0;
 	// while(1){
@@ -100,7 +81,7 @@ void launch_tests(){
 	// while(1){
 	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
 	// }
-	//TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("idt_test", idt_test());
 
 
 	TEST_OUTPUT("Exception Test: ", exception_test());

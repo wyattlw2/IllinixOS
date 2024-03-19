@@ -87,15 +87,15 @@ Side effects: Handles the exception/interrupt raised by the system. Upon the pro
 
 */
 void exec_handler0() {
-    // asm("pushal") ;
-    // asm("pushfl");
+    //asm volatile("pushal") ;
+    //asm volatile("pushfl");
     printf("\n EXCEPTION 0: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
-    // asm("popfl") ;
-    // asm("popal") ;
-    //asm("iret") ;
+    //asm volatile("popfl") ;
+    //asm volatile("popal") ;
+    //asm volatile("iret") ;
     
     //while(1){}
-    //asm("iret");
+    // asm volatile ("iret \n\  ");
 }
 void exec_handler1() {
     // asm("pushal") ;
