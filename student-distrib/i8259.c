@@ -31,22 +31,14 @@ void i8259_init(void) {
     a1 = inb(ICW2_MASTER);
     a2 = inb(ICW2_SLAVE);
 	outb(ICW2_MASTER , ICW1 | ICW4);  // starts the initialization sequence (in cascade mode)
-	//io_wait();
 	outb(ICW2_SLAVE, ICW1 | ICW4);	
-	//io_wait();
 	outb(PIC1_DATA, MASTER_OFFSET);                 // ICW2: Master PIC vector offset
-	//io_wait();
 	outb(PIC2_DATA, SLAVE_OFFSET);                 // ICW2: Slave PIC vector offset
-	//io_wait();
 	outb(PIC1_DATA, 4);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-	//io_wait();
 	outb(PIC2_DATA, 2);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
-	//io_wait();
  
 	outb(PIC1_DATA, ICW4_8086);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
-	//io_wait();
 	outb(PIC2_DATA, ICW4_8086);
-	//io_wait();
  
 	outb(ICW2_MASTER, a1);   // restore saved masks.
 	outb(ICW2_SLAVE, a2);
@@ -71,7 +63,7 @@ void enable_irq(uint32_t irq_num) {
 
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
-    cli()
+    cli();
 	uint16_t port;
     uint8_t value;
  
