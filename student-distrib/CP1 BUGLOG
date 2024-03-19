@@ -1,0 +1,9 @@
+CP1 BUGLOG
+
+1. Bootloader was cycling endlessly and not actually booting the kernel
+
+Solution: Initialize GDT
+
+
+
+2. 

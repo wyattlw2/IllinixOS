@@ -138,16 +138,23 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     /* Init the PIC */
+
+    // int k;
+    // for(k = 0; k < 16; k++) {
+    //     disable_irq(k);
+    // }
     i8259_init();
 
 
 
     initialize_idt(); // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
+    
     //while(1)
     //printf("\n IDT 0 :    %d  \n", (int) idt[0].val[0]);
-    launch_tests();
+    // launch_tests();
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

@@ -22,6 +22,11 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
+
+    
+    outb(PIC1_DATA, 0xff);
+    outb(PIC2_DATA, 0xff);
+
     uint8_t a1, a2;
     a1 = inb(ICW2_MASTER);
     a2 = inb(ICW2_SLAVE);
@@ -49,6 +54,7 @@ void i8259_init(void) {
 
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
+    cli();
     uint16_t port;
     uint8_t value;
  
@@ -60,10 +66,12 @@ void enable_irq(uint32_t irq_num) {
     }
     value = inb(port) | (1 << irq_num);
     outb(port, value);        
+    sti();
 }
 
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
+    cli()
 	uint16_t port;
     uint8_t value;
  
@@ -74,13 +82,16 @@ void disable_irq(uint32_t irq_num) {
         irq_num -= 8;
     }
     value = inb(port) & ~(1 << irq_num);
-    outb(port, value);        
+    outb(port, value);
+    sti();        
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
+    cli();
 	if(irq_num >= 8)
 		outb(PIC2_COMMAND, EOI);
  
 	outb(PIC1_COMMAND, EOI);
+    sti();
 }

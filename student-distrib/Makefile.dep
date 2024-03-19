@@ -4,5 +4,6 @@ i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c idt.h types.h x86_desc.h lib.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   tests.h idt.h
+keyboard.o: keyboard.c
 lib.o: lib.c lib.h types.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h
