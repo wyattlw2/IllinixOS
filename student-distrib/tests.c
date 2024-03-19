@@ -37,8 +37,12 @@ int idt_test(){
 	for (i = 0; i < 10; ++i){
 		if ((idt[i].offset_15_00 == NULL) && 
 			(idt[i].offset_31_16 == NULL)){
+			//while(1)
+			//printf("\n OFFSET1:   %d      OFFSET 2: %d  \n", (int)idt[i].offset_15_00, (int)idt[i].offset_31_16);
+			
 			assertion_failure();
 			result = FAIL;
+			
 		}
 	}
 
@@ -55,6 +59,10 @@ int idt_test(){
 
 /* Test suite entry point */
 void launch_tests(){
+
+	// while(1){
+	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
+	// }
 	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 }

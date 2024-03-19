@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "*.s": "c"
+        "*.s": "c",
+        "lib.h": "c",
+        "x86_desc.h": "c",
+        "multiboot.h": "c"
     }
 }

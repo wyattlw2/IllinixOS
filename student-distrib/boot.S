@@ -30,11 +30,14 @@ continue:
     # Load the GDT
    lgdt gdtr_struct            # DAVID made this the new var gdtr struct
 
+
+   # Load the IDT Register -- DAVID ADDED
+    lidt idt_desc_ptr
+
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
 
-    # Load the IDT Register -- DAVID ADDED
-    lidt idt_desc_ptr
+    
 
 
 
