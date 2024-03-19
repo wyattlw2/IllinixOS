@@ -7,6 +7,7 @@
 #define _I8259_H
 
 #include "types.h"
+#include "lib.h"
 
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT    0x20
@@ -15,12 +16,12 @@
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning
  * of each word */
-#define ICW1                0x11
-#define ICW2_MASTER         0x20
-#define ICW2_SLAVE          0x28
-#define ICW3_MASTER         0x04
-#define ICW3_SLAVE          0x02
-#define ICW4                0x01
+#define ICW1                0x11    // first byte written to PIC during initialization
+#define ICW2_MASTER         0x20    // offset for master PIC
+#define ICW2_SLAVE          0x28    // offset for slave PIIC
+#define ICW3_MASTER         0x04    // configures master PIC to work with slave PIC
+#define ICW3_SLAVE          0x02    
+#define ICW4                0x01   
 
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
