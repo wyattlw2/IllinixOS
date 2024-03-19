@@ -152,7 +152,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_keyboard();  // Supposed to initialize keyboard upon boot
 
-    //init_rtc();
+    init_rtc();
     
     //int temp = 6000/0;
 

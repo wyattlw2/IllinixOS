@@ -87,204 +87,204 @@ Side effects: Handles the exception/interrupt raised by the system. Upon the pro
 
 */
 void exec_handler0() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 0: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     
     //while(1){}
     //asm("iret");
 }
 void exec_handler1() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 1: A DEBUG EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler2() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 2: A NON-MASKABLE INTERRUPT EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler3() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 3: A BREAKPOINT EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler4() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 4: AN OVERFLOW EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler5() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 5: A BOUND RANGE EXCEEDED EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler6() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 6: AN INVALID OPCODE EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler7() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 7: A DEVICE NOT AVAILABLE EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler8() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 8: A DOUBLE FAULT EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler9() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 9: A SUSPICIOUS ERROR HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler10() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 10:INVALID TSS EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler11() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 11: SEGMENT NOT PRESENT EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler12() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 12: Stack Segment EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler13() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 13: General Protection Fault EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler14() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 14: Page Fault EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler15() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 15: Reserved EXCEPTION HAS OCCURED \n");
     //while(1){}
 }
 void exec_handler16() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 16: x87 Floating point EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler17() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 17: Alignment Check EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler18() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 18: Machine Check EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 void exec_handler19() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("\n EXCEPTION 19: SIMD Floating Point EXCEPTION HAS OCCURED \n");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 
 // handler for sys_calls -- James
 void sys_handler() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("THIS IS A SYSCALL HANDLE MOMENT");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 // for future
 // handler for interrupt calls -- James
 void intr_handler() {
-    asm("pushal") ;
-    asm("pushfl");
+    // asm("pushal") ;
+    // asm("pushfl");
     printf("This is an intr handler moment");
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    //asm("iret") ;
     //while(1){}
 }
 
@@ -303,8 +303,8 @@ Side effects: Handles the exception/interrupt raised by the keyboard. Upon the p
 void kb_handler() {
     // if the scancode is larger than our table, we just keep it null to not crash
 
-    asm("pushal") ;
-    asm("pushfl");
+    //asm("pushal") ;
+    //asm("pushfl");
 
      while(1){
         printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
@@ -320,21 +320,21 @@ void kb_handler() {
         putc(p);
     }
     send_eoi(1);
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
+    // asm("popfl") ;
+    // asm("popal") ;
+    // asm("iret") ;
 }
 
-void rtc_handler(){
-    asm("pushal") ;
-    asm("pushfl");
+// void rtc_handler(){
+//     asm("pushal") ;
+//     asm("pushfl");
 
 
-    send_eoi(8);
-    asm("popfl") ;
-    asm("popal") ;
-    asm("iret") ;
-}
+//     send_eoi(8);
+//     asm("popfl") ;
+//     asm("popal") ;
+//     asm("iret") ;
+// }
 
 #define         RESERVED4MASK               0x1F // kill bits 7-5
 #define         NUMBER_OF_VECTORS           256
@@ -408,21 +408,18 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     //     printf("\n We are setting up the keyboard here at idt init \n");
     // }
     // SETTING UP THE RTC FOR THE HANDLER
-    idt_array_index = &(idt[0x28]);
-    // while(1){
-    //     printf("\n We are setting up the keyboard here at idt init \n");
-    // }
-    idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
-    idt_array_index->reserved4 = 0;
-    idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
-    idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
-    idt_array_index->reserved1 = 1;
-    idt_array_index->size = 1; // Means we are in 32 bit mode
-    idt_array_index->reserved0 = 0;
+    // idt_array_index = &(idt[0x28]);
+    // idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
+    // idt_array_index->reserved4 = 0;
+    // idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
+    // idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
+    // idt_array_index->reserved1 = 1;
+    // idt_array_index->size = 1; // Means we are in 32 bit mode
+    // idt_array_index->reserved0 = 0;
     
-    idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
-    idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
-    SET_IDT_ENTRY((*idt_array_index), rtc_handler);
+    // idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
+    // idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
+    // SET_IDT_ENTRY((*idt_array_index), rtc_handler);
 }
 
 /*
