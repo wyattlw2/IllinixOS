@@ -1,7 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
-
+//#include "lib.c" 
 #define PASS 1
 #define FAIL 0
 
@@ -50,7 +50,7 @@ int idt_test(){
 }
 
 
-int div_zero_test(){
+int exception_test(){
 	TEST_HEADER;
 	// while(1){
 	// 	printf("\n We haven't gotten to the divide by zero part yet");
@@ -58,6 +58,27 @@ int div_zero_test(){
 	//int temp = 5000/0;
 	
 	asm volatile ("int $0");
+	//asm volatile ("int $1");
+	// asm volatile ("int $2");
+	// asm volatile ("int $3");
+	// asm volatile ("int $4");
+	// asm volatile ("int $5");
+	// asm volatile ("int $6");
+	// asm volatile ("int $7");
+	// asm volatile ("int $8");
+	// asm volatile ("int $9");
+	// asm volatile ("int $10");
+	// asm volatile ("int $11");
+	// asm volatile ("int $12");
+	// asm volatile ("int $13");
+	// asm volatile ("int $14");
+	// asm volatile ("int $15");
+	// asm volatile ("int $16");
+	// asm volatile ("int $17");
+	// asm volatile ("int $18");
+	// asm volatile ("int $19");
+	//asm volatile ("int $20");
+	
 	//int temp = 40/0;
 	// while(1){
 	// 	printf("\n THIS is after the divide by zero part");
@@ -74,14 +95,16 @@ int div_zero_test(){
 
 
 /* Test suite entry point */
-// void launch_tests(){
+void launch_tests(){
 
-// 	// while(1){
-// 	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
-// 	// }
-// 	TEST_OUTPUT("idt_test", idt_test());
+	// while(1){
+	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
+	// }
+	//TEST_OUTPUT("idt_test", idt_test());
 
 
-// 	TEST_OUTPUT("Divide By Zero Test", div_zero_test());
-// 	// launch your tests here
-// }
+	TEST_OUTPUT("Exception Test: ", exception_test());
+
+	//test_interrupts();
+	// launch your tests here
+}

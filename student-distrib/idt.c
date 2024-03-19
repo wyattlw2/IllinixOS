@@ -70,106 +70,245 @@ const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 'p', '\0', '\0', '\n', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', '\0'
 , '\0', '\0', '\0', '\0', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};       //WYATT ADDED
 //table_kb is needed for the keyboard ISR, which is defined in this file
+//contains the scancodes for all lowercase characters and numbers
 
 
+//FFI FOR ALL HANDLERS BELOW
+/*
+Function Handlers
+
+Description: Each of the handlers below are called whenever an exception arises.
+    Every handler corresponds to a specific exception. Some data will be printed to the
+    screen regarding the nature of the current exception.
+Inputs: None
+Outputs: None
+Side effects: Handles the exception/interrupt raised by the system. Upon the program receiving an exception/interrupt,
+    it will jump to a specific handler to deal with the exception/interrupt
+
+*/
 void exec_handler0() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 0: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
+    
     //while(1){}
+    //asm("iret");
 }
 void exec_handler1() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 1: A DEBUG EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler2() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 2: A NON-MASKABLE INTERRUPT EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler3() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 3: A BREAKPOINT EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler4() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 4: AN OVERFLOW EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler5() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 5: A BOUND RANGE EXCEEDED EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler6() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 6: AN INVALID OPCODE EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler7() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 7: A DEVICE NOT AVAILABLE EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler8() {
+    asm("pushal") ;
+    asm("pushfl");
     printf("\n EXCEPTION 8: A DOUBLE FAULT EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler9() {
-    printf("\n EXCEPTION 9: A SUSPICIOUS HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 9: A SUSPICIOUS ERROR HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler10() {
-    printf("\n EXCEPTION 10: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 10:INVALID TSS EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler11() {
-    printf("\n EXCEPTION 11: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 11: SEGMENT NOT PRESENT EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler12() {
-    printf("\n EXCEPTION 12: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 12: Stack Segment EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler13() {
-    printf("\n EXCEPTION 13: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 13: General Protection Fault EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler14() {
-    printf("\n EXCEPTION 14: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 14: Page Fault EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler15() {
-    printf("\n EXCEPTION 15: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 15: Reserved EXCEPTION HAS OCCURED \n");
     //while(1){}
 }
 void exec_handler16() {
-    printf("\n EXCEPTION 16: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 16: x87 Floating point EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler17() {
-    printf("\n EXCEPTION 17: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 17: Alignment Check EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler18() {
-    printf("\n EXCEPTION 18: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 18: Machine Check EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 void exec_handler19() {
-    printf("\n EXCEPTION 19: A DIVIDE BY ZERO EXCEPTION HAS OCCURED \n");
+    asm("pushal") ;
+    asm("pushfl");
+    printf("\n EXCEPTION 19: SIMD Floating Point EXCEPTION HAS OCCURED \n");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
     //while(1){}
 }
 
 // handler for sys_calls -- James
-void sys_handler(int vec) {
-    printf("Vector Number: ",vec);
-    while(1){}
+void sys_handler() {
+    asm("pushal") ;
+    asm("pushfl");
+    printf("THIS IS A SYSCALL HANDLE MOMENT");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
+    //while(1){}
 }
 // for future
 // handler for interrupt calls -- James
-void intr_handler(int vec) {
-    printf("Vector Number: ",vec);
-    while(1){}
+void intr_handler() {
+    asm("pushal") ;
+    asm("pushfl");
+    printf("This is an intr handler moment");
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
+    //while(1){}
 }
 
+
+
+/*
+kb_handler
+
+Description: Handles keyboard interrupts.
+    For now, this function will only take in the scancode and print the corresponding character to the screen.
+Inputs: None
+Outputs: None
+Side effects: Handles the exception/interrupt raised by the keyboard. Upon the program receiving an exception/interrupt,
+    it will jump to the keyboard handler to deal with the exception/interrupt
+*/
 void kb_handler() {
     // if the scancode is larger than our table, we just keep it null to not crash
-     //while(1){
-     //    printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
-     //}
+
+    asm("pushal") ;
+    asm("pushfl");
+
+     while(1){
+        printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
+     }
 
     unsigned char key = inb(KEYBOARD_PORT);
 
@@ -181,6 +320,20 @@ void kb_handler() {
         putc(p);
     }
     send_eoi(1);
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
+}
+
+void rtc_handler(){
+    asm("pushal") ;
+    asm("pushfl");
+
+
+    send_eoi(8);
+    asm("popfl") ;
+    asm("popal") ;
+    asm("iret") ;
 }
 
 #define         RESERVED4MASK               0x1F // kill bits 7-5
@@ -195,7 +348,7 @@ void kb_handler() {
 *   Inputs:         None
 *   Outputs:        None
 *   Side Effects:   The idt array will be set and ready to be imported into the idt table that is defined in x86_desc.S
-*
+* 
 */
 void initialize_idt(){ // need to set all 256 to something, zero everything out and then specify the ones we care about
 
@@ -237,6 +390,9 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
 
     //SETTING UP THE KEYBOARD FOR DEVICES
     idt_array_index = &(idt[0x21]);
+    // while(1){
+    //     printf("\n We are setting up the keyboard here at idt init \n");
+    // }
     idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
     idt_array_index->reserved4 = 0;
     idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
@@ -248,6 +404,25 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
     SET_IDT_ENTRY((*idt_array_index), kb_handler);
+    // while(1){
+    //     printf("\n We are setting up the keyboard here at idt init \n");
+    // }
+    // SETTING UP THE RTC FOR THE HANDLER
+    idt_array_index = &(idt[0x28]);
+    // while(1){
+    //     printf("\n We are setting up the keyboard here at idt init \n");
+    // }
+    idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
+    idt_array_index->reserved4 = 0;
+    idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
+    idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
+    idt_array_index->reserved1 = 1;
+    idt_array_index->size = 1; // Means we are in 32 bit mode
+    idt_array_index->reserved0 = 0;
+    
+    idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
+    idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
+    SET_IDT_ENTRY((*idt_array_index), rtc_handler);
 }
 
 /*

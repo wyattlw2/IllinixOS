@@ -16,3 +16,15 @@ Solution: To fix this all we had to do was to use the pointer notation and pass 
 3. Upon calling inititalize_keyboard(), bootloader would loop endlessly
 
 Solution: Keyboard interrupt vector was not correctly mapped to keyboard's ISR. Fixed mapping through the idt.c file and everything ended up fine
+
+
+
+4. We set the segment selector to the wrong value in the idt. This caused the any interrupt to make the system boot loop.
+
+Solution: Set it to the correct value: KERNEL_CS.
+
+
+
+5. Exception always occurs upon executing cli()
+
+Solution: Unsolved

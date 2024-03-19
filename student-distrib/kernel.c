@@ -10,8 +10,9 @@
 #include "tests.h"
 #include "idt.h"
 #include "keyboard.h"
+#include "rtc.h"
 
-#define RUN_TESTS   
+#define RUN_TESTS   1
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -144,11 +145,14 @@ void entry(unsigned long magic, unsigned long addr) {
     // for(k = 0; k < 16; k++) {
     //     disable_irq(k);
     // }
+
     i8259_init();
 
     initialize_idt(); // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
 
-    initialize_keyboard();  // Supposed to initialize keyboard upon boot
+    init_keyboard();  // Supposed to initialize keyboard upon boot
+
+    //init_rtc();
     
     //int temp = 6000/0;
 
@@ -163,13 +167,15 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
 
-#ifdef RUN_TESTS
+
+   // printf("\nEnabling Interrupts\n");
+    //sti();
+    //while(1){}
+//#ifdef RUN1_TESTS
     /* Run tests */
-    //launch_tests(); // DAVID COMMENTED THIS LINE
-#endif
+    launch_tests(); // DAVID COMMENTED THIS LINE
+//#endif
     /* Execute the first program ("shell") ... */
 
     /* Spin (nicely, so we don't chew up cycles) */

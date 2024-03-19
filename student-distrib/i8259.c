@@ -20,6 +20,17 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 #define ICW4_8086	0x01		/* 8086/88 (MCS-80/85) mode */
 
+
+
+
+/*
+i8259_init()
+
+Description: Initializes the PIC chip. Necessary for keyboard and RTC to work properly.
+Inputs: None
+Outputs: None
+Side effects: Masks PIC and sends the required ICWs such that the PIC is initialized and ready to use with devices.
+*/
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
 
@@ -27,10 +38,8 @@ void i8259_init(void) {
     // outb(PIC1_DATA, 0xff);
     // outb(PIC2_DATA, 0xff);
 
-   // outb (0xff, PIC1_DATA);
-   // outb( 0xff, PIC2_DATA);
-
-    disable_irq(1);
+   
+    //disable_irq(1);
 
     uint8_t a1, a2;
     a1 = inb(ICW2_MASTER);
@@ -48,6 +57,9 @@ void i8259_init(void) {
 	outb(a1, ICW2_MASTER);   // restore saved masks.
 	outb(a2, ICW2_SLAVE);
 
+    outb (0xff, PIC1_DATA);
+   outb( 0xff, PIC2_DATA);
+
     // outb(ICW2_MASTER , ICW1 | ICW4);  // starts the initialization sequence (in cascade mode)
 	// outb(ICW2_SLAVE, ICW1 | ICW4);	
 	// outb(PIC1_DATA, MASTER_OFFSET);                 // ICW2: Master PIC vector offset
@@ -64,6 +76,16 @@ void i8259_init(void) {
 
 }
 
+
+
+/*
+enable_irq
+
+Description: Unmasks an IRQ line corresponding to the inputted IRQ number.
+Inputs: irq_num
+Outputs: None
+Side effects: Unmasks IRQ line corresponding to irq_num
+*/
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
     // cli();
@@ -82,6 +104,15 @@ void enable_irq(uint32_t irq_num) {
     // sti();
 }
 
+
+/*
+disable_irq
+
+Description: Masks the IRQ line corresponding to the inputted irq number
+Inputs: irq_num
+Outputs: None
+Side effects: Masks the IRQ line corresponding to irq_num
+*/
 /* Disable (mask) the specified IRQ */
 void disable_irq(uint32_t irq_num) {
     // cli();
@@ -100,6 +131,15 @@ void disable_irq(uint32_t irq_num) {
     // sti();        
 }
 
+
+/*
+send_eoi()
+
+Description: Sends an EOI to the corresponding IRQ line to signify the ISR for that specific interrupt has finished
+Inputs: irq_num
+Outputs: None
+Side effects: Sends an EOI to the corresponding IRQ line (based on irq_num) to signify the ISR for that specific interrupt has finished
+*/
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
     // cli();

@@ -1,11 +1,11 @@
 //keyboard is IRQ1
 
 #include "lib.h"
-#include "i8259.h"'
+#include "i8259.h"
 #include "types.h"
-#define     KEYBOARD_PORT       0x60;
-#define     PIC_MASTER          0X21;
-#define     IRQ1                0x01;
+#define     KEYBOARD_PORT       0x60
+#define     PIC_MASTER          0X21
+#define     IRQ1                0x01
 // lookup table that only does numbers and letters
 // for scancodes other than 
 const char table[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
@@ -13,7 +13,17 @@ const char table[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 'p', '\0', '\0', '\n', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', '\0'
 , '\0', '\0', '\0', '\0', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};
 
-void initialize_keyboard(){
+
+/*
+init keyboard
+
+Description: This function enables the irq line for the keyboard, effectively initializing it.
+Inputs: None
+Outputs: None
+Side effects: Keyboard is initialized
+
+*/
+void init_keyboard(){
     //  Enable PIC Mask x01
     enable_irq(1);
     // uint32_t mask = inb(PIC_MASTER);        // read current value
@@ -27,3 +37,4 @@ void initialize_keyboard(){
 // make an interrupt specifically for the keyboard
 //do the classic int $21 or whatever to go into the keyboard handler
 //How to know where to put int $21 or whatever
+
