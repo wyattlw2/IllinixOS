@@ -58,8 +58,10 @@ int exception_test(){
 	//int temp = 5000/0;
 	
 	asm volatile ("int $0");
-	
-	
+	printf("SOMETHING BAD HERE\n");
+	asm volatile ("int $3");
+	printf("SOMETHING BAD ALSO HERE\n");
+
 	//int temp = 40/0;
 	// while(1){
 	// 	printf("\n THIS is after the divide by zero part");

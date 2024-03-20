@@ -35,10 +35,13 @@ Side effects: Masks PIC and sends the required ICWs such that the PIC is initial
 void i8259_init(void) {
 
     
-    // outb(PIC1_DATA, 0xff);
-    // outb(PIC2_DATA, 0xff);
+    //outb(PIC1_DATA, 0xff);
+    //outb(PIC2_DATA, 0xff);
 
-   
+    int i;
+    for(i = 0; i < 16; i++) {
+        disable_irq(1);
+    }
     //disable_irq(1);
 
     uint8_t a1, a2;
@@ -57,8 +60,8 @@ void i8259_init(void) {
 	outb(a1, ICW2_MASTER);   // restore saved masks.
 	outb(a2, ICW2_SLAVE);
 
-    outb (0xff, PIC1_DATA);
-   outb( 0xff, PIC2_DATA);
+//     outb (0xff, PIC1_DATA);
+//    outb( 0xff, PIC2_DATA);
 
     // outb(ICW2_MASTER , ICW1 | ICW4);  // starts the initialization sequence (in cascade mode)
 	// outb(ICW2_SLAVE, ICW1 | ICW4);	

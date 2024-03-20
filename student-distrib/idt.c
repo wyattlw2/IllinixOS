@@ -1,5 +1,6 @@
 #include "idt.h"
 #include "i8259.h"
+#include "asm_macro.h"  //Wyatt added
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 
 //#include "assem_link.S"
@@ -23,26 +24,26 @@
 // ^^^^ THIS IS JUST FOR REFERENCE
 
 
-extern void de(void);
-extern void db(void);
-extern void nmi(void);
-extern void bp(void);
-extern void of(void);
-extern void br(void);
-extern void ud(void);
-extern void nm(void);
-extern void df(void);
-extern void cso(void);
-extern void ts(void);
-extern void np(void);
-extern void ss(void);
-extern void gp(void);
-extern void pf(void);
-extern void mf(void);
-extern void ac(void);
-extern void mc(void);
-extern void xf(void);
-extern void sys_call(void);
+// extern void de(void);
+// extern void db(void);
+// extern void nmi(void);
+// extern void bp(void);
+// extern void of(void);
+// extern void br(void);
+// extern void ud(void);
+// extern void nm(void);
+// extern void df(void);
+// extern void cso(void);
+// extern void ts(void);
+// extern void np(void);
+// extern void ss(void);
+// extern void gp(void);
+// extern void pf(void);
+// extern void mf(void);
+// extern void ac(void);
+// extern void mc(void);
+// extern void xf(void);
+// extern void sys_call(void);
 
 
 
@@ -385,7 +386,7 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     
     idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
-    SET_IDT_ENTRY((*idt_array_index), sys_handler);
+    SET_IDT_ENTRY((*idt_array_index), sys_call);
 
 
     //SETTING UP THE KEYBOARD FOR DEVICES
@@ -403,7 +404,7 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     
     idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
-    SET_IDT_ENTRY((*idt_array_index), kb_handler);
+    SET_IDT_ENTRY((*idt_array_index), keyboard_call);
     // while(1){
     //     printf("\n We are setting up the keyboard here at idt init \n");
     // }
@@ -445,64 +446,64 @@ void set_exception_params(idt_desc_t * idt_array_index, int vec){
     // that have error code and we must pop if off. refer to intel doc to what has error code
     switch(vec) {
     case 0:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler0);
+        SET_IDT_ENTRY((*idt_array_index), de);
         break;
     case 1:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler1);
+        SET_IDT_ENTRY((*idt_array_index), db);
         break;
     case 2:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler2);
+        SET_IDT_ENTRY((*idt_array_index), nmi);
         break;
     case 3:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler3);
+        SET_IDT_ENTRY((*idt_array_index), bp);
         break;
     case 4:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler4);
+        SET_IDT_ENTRY((*idt_array_index), of);
         break;
     case 5:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler5);
+        SET_IDT_ENTRY((*idt_array_index), br);
         break;
     case 6:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler6);
+        SET_IDT_ENTRY((*idt_array_index), ud);
         break;
     case 7:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler7);
+        SET_IDT_ENTRY((*idt_array_index), nm);
         break;
     case 8:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler8);
+        SET_IDT_ENTRY((*idt_array_index), df);
         break;
     case 9:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler9);
+        SET_IDT_ENTRY((*idt_array_index), cso);
         break;
     case 10:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler10);
+        SET_IDT_ENTRY((*idt_array_index), ts);
         break;
     case 11:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler11);
+        SET_IDT_ENTRY((*idt_array_index), np);
         break;
     case 12:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler12);
+        SET_IDT_ENTRY((*idt_array_index), ss);
         break;
     case 13:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler13);
+        SET_IDT_ENTRY((*idt_array_index), gp);
         break;
     case 14:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler14);
+        SET_IDT_ENTRY((*idt_array_index), pf);
         break;
     case 15:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler15);
+        SET_IDT_ENTRY((*idt_array_index), mf);
         break;
     case 16:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler16);
+        SET_IDT_ENTRY((*idt_array_index), mf);
         break;
     case 17:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler17);
+        SET_IDT_ENTRY((*idt_array_index), ac);
         break;
     case 18:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler18);
+        SET_IDT_ENTRY((*idt_array_index), mc);
         break;
     case 19:
-        SET_IDT_ENTRY((*idt_array_index), exec_handler19);
+        SET_IDT_ENTRY((*idt_array_index), xf);
         break;
     default:
         // Nothing here for default case
