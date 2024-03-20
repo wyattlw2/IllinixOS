@@ -21,7 +21,7 @@
         pushfl ;\
         pushl $vector ;\
         call handler ;\
-        addl $8, %esp ;\
+        addl $4, %esp ;\
         popfl ;\
         popal ;\
         iret ;\

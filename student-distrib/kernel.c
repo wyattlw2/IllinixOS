@@ -148,13 +148,17 @@ void entry(unsigned long magic, unsigned long addr) {
 
     cli();
 
+    
+
     i8259_init();
 
-    initialize_idt(); // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
+
+    initialize_idt();
+     // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
 
     init_keyboard();  // Supposed to initialize keyboard upon boot
 
-    init_rtc();
+    //init_rtc();
 
     sti();
     
@@ -181,7 +185,7 @@ void entry(unsigned long magic, unsigned long addr) {
     //launch_tests(); // DAVID COMMENTED THIS LINE
 //#endif
     /* Execute the first program ("shell") ... */
-    printf("fuck yeah\n");
+    //printf("fuck yeah\n");
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 

@@ -35,20 +35,23 @@ Side effects: Masks PIC and sends the required ICWs such that the PIC is initial
 void i8259_init(void) {
 
     
-    //outb(PIC1_DATA, 0xff);
-    //outb(PIC2_DATA, 0xff);
+    // outb(PIC1_DATA, 0xff);
+    // outb(PIC2_DATA, 0xff);
 
-    int i;
-    for(i = 0; i < 16; i++) {
-        disable_irq(1);
-    }
+    // int i;
+    // for(i = 0; i < 16; i++) {
+    //     disable_irq(1);
+    // }
     //disable_irq(1);
 
-    uint8_t a1, a2;
-    a1 = inb(ICW2_MASTER);
-    a2 = inb(ICW2_SLAVE);
-	outb(ICW1 | ICW4, ICW2_MASTER);  // starts the initialization sequence (in cascade mode)
-	outb(ICW1 | ICW4, ICW2_SLAVE);	
+
+
+
+    // uint8_t a1, a2;
+    // a1 = inb(PIC1);
+    // a2 = inb(PIC2);
+	outb(ICW1, PIC1_COMMAND);  // starts the initialization sequence (in cascade mode)
+	outb(ICW1, PIC2_COMMAND);	
 	outb(MASTER_OFFSET, PIC1_DATA);                 // ICW2: Master PIC vector offset
 	outb(SLAVE_OFFSET, PIC2_DATA);                 // ICW2: Slave PIC vector offset
 	outb(4, PIC1_DATA);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
@@ -57,8 +60,11 @@ void i8259_init(void) {
 	outb(ICW4_8086, PIC1_DATA);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
 	outb(ICW4_8086, PIC2_DATA);
  
-	outb(a1, ICW2_MASTER);   // restore saved masks.
-	outb(a2, ICW2_SLAVE);
+	// outb(a1, PIC1_DATA);   // restore saved masks.
+	// outb(a2, PIC2_DATA);
+
+    outb (0xff, PIC1_DATA); // MAYBE SHOULDNT BE MASKING IRQ 2 for secondary pic 
+    outb( 0xff, PIC2_DATA);
 
 //     outb (0xff, PIC1_DATA);
 //    outb( 0xff, PIC2_DATA);
