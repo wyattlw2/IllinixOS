@@ -37,6 +37,18 @@
  }
 
 
+void init_rtc_DAVID_ATTEMPT(){
+
+
+    outb(0x8B, 0x70);		// select register B, and disable NMI
+    char prev = inb(0x71);	// read the current value of register B
+    outb(0x8B, 0x70);		// set the index again (a read will reset the index to register D)
+    outb(prev | 0x40, 0x71);
+
+    outb(0x70, 0x0C);	// select register C
+    inb(0x71);		// just throw away contents
+}
+
 
 
 

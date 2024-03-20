@@ -86,7 +86,7 @@ void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 
 
-	TEST_OUTPUT("Exception Test: ", exception_test());
+	// TEST_OUTPUT("Exception Test: ", exception_test());
 
 	//test_interrupts();
 	// launch your tests here

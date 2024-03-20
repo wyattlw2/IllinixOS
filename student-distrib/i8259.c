@@ -52,13 +52,13 @@ void i8259_init(void) {
     // a2 = inb(PIC2);
 	outb(ICW1, PIC1_COMMAND);  // starts the initialization sequence (in cascade mode)
 	outb(ICW1, PIC2_COMMAND);	
-	outb(MASTER_OFFSET, PIC1_DATA);                 // ICW2: Master PIC vector offset
-	outb(SLAVE_OFFSET, PIC2_DATA);                 // ICW2: Slave PIC vector offset
-	outb(4, PIC1_DATA);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-	outb(2, PIC2_DATA);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
+	outb(ICW2_MASTER, PIC1_DATA);                 // ICW2: Master PIC vector offset
+	outb(ICW2_SLAVE, PIC2_DATA);                 // ICW2: Slave PIC vector offset
+	outb(ICW3_MASTER, PIC1_DATA);                       // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+	outb(ICW3_SLAVE, PIC2_DATA);                       // ICW3: tell Slave PIC its cascade identity (0000 0010)
  
-	outb(ICW4_8086, PIC1_DATA);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
-	outb(ICW4_8086, PIC2_DATA);
+	outb(ICW4, PIC1_DATA);               // ICW4: have the PICs use 8086 mode (and not 8080 mode)
+	outb(ICW4, PIC2_DATA);
  
 	// outb(a1, PIC1_DATA);   // restore saved masks.
 	// outb(a2, PIC2_DATA);
@@ -107,7 +107,7 @@ void enable_irq(uint32_t irq_num) {
         irq_num -= 8;
         port = PIC2_DATA;
     }
-    value = inb(port) | (1 << irq_num);
+    value = inb(port) & ~(1 << irq_num);
     outb(value, port);  
     // outb(port, value);        
     // sti();
@@ -134,7 +134,7 @@ void disable_irq(uint32_t irq_num) {
         port = PIC2_DATA;
         irq_num -= 8;
     }
-    value = inb(port) & ~(1 << irq_num);
+    value = inb(port) | (1 << irq_num);
     outb(value, port);
     // outb(port, value);
     // sti();        

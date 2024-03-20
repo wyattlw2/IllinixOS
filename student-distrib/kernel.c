@@ -158,10 +158,13 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_keyboard();  // Supposed to initialize keyboard upon boot
 
-    //init_rtc();
+    init_rtc();
 
     sti();
     
+
+    //while(1){}
+
     //int temp = 6000/0;
 
     //while(1)
@@ -187,6 +190,12 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Execute the first program ("shell") ... */
     //printf("fuck yeah\n");
     /* Spin (nicely, so we don't chew up cycles) */
+
+
+
+    test_interrupts();
+
+
     asm volatile (".1: hlt; jmp .1;");
 
 

@@ -307,9 +307,9 @@ void kb_handler() {
     //asm("pushal") ;
     //asm("pushfl");
 
-     while(1){
-        printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
-     }
+    //  while(1){
+    //     printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
+    //  }
 
     unsigned char key = inb(KEYBOARD_PORT);
 
@@ -378,7 +378,7 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     idt_desc_t * idt_array_index = &(idt[0x80]);
     idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
     idt_array_index->reserved4 = 0;
-    idt_array_index->reserved3 = 1; // 0 corresponds to interrupt, 1 is trap
+    idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
     idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
     idt_array_index->reserved1 = 1;
     idt_array_index->size = 1; // Means we are in 32 bit mode
