@@ -161,6 +161,12 @@ void entry(unsigned long magic, unsigned long addr) {
     //printf("Initializing Paging \n");
     sti();
     
+    // int * nullptr = NULL;
+    // int temp = *(nullptr);
+
+    // int * videoMem = (int *)0xB8;
+    // int temp = *(videoMem);
+    // printf("\n %d \n", temp);
 
     //while(1){}
 
@@ -195,7 +201,7 @@ void entry(unsigned long magic, unsigned long addr) {
     //test_interrupts();
 
 
-    //asm volatile (".1: hlt; jmp .1;");
+    asm volatile (".1: hlt; jmp .1;");
 
 
 
