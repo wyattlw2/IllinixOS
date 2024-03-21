@@ -1,7 +1,10 @@
 #include "idt.h"
 #include "i8259.h"
 #include "asm_macro.h"  //Wyatt added
+#include "lib.h"    // needed for rtc test apparently?
+
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
+#define     RTC_PORT            0x71
 
 //#include "assem_link.S"
 // ALL OF THIS IS FOR REFERENCE
@@ -326,16 +329,13 @@ void kb_handler() {
     // asm("iret") ;
 }
 
-// void rtc_handler(){
-//     asm("pushal") ;
-//     asm("pushfl");
-
-
-//     send_eoi(8);
-//     asm("popfl") ;
-//     asm("popal") ;
-//     asm("iret") ;
-// }
+void rtc_handler(){
+    //test_interrupts();
+    clear();
+    outb(0x0C, 0x70);	 //select register C
+    inb(0x71);		 //just throw away contents
+    send_eoi(8);
+}
 
 #define         RESERVED4MASK               0x1F // kill bits 7-5
 #define         NUMBER_OF_VECTORS           256
@@ -408,19 +408,19 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     // while(1){
     //     printf("\n We are setting up the keyboard here at idt init \n");
     // }
-    // SETTING UP THE RTC FOR THE HANDLER
-    // idt_array_index = &(idt[0x28]);
-    // idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
-    // idt_array_index->reserved4 = 0;
-    // idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
-    // idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
-    // idt_array_index->reserved1 = 1;
-    // idt_array_index->size = 1; // Means we are in 32 bit mode
-    // idt_array_index->reserved0 = 0;
+    //SETTING UP THE RTC FOR THE HANDLER
+    idt_array_index = &(idt[0x28]);
+    idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
+    idt_array_index->reserved4 = 0;
+    idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
+    idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
+    idt_array_index->reserved1 = 1;
+    idt_array_index->size = 1; // Means we are in 32 bit mode
+    idt_array_index->reserved0 = 0;
     
-    // idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
-    // idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
-    // SET_IDT_ENTRY((*idt_array_index), rtc_handler);
+    idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
+    idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
+    SET_IDT_ENTRY((*idt_array_index), rtc_call);
 }
 
 /*

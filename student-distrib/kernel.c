@@ -148,10 +148,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     cli();
 
-    
-
     i8259_init();
-
 
     initialize_idt();
      // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
@@ -193,10 +190,10 @@ void entry(unsigned long magic, unsigned long addr) {
 
 
 
-    test_interrupts();
+    //test_interrupts();
 
 
-    asm volatile (".1: hlt; jmp .1;");
+    //asm volatile (".1: hlt; jmp .1;");
 
 
 

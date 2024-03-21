@@ -24,6 +24,7 @@ void xf();
 void exec_c19();
 void sys_call();
 void keyboard_call();
+void rtc_call();
 #endif
 
 #endif /* ASM_FUNCTIONS_H */

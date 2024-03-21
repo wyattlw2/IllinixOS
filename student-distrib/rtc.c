@@ -21,19 +21,20 @@
      outb(prev | 0x40, 0x71);	 //write the previous value ORed with 0x40. This turns on bit 6 of register B
      //sti();  //enable interrupts
 
-     //changing interrupt rates
-     unsigned int rate = 6;  
-     rate &= 0x0F;            //rate must be above 2 and not over 15
-     //cli();
-     outb(0x8A, 0x70);		 //set index to register A, disable NMI
-     prev = inb(0x71);	 //get initial value of register A
-     outb(0x8A, 0x70);		 //reset index to A
-     outb((prev & 0xF0) | rate, 0x71); //write only our rate to A. Note, rate is the bottom 4 bits.
-     //sti();
+    
+    //  //changing interrupt rates
+    //  unsigned int rate = 6;  
+    //  rate &= 0x0F;            //rate must be above 2 and not over 15
+    //  //cli();
+    //  outb(0x8A, 0x70);		 //set index to register A, disable NMI
+    //  prev = inb(0x71);	 //get initial value of register A
+    //  outb(0x8A, 0x70);		 //reset index to A
+    //  outb((prev & 0xF0) | rate, 0x71); //write only our rate to A. Note, rate is the bottom 4 bits.
+    //  //sti();
 
       //must read register C so interrupt can happen again
-     outb(0x0C, 0x70);	 //select register C
-     inb(0x71);		 //just throw away contents
+     //outb(0x0C, 0x70);	 //select register C
+     //inb(0x71);		 //just throw away contents
  }
 
 
