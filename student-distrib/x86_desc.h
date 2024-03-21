@@ -170,6 +170,9 @@ extern idt_desc_t idt[NUM_VEC];                     //ACCORDING TO THE TA, THIS 
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
 
+// extern uint32_t page_directory[1024] __attribute__((aligned(4096)));
+// extern uint32_t first_page_table[1024] __attribute__((aligned(4096)));
+
 /* Sets runtime parameters for an IDT entry */
 #define SET_IDT_ENTRY(str, handler)                              \
 do {                                                             \

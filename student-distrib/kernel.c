@@ -11,7 +11,7 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "rtc.h"
-
+#include "paging.h"
 #define RUN_TESTS   1
 
 /* Macros. */
@@ -157,6 +157,8 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_rtc();
 
+    paging_init();
+    //printf("Initializing Paging \n");
     sti();
     
 

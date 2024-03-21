@@ -15,6 +15,8 @@
 
 .align 4
 
+
+
 gdtr_struct:                # DAVID made a struct that defines both the size and the starting addr of gdt
     .word gdt_bottom - gdt - 1
     .long gdt # gdt or gdt_ptr
