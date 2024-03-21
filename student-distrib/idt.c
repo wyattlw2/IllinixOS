@@ -70,14 +70,33 @@
 // }
 
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-, '0', '-', '=', 'BACKSPACE', 'TAB', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
+, '0', '-', '=', '\0', 'TAB', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
 'p', '[', ']', 'ENTER', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'
-, '\'', '`', 'left shift', '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
-'right_shift','\0', 'left alt', 'space', 'capslock'};       //WYATT ADDED
-//table_kb is needed for the keyboard ISR, which is defined in this file
-//contains the scancodes for all lowercase characters and numbers
+, '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
+'\0','\0', '\0', ' ', '\0','\0', '\0', '!', '@', '#', '$', '%', '^', '&', '*', '('
+, ')', '_', '+', '\0', 'TAB', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O',
+'P', '{', '}', 'ENTER', '\0', 'A', 'S', 'D', 'F', 'G', 'H' , 'J', 'K' ,'L', ':'
+, '"', '~', '\0', '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?'}; 
+/*
+kb_handler
 
+Description: Handles keyboard interrupts.
+    For now, this function will only take in the scancode and print the corresponding character to the screen.
+Inputs: None
+Outputs: None
+Side effects: Handles the exception/interrupt raised by the keyboard. Upon the program receiving an exception/interrupt,
+    it will jump to the keyboard handler to deal with the exception/interrupt
+*/
+void kb_handler() {
 
+    unsigned char key = inb(KEYBOARD_PORT);
+
+    if(key < 0x33){
+        char p = table_kb[key];
+        putc(p);
+    }
+    send_eoi(1);
+}
 //FFI FOR ALL HANDLERS BELOW
 /*
 Function Handlers
@@ -294,41 +313,6 @@ void intr_handler() {
 }
 
 
-
-/*
-kb_handler
-
-Description: Handles keyboard interrupts.
-    For now, this function will only take in the scancode and print the corresponding character to the screen.
-Inputs: None
-Outputs: None
-Side effects: Handles the exception/interrupt raised by the keyboard. Upon the program receiving an exception/interrupt,
-    it will jump to the keyboard handler to deal with the exception/interrupt
-*/
-void kb_handler() {
-    // if the scancode is larger than our table, we just keep it null to not crash
-
-    //asm("pushal") ;
-    //asm("pushfl");
-
-    //  while(1){
-    //     printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
-    //  }
-
-    unsigned char key = inb(KEYBOARD_PORT);
-
-    // if (key > 0x33) {
-    //     key = 0x00;
-    // }
-    if(key < 0x33){
-        char p = table_kb[key];
-        putc(p);
-    }
-    send_eoi(1);
-    // asm("popfl") ;
-    // asm("popal") ;
-    // asm("iret") ;
-}
 
 void rtc_handler(){
     //test_interrupts();
