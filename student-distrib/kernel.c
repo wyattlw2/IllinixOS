@@ -157,7 +157,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_rtc();
 
-    paging_init();
+    //paging_init();
     //printf("Initializing Paging \n");
     sti();
     
