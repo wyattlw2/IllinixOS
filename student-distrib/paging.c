@@ -9,9 +9,8 @@
 void paging_init()  {
     // PSE (page size extensions) flag bit 4 of CR4
     // PAE (physical address extension) flag bit 5 of CR4
-    paging_dir_t page_directory[1024] __attribute__((aligned(4096)));
-    paging_table_t first_page_table[1024] __attribute__((aligned(4096)));   // CONTAINS PAGE FOR VIDEO MEMORY AT INDEX 0
-
+    uint32_t page_directory[1024] __attribute__((aligned(4096)));
+    //set each entry to not present
     int i;
     for(i = 0; i < 1024; i++)
     {
@@ -19,38 +18,23 @@ void paging_init()  {
         //   Supervisor: Only kernel-mode can access them
         //   Write Enabled: It can be both read from and written to
         //   Not Present: The page table is not present
-        page_directory[i].rw = 1;
+        page_directory[i] = 0x00000002;
     }
-    for(i = 0; i < 1024; i++)
+    // holds the physical address where we want to start mapping these pages to.
+    // in this case, we want to map these pages to the very beginning of memory.
+    unsigned int j;
+
+    uint32_t first_page_table[1024] __attribute__((aligned(4096)));
+    
+    //we will fill all 1024 entries in the table, mapping 4 megabytes
+    for(j = 0; j < 1024; j++)
     {
         // As the address is page aligned, it will always leave 12 bits zeroed.
         // Those bits are used by the attributes ;)
-        //first_page_table[i] = (uint32_t)(i * 0x1000) | 3; // attributes: supervisor level, read/write, present. // initializing the offset value with read and write high as well
-
-        first_page_table[i].p_base_addr = i;
-        first_page_table[i].us = 1; //supervisor level
-        first_page_table[i].rw = 1;
-        first_page_table[i].p = 1;
+        first_page_table[j] = (j * 0x1000) | 3; // attributes: supervisor level, read/write, present.
     }
-    page_directory[0].pt_base_addr = ((uint32_t)first_page_table);
-    page_directory[0].ps = 0; //First page directory -- first page table is vmem
-    page_directory[0].us = 1; // first page directory should be supervisor
-    page_directory[0].p = 1;
-    
 
-
-    first_page_table[0].us = 1; // supervisor
-    //first_page_table[0].p_base_addr = VIDEO;
-    //first_page_table[0] 
-
-    //page directory 1 is going to be 
-    page_directory[1].ps = 1; // for the kernel memory, 4MB
-    page_directory[1].us = 1; // supervisor only for kernel
-    //page_directory[1].pt_base_addr = 0;
-    page_directory[1].p = 1;
-
-
-
+    page_directory[0] = ((unsigned int)first_page_table) | 3;
     
 
     //we will fill all 1024 entries in the table, mapping 4 megabytes
@@ -69,7 +53,6 @@ asm volatile("                  \n\
             movl 8(%esp), %eax   \n\
             movl %eax, %cr3      \n\
                                 ");
-            return;
 }
 
 void enableExtendedPageSize(){
@@ -86,5 +69,4 @@ void enablePaging(){
     orl $0x80000000, %eax    \n\
     movl %eax, %cr0          \n\
                ");
-    return;
 }

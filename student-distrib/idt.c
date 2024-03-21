@@ -70,9 +70,10 @@
 // }
 
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-, '0', '\0', '\0', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
-'p', '\0', '\0', '\n', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', '\0'
-, '\0', '\0', '\0', '\0', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};       //WYATT ADDED
+, '0', '-', '=', 'BACKSPACE', 'TAB', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
+'p', '[', ']', 'ENTER', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'
+, '\'', '`', 'left shift', '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
+'right_shift','\0', 'left alt', 'space', 'capslock'};       //WYATT ADDED
 //table_kb is needed for the keyboard ISR, which is defined in this file
 //contains the scancodes for all lowercase characters and numbers
 
