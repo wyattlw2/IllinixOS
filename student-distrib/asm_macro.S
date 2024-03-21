@@ -48,5 +48,5 @@ MY_ASM_MACRO(mc, exec_handler18, 18);
 MY_ASM_MACRO(xf, exec_handler19, 19);
 // 20 is reserved
 MY_ASM_MACRO(sys_call, sys_handler, 0x80);
-MY_ASM_MACRO(keyboard_call, kb_handler, 0x21);  //handlers keyboard interrupts
+MY_ASM_MACRO(keyboard_call, kb_handler, 0x21);  //handles keyboard interrupts
 MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts

@@ -7,10 +7,11 @@
  void init_rtc(void){ //as154
      // initializing the RTC
     enable_irq(8);
+
      // set registers for RTC
      //cli();  //clear interrupts
-     outb(0x8A, 0x70);	 //select Status Register A, and disable NMI (by setting the 0x80 bit)
-     outb(0x20, 0x71);	 //write to CMOS/RTC RAM got it
+     //outb(0x8A, 0x70);	 //select Status Register A, and disable NMI (by setting the 0x80 bit)
+     //outb(0x20, 0x71);	 //write to CMOS/RTC RAM got it
      //sti();		 //enable interrupts
 
       //turn on irq8

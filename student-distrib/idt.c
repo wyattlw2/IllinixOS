@@ -330,10 +330,10 @@ void kb_handler() {
 }
 
 void rtc_handler(){
-    //test_interrupts();
-    clear();
+    test_interrupts();
     outb(0x0C, 0x70);	 //select register C
     inb(0x71);		 //just throw away contents
+    //clear();
     send_eoi(8);
 }
 

@@ -65,6 +65,7 @@ void i8259_init(void) {
 
     outb (0xff, PIC1_DATA); // MAYBE SHOULDNT BE MASKING IRQ 2 for secondary pic 
     outb( 0xff, PIC2_DATA);
+    enable_irq(2);
 
 //     outb (0xff, PIC1_DATA);
 //    outb( 0xff, PIC2_DATA);
@@ -153,7 +154,7 @@ Side effects: Sends an EOI to the corresponding IRQ line (based on irq_num) to s
 void send_eoi(uint32_t irq_num) {
     // cli();
 	if(irq_num >= 8){
-		outb(EOI | 2, PIC1_COMMAND);
+		outb(EOI | 2, PIC1_COMMAND);               
 		outb(EOI | (irq_num - 8), PIC2_COMMAND);
     }else{
     	outb(EOI | irq_num, PIC1_COMMAND);
