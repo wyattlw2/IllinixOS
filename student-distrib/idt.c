@@ -362,7 +362,7 @@ int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and 
     outb((prev & 0xF0) | rate, 0x71); //write only our rate to A. Note, rate is the bottom 4 bits.
     
     prev = inb(0x70) & 0x7F; //Enable NMI by setting 0x80 bit
-    outb(prev,0x70) //Enable NMI
+    outb(prev,0x70); //Enable NMI
     sti(); //Enable all other interrupts
 
     
