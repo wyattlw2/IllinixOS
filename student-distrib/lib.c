@@ -6,7 +6,9 @@
 #define VIDEO       0xB8000
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0x7
+#define ATTRIB      0xA                 //Wyatt - i made a private piazza post asking about miscallaneous mp3 features. this line changes character color.
+                                        //TA on piazza told me that base mp3 doesn't support VGA Mode X. said that adding Mode X is something that students have done for extra credit.
+                                        //look up https://wiki.osdev.org/Text_UI for more information about how the mp3 OS displays characters on-screen
 
 static int screen_x;
 static int screen_y;
