@@ -159,6 +159,8 @@ void entry(unsigned long magic, unsigned long addr) {
 
     paging_init();
     //printf("Initializing Paging \n");
+    file_system_init();
+    
     sti();
     
     launch_tests();

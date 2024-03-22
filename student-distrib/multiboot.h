@@ -43,14 +43,14 @@ typedef struct multiboot_info {
     uint32_t boot_device;
     uint32_t cmdline;
     uint32_t mods_count;
-    uint32_t mods_addr;
+    uint32_t mods_addr; // POINTS TO THE MODULE STRUCT
     elf_section_header_table_t elf_sec;
     uint32_t mmap_length;
     uint32_t mmap_addr;
 } multiboot_info_t;
 
 typedef struct module {
-    uint32_t mod_start;
+    uint32_t mod_start; // THIS POINTS TO FILE SYSTEM ADDR
     uint32_t mod_end;
     uint32_t string;
     uint32_t reserved;

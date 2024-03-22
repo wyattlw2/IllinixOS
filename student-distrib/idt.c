@@ -273,8 +273,10 @@ void exec_handler19() {
 
 // handler for sys_calls -- James
 void sys_handler() {
-    // asm("pushal") ;
-    // asm("pushfl");
+    
+    //There is a switch statement here for all 10 syscalls for the file system
+    //eax is going to have 
+
     printf("THIS IS A SYSCALL HANDLE MOMENT");
     // asm("popfl") ;
     // asm("popal") ;
