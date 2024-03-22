@@ -13,7 +13,7 @@ typedef struct dir_entries_struct {
     char file_name[32]; //Allocating 32 bytes for file Name //might need to be uint32
     uint32_t  file_type;
     uint32_t  inode_number;
-    char reserved[24];  //made this char, but idk
+    uint8_t reserved[24];  //made this uint8 because 1 byte, but idk
 
 } dir_entries_struct;
 
@@ -21,7 +21,7 @@ typedef struct boot_struct {
     uint32_t number_of_dir_entries; //Allocating 32 bytes for file Name //might need to be uint32
     uint32_t number_of_inodes;
     uint32_t number_of_data_blocks;
-    char reserved[52];  //made this char, but idk
+    uint8_t reserved[52];  //made this char, but idk
     dir_entries_struct dir_entries;
 
 } boot_struct;
