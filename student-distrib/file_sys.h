@@ -31,3 +31,8 @@ typedef struct boot_struct {
     //I see we need to do read/write, but i thought syscalls was cp 3
     //it looks like the inode is variable length, how do I initialize that struct
     // Where are the data blocks going to be stored
+
+    //MOD ADDRESS IS GOING TO CORRESPOND TO THE BOOT BLOCK
+
+    //How does the boot block go at the 0th inode, but
+    // inode struct as well???
