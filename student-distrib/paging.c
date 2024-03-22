@@ -9,7 +9,12 @@
 
 paging_dir_entry_t page_directory[1024] __attribute__((aligned(4096)));
 paging_table_t first_page_table[1024] __attribute__((aligned(4096)));   // CONTAINS PAGE FOR VIDEO MEMORY AT INDEX 0
-
+/*  THis function Initializes paging. it's really cool you should check it out. It initializes the kernel memory and video memory
+*   Inputs: None
+    Outputs: none
+*   Side Effects:
+*   It also modifies CR0, CR4, and CR3 to initialize paging and allow for extended
+*/
 void paging_init()  {
     // PSE (page size extensions) flag bit 4 of CR4
     // PAE (physical address extension) flag bit 5 of CR4

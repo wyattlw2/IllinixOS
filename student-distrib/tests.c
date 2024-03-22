@@ -11,11 +11,11 @@
 #define TEST_OUTPUT(name, result)	\
 	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
 
-static inline void assertion_failure(){
-	/* Use exception #15 for assertions, otherwise
-	   reserved by Intel */
-	asm volatile("int $15");
-}
+// static inline void assertion_failure(){
+// 	/* Use exception #15 for assertions, otherwise
+// 	   reserved by Intel */
+// 	asm volatile("int $15");
+// }
 
 
 /* Checkpoint 1 tests */
@@ -29,45 +29,44 @@ static inline void assertion_failure(){
  * Coverage: Load IDT, IDT definition
  * Files: x86_desc.h/S
  */
-int idt_test(){
-	TEST_HEADER;
-
+void idt_test(){
 	int i;
-	int result = PASS;
 	for (i = 0; i < 10; ++i){
 		if ((idt[i].offset_15_00 == NULL) && 
 			(idt[i].offset_31_16 == NULL)){
 			//while(1)
 			//printf("\n OFFSET1:   %d      OFFSET 2: %d  \n", (int)idt[i].offset_15_00, (int)idt[i].offset_31_16);
-			
-			assertion_failure();
-			result = FAIL;
-			
+			printf("\n IDT Test Failed \n");
+			return;
 		}
 	}
-
-	return result;
+	printf("\n IDT Test Failed \n");
+	return;
+}
+//EXCEPTION ZERO TEST: Divide By Zero -- Will cause an exception 0
+void div_by_zero_test(){
+	int i = 1;
+	int j = 0;
+	int k = i/j;
+	k++;
+}
+// Page Fault Test: will cause an exception 14
+void page_fault_test(){
+	int * pointer = (int *) 0x00000001;
+	int temp = *pointer;
+	temp++;
+}
+void video_mem_test(){
+	int * pointer = (int *) 0xB8001;
+	int temp = *pointer;
+	temp++;
+	printf("\n The Video Memory Check Passed \n");
 }
 
-
-int exception_test(){
-	TEST_HEADER;
-	// while(1){
-	// 	printf("\n We haven't gotten to the divide by zero part yet");
-	// }
-	//int temp = 5000/0;
-	
-	asm volatile ("int $5");
-	//printf("SOMETHING BAD HERE\n");
-	//asm volatile ("int $3");
-	//printf("SOMETHING BAD ALSO HERE\n");
-
-	//int temp = 40/0;
-	// while(1){
-	// 	printf("\n THIS is after the divide by zero part");
-	// }
-	return 0;
+void rtc_test_checkpoint_1(){
+	// HAVE TO PUT test_interrupts() function inside the rtc driver
 }
+
 
 // add more tests here
 
@@ -79,15 +78,10 @@ int exception_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-
-	// while(1){
-	// 	printf("\n WE ARE LAUNCHING THE TEST  \n");
-	// }
-	//TEST_OUTPUT("idt_test", idt_test());
-
-
-	// TEST_OUTPUT("Exception Test: ", exception_test());
-
-	//test_interrupts();
-	// launch your tests here
+	//idt_test();
+	//div_by_zero_test();
+	//page_fault_test();
+	//video_mem_test();
+	rtc_test_checkpoint_1();
+	
 }

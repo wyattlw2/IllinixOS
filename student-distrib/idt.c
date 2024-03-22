@@ -99,7 +99,7 @@ void exec_handler0() {
     //asm volatile("popal") ;
     //asm volatile("iret") ;
     
-    //while(1){}
+    while(1){}
     // asm volatile ("iret \n\  ");
 }
 void exec_handler1() {
@@ -109,7 +109,7 @@ void exec_handler1() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler2() {
     // asm("pushal") ;
@@ -118,7 +118,7 @@ void exec_handler2() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler3() {
     // asm("pushal") ;
@@ -127,7 +127,7 @@ void exec_handler3() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler4() {
     // asm("pushal") ;
@@ -136,7 +136,7 @@ void exec_handler4() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler5() {
     // asm("pushal") ;
@@ -145,7 +145,7 @@ void exec_handler5() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler6() {
     // asm("pushal") ;
@@ -154,7 +154,7 @@ void exec_handler6() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler7() {
     // asm("pushal") ;
@@ -163,7 +163,7 @@ void exec_handler7() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler8() {
     // asm("pushal") ;
@@ -172,7 +172,7 @@ void exec_handler8() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler9() {
     // asm("pushal") ;
@@ -181,7 +181,7 @@ void exec_handler9() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler10() {
     // asm("pushal") ;
@@ -190,7 +190,7 @@ void exec_handler10() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler11() {
     // asm("pushal") ;
@@ -199,7 +199,7 @@ void exec_handler11() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler12() {
     // asm("pushal") ;
@@ -208,7 +208,7 @@ void exec_handler12() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler13() {
     // asm("pushal") ;
@@ -217,7 +217,7 @@ void exec_handler13() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler14() {
     // asm("pushal") ;
@@ -226,13 +226,13 @@ void exec_handler14() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler15() {
     // asm("pushal") ;
     // asm("pushfl");
     printf("\n EXCEPTION 15: Reserved EXCEPTION HAS OCCURED \n");
-    //while(1){}
+    while(1){}
 }
 void exec_handler16() {
     // asm("pushal") ;
@@ -241,7 +241,7 @@ void exec_handler16() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler17() {
     // asm("pushal") ;
@@ -250,7 +250,7 @@ void exec_handler17() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler18() {
     // asm("pushal") ;
@@ -259,7 +259,7 @@ void exec_handler18() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 void exec_handler19() {
     // asm("pushal") ;
@@ -268,7 +268,7 @@ void exec_handler19() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 
 // handler for sys_calls -- James
@@ -279,7 +279,7 @@ void sys_handler() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 // for future
 // handler for interrupt calls -- James
@@ -290,7 +290,7 @@ void intr_handler() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    //while(1){}
+    while(1){}
 }
 
 
@@ -333,7 +333,7 @@ void kb_handler() {
 void rtc_handler(){
     //cli();
     rtc_int += 1;
-    //test_interrupts();
+    // test_interrupts();
     outb(0x0C, 0x70);	 //select register C
     inb(0x71);		 //just throw away contents
     //clear();

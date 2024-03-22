@@ -157,48 +157,11 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_rtc();
 
-    //paging_init();
+    paging_init();
     //printf("Initializing Paging \n");
     sti();
     
-    // int * nullptr = NULL;
-    // int temp = *(nullptr);
-
-    // int * videoMem = (int *)0xB8;
-    // int temp = *(videoMem);
-    // printf("\n %d \n", temp);
-
-    //while(1){}
-
-    //int temp = 6000/0;
-
-    //while(1)
-    //printf("\n IDT 0 :    %d  \n", (int) idt[0].val[0]);
-    // launch_tests();
-    /* Initialize devices, memory, filesystem, enable device interrupts on the
-     * PIC, any other initialization stuff... */
-
-
-    /* Enable interrupts */
-    /* Do not enable the following until after you have set up your
-     * IDT correctly otherwise QEMU will triple fault and simple close
-     * without showing you any output */
-
-
-   // printf("\nEnabling Interrupts\n");
-    //sti();
-    //while(1){}
-//#ifdef RUN1_TESTS
-    /* Run tests */
-    //launch_tests(); // DAVID COMMENTED THIS LINE
-//#endif
-    /* Execute the first program ("shell") ... */
-    //printf("fuck yeah\n");
-    /* Spin (nicely, so we don't chew up cycles) */
-
-
-
-    //test_interrupts();
+    launch_tests();
 
 
     asm volatile (".1: hlt; jmp .1;");
