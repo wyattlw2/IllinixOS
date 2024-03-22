@@ -16,8 +16,8 @@
 
 int t_open();
 int t_close();
-int32_t t_read(int32 t fd, void* buf, int32 t nbytes);
-int32_t t_write(int32 t fd, const void* buf, int32 t nbytes);
+int32_t t_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t t_write(int32_t fd, const void* buf, int32_t nbytes);
 
 // stores everything the person types
 // need to handle buffer overflow and when under 128

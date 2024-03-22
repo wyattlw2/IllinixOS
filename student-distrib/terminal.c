@@ -15,6 +15,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     return nbytes;
 }
 
-int32_t t_write(int32 t_fd, const void* buf, int32_t nbytes) {
+int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     // return 0 if successful or 1 otherwise
+    return 0;
 }

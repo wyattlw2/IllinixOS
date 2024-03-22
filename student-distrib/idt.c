@@ -68,15 +68,76 @@
 //         asm(iret) ;
 
 // }
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
+	outb(0x0A , 0x3D4);
+	outb((inb(0x3D5) & 0xC0) | cursor_start, 0x3D5);
+ 
+	outb(0x0B, 0x3D4);
+	outb((inb(0x3D5) & 0xE0) | cursor_end, 0x3D5);
+}
 
+void disable_cursor() {
+	outb(0x0A, 0x3D4);
+	outb(0x20, 0x3D5);
+}
+
+void update_cursor(int x, int y) {
+    if (x < 0 && y != 0) { // when at 0, and go up
+        uint16_t pos = (y-1) * 80 + 79;
+        update_xy(79, y-1);
+        outb(0x0F, 0x3D4);
+        outb((uint8_t) (pos & 0xFF), 0x3D5);
+        outb(0x0E, 0x3D4);
+        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);        
+    } else if (x == 79  && y != 15) {
+        uint16_t pos = (y) * 80 + 79;
+        update_xy(79, y);
+        outb(0x0F, 0x3D4);
+        outb((uint8_t) (pos & 0xFF), 0x3D5);
+        outb(0x0E, 0x3D4);
+        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5); 
+    } else if (x > 79  && y != 15) { // when filling in a line we go to the next line
+        putc('\n');
+        uint16_t pos = (y+1) * 80 + 0;
+        update_xy(0, y+1);
+        outb(0x0F, 0x3D4);
+        outb((uint8_t) (pos & 0xFF), 0x3D5);
+        outb(0x0E, 0x3D4);
+        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);      
+    } else if (x != 0 && y != 0) { // x and y are between its bounds
+        uint16_t pos = y * 80 + x;
+        update_xy(x, y);
+        outb(0x0F, 0x3D4);
+        outb((uint8_t) (pos & 0xFF), 0x3D5);
+        outb(0x0E, 0x3D4);
+        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+    } else { // when x is 0
+        uint16_t pos = y * 80 + 0;
+        update_xy(0, y);
+        outb(0x0F, 0x3D4);
+        outb((uint8_t) (pos & 0xFF), 0x3D5);
+        outb(0x0E, 0x3D4);
+        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5); 
+    }
+}
+
+uint16_t get_cursor_position(void) {
+    uint16_t pos = 0;
+    outb(0x0F, 0x3D4);
+    pos |= inb(0x3D5);
+    outb(0x0E, 0x3D4);
+    pos |= ((uint16_t)inb(0x3D5)) << 8;
+    return pos;
+}
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-, '0', '-', '=', '\0', 'TAB', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
-'p', '[', ']', 'ENTER', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'
-, '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',
-'\0','\0', '\0', ' ', '\0','\0', '\0', '!', '@', '#', '$', '%', '^', '&', '*', '('
-, ')', '_', '+', '\0', 'TAB', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O',
-'P', '{', '}', 'ENTER', '\0', 'A', 'S', 'D', 'F', 'G', 'H' , 'J', 'K' ,'L', ':'
+, '0', '-', '=', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
+'p', '[', ']', '\0', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'
+, '\'', '`', '\0', '\0', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/','\0', '\0',
+'!', '@', '#', '$', '%', '^', '&', '*', '(' 
+, ')', '_', '+', '\0', '\0', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O',
+'P', '{', '}', '\0', '\0', 'A', 'S', 'D', 'F', 'G', 'H' , 'J', 'K' ,'L', ':'
 , '"', '~', '\0', '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?'}; 
+
 /*
 kb_handler
 
@@ -87,13 +148,124 @@ Outputs: None
 Side effects: Handles the exception/interrupt raised by the keyboard. Upon the program receiving an exception/interrupt,
     it will jump to the keyboard handler to deal with the exception/interrupt
 */
+int shift = 0;
+int cap = 0;
+int ctrl = 0;
+
+uint16_t x;
+uint16_t y;
+
 void kb_handler() {
 
     unsigned char key = inb(KEYBOARD_PORT);
 
-    if(key < 0x33){
-        char p = table_kb[key];
-        putc(p);
+    // if tab is pressed
+    if (key == 0x0F) {
+        putc(' ');
+        putc(' ');
+        putc(' ');
+        putc(' ');
+    }
+    // if space is pressed
+    if (key == 0x39) {
+        putc(' ');
+    }
+
+    // // if enter is pressed
+    if (key == 0x1C) {
+        putc('\n');
+        send_eoi(1);
+        return;
+    }
+
+    // if backspace is pressed
+    if (key == 0x0E) {
+        uint16_t pos = get_cursor_position();
+        x = pos % 80;
+        y = pos / 80;
+        update_cursor(x-1, y);
+        // update_xy(x-2, y);
+        // putc(' ');
+        send_eoi(1);
+        return;
+    }
+
+    // if LEFT or RIGHT ctrl pressed
+    if (key == 0x1D) {
+        ctrl = 1;
+        send_eoi(1);
+        return;
+    // if LEFT or RIGHT ctrl released
+    } else if (key == 0x9D) {
+        ctrl = 0;
+        send_eoi(1);
+        return;
+    }
+
+    // if right or left shift is pressed
+    if (key == 0x36 || key == 0x2A) {
+        shift = 1;
+        send_eoi(1);
+        return;
+    // right or left shift is released
+    } else if (key == 0xAA || key == 0xB6) {  
+        shift = 0;
+        send_eoi(1);
+        return;
+    }
+    // pressing caps lock
+    if (key == 0x3A) {
+        cap = !cap;
+        send_eoi(1);
+        return;
+    }
+
+    // caps open and pressing shift
+    if (cap && shift) {
+        if (key <= 0x37) {
+            char p = table_kb[key];
+            // check that it's a printable character
+            if (p != '\0') {
+                // check if it's a number/symbol   
+                if (p == '1' || p == '2' || p == '3' || p == '4' || p == '5' || p == '6' || p == '7'
+                 || p == '8' || p == '9' || p == '0' || p == '-' || p == '=' || p == '[' || p == ']' || p == '\\'
+                 || p == ';' || p == '\'' || p == ',' || p == '.' || p == '/') {
+                    p = table_kb[key + 54];
+                }
+                putc(p);
+            }
+        }   
+    // words all capped, symbols are normal
+    } else if (cap) {
+        if (key <= 0x37) {
+            char p = table_kb[key];
+            // check that it's a printable character
+            if (p != '\0') {
+                // check if it's a number/symbol   
+                if (!(p == '1' || p == '2' || p == '3' || p == '4' || p == '5' || p == '6' || p == '7'
+                 || p == '8' || p == '9' || p == '0' || p == '-' || p == '=' || p == '[' || p == ']' || p == '\\'
+                 || p == ';' || p == '\'' || p == ',' || p == '.' || p == '/')) {
+                    p = table_kb[key + 54];
+                }
+                putc(p);
+            }
+        }       
+    // words all capped, symbols are diff
+    } else if (shift) {
+        if (key <= 0x37) {
+            char p = table_kb[key + 54];
+            if (p != '\0') {
+                putc(p);   
+            }
+        }
+    // normal behav
+    } else {
+        if (key <= 0x37) {
+            char p = table_kb[key];
+            if (p != '\0') {
+                putc(p);  
+            }
+        }
     }
     send_eoi(1);
 }

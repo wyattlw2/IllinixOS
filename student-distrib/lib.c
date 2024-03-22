@@ -163,6 +163,11 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+void update_xy(uint16_t x, uint16_t y) {
+    screen_x = x;
+    screen_y = y;
+}
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
@@ -178,6 +183,7 @@ void putc(uint8_t c) {
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

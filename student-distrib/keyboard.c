@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "types.h"
+#include "idt.h"
 #define     KEYBOARD_PORT       0x60
 #define     PIC_MASTER          0X21
 #define     IRQ1                0x01
@@ -24,6 +25,8 @@ Side effects: Keyboard is initialized
 
 */
 void init_keyboard(){
+    clear();
+    enable_cursor(0, 15);
     //  Enable PIC Mask x01
     enable_irq(1);
     // uint32_t mask = inb(PIC_MASTER);        // read current value

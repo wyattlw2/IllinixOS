@@ -157,7 +157,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     init_rtc();
 
-    paging_init();
+    //paging_init();
     //printf("Initializing Paging \n");
     sti();
     
@@ -187,7 +187,6 @@ void entry(unsigned long magic, unsigned long addr) {
     //launch_tests(); // DAVID COMMENTED THIS LINE
 //#endif
     /* Execute the first program ("shell") ... */
-    //printf("fuck yeah\n");
     /* Spin (nicely, so we don't chew up cycles) */
 
 
@@ -197,7 +196,4 @@ void entry(unsigned long magic, unsigned long addr) {
 
     //asm volatile (".1: hlt; jmp .1;");
 
-
-
-    printf("fuck yeah 222\n");
 }
