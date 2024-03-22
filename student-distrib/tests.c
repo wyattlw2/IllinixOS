@@ -1,9 +1,11 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "rtc.h" //Included for rtc_test
 //#include "lib.c" 
 #define PASS 1
 #define FAIL 0
+
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -71,6 +73,42 @@ void rtc_test_checkpoint_1(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+void rtc_test(){
+	//init_rtc(); // init_rtc() is already called prior to launch_tests()
+	rtc_open(0); //Frequency is set to 2 Hz
+	int j;
+	// for(j = 0; j < 4; j++) {
+	// 	rtc_read(0,(void*)0,0);
+	// }
+
+	//printf("Before For loop");
+	clear();
+
+	int i;
+	for(i = 1; i <= 1024; i *= 2){
+		//int freq = 2^i;
+		printf("Frequency: %d", i);
+		// for(j = 0; j < 4; j++)
+		// 	rtc_read(0,(void*)0,0);
+		//printf("Waiting");
+		rtc_write(0,(void*)i,4);
+		//printf("Written");
+		for(j = 0; j < 4*i; j++)
+			rtc_read(0,(void*)0,0);
+		//printf("More Waiting");
+		clear();
+		// for(j = 0; j < 10; j++)
+		// 	rtc_read(0,(void*)0,0);
+	}
+
+	rtc_open(0);
+	rtc_close(0);
+	clear();
+	printf("\n The RTC Check Passed \n");
+	//disable_irq(8);
+	return;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -82,6 +120,6 @@ void launch_tests(){
 	//div_by_zero_test();
 	//page_fault_test();
 	//video_mem_test();
-	rtc_test_checkpoint_1();
-	
+	//rtc_test_checkpoint_1();
+	rtc_test();
 }
