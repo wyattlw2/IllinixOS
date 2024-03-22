@@ -7,6 +7,10 @@
 
 #include "types.h"
 #include "idt.h"
+
+extern int user_y;
+extern int first;
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);

@@ -12,6 +12,9 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+int user_y;
+int first = 1;
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -173,7 +176,56 @@ void update_xy(uint16_t x, uint16_t y) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
-    if(c == '\n' || c == '\r') {
+
+    if (first) {
+        user_y = screen_y;
+        first = 0;
+    }
+
+    if ((c == '\n' || c == '\r') && screen_y < 24) { // handling enter
+        screen_y++;
+        screen_x = 0;
+    }  else if ((screen_x == 79 && screen_y==24) || (c == '\n' && screen_y == 24)) { // want to move current row to last row
+        int i;
+        int j;
+        for (i = 0; i < NUM_ROWS - 1; i++) {
+            screen_x = 0;
+            screen_y = i;
+            for (j = 0; j < NUM_COLS; j++) {
+                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1));
+                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1);
+                screen_x++;
+                screen_x %= NUM_COLS;
+                screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+            }
+            // make a new line with the new c
+            // clear it first
+            screen_x = 0;
+            screen_y = 24;
+            for (j = 0; j < NUM_COLS; j++) {
+                *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = " ";
+                *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+                screen_x++;
+                screen_x %= NUM_COLS;
+                screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
+            }
+            // if not enter, we want to print the new c
+            screen_x = 0;
+            screen_y = 24;
+            if (c != '\n') {
+                *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+                *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+                screen_x++;
+                screen_x %= NUM_COLS;
+                screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+            }
+        }
+    } else if (screen_x == 79) { // move to next row
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+        screen_x %= NUM_COLS;
+        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
         screen_y++;
         screen_x = 0;
     } else {
@@ -181,7 +233,7 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
     }
     update_cursor(screen_x, screen_y);
 }

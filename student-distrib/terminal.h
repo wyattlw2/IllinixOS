@@ -13,6 +13,7 @@
 #define _TERMINAL_H
 
 #include "types.h"
+#include "lib.h"
 
 int t_open();
 int t_close();
@@ -23,10 +24,11 @@ int32_t t_write(int32_t fd, const void* buf, int32_t nbytes);
 // need to handle buffer overflow and when under 128
 // remember that one character is used to create a new line so
 //      we be wary of writing over 127 characters, we just ignore those characters
-unsigned char kb_buff[128];
+extern char* kb_buff;
+extern int kb_idx;
 
 // buf copies from kb_buff and is used to write to the screen
-unsigned char buf[128];
+extern char* buf;
 
 // kb_handler needs to handle cases where we go over the width of a line and it writes on the
 // next line and deleting one line can go back to the previous line

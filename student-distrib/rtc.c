@@ -1,8 +1,4 @@
 #include "rtc.h"
-#include "types.h"
-#include "lib.h"
-#include "types.h"
-#include "i8259.h"
 
  void init_rtc(void){ //as154
      // initializing the RTC

@@ -1,11 +1,11 @@
 #include "idt.h"
-#include "i8259.h"
-#include "asm_macro.h"  //Wyatt added
-#include "lib.h"    // needed for rtc test apparently?
 
+#define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     RTC_PORT            0x71
-
+#define NUM_COLS    80
+#define NUM_ROWS    25
+static char* video_mem = (char *)VIDEO;
 //#include "assem_link.S"
 // ALL OF THIS IS FOR REFERENCE
 // typedef union idt_desc_t { // MOST OF THIS WILL BE THE SAME, NAKE NOTE OF WHEN TO USE TRAP GATE VS INTERRUPT vs SYSCALL vs EXCEPTION -- DVT
@@ -68,67 +68,7 @@
 //         asm(iret) ;
 
 // }
-void enable_cursor(uint8_t cursor_start, uint8_t cursor_end) {
-	outb(0x0A , 0x3D4);
-	outb((inb(0x3D5) & 0xC0) | cursor_start, 0x3D5);
- 
-	outb(0x0B, 0x3D4);
-	outb((inb(0x3D5) & 0xE0) | cursor_end, 0x3D5);
-}
 
-void disable_cursor() {
-	outb(0x0A, 0x3D4);
-	outb(0x20, 0x3D5);
-}
-
-void update_cursor(int x, int y) {
-    if (x < 0 && y != 0) { // when at 0, and go up
-        uint16_t pos = (y-1) * 80 + 79;
-        update_xy(79, y-1);
-        outb(0x0F, 0x3D4);
-        outb((uint8_t) (pos & 0xFF), 0x3D5);
-        outb(0x0E, 0x3D4);
-        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);        
-    } else if (x == 79  && y != 15) {
-        uint16_t pos = (y) * 80 + 79;
-        update_xy(79, y);
-        outb(0x0F, 0x3D4);
-        outb((uint8_t) (pos & 0xFF), 0x3D5);
-        outb(0x0E, 0x3D4);
-        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5); 
-    } else if (x > 79  && y != 15) { // when filling in a line we go to the next line
-        putc('\n');
-        uint16_t pos = (y+1) * 80 + 0;
-        update_xy(0, y+1);
-        outb(0x0F, 0x3D4);
-        outb((uint8_t) (pos & 0xFF), 0x3D5);
-        outb(0x0E, 0x3D4);
-        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);      
-    } else if (x != 0 && y != 0) { // x and y are between its bounds
-        uint16_t pos = y * 80 + x;
-        update_xy(x, y);
-        outb(0x0F, 0x3D4);
-        outb((uint8_t) (pos & 0xFF), 0x3D5);
-        outb(0x0E, 0x3D4);
-        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
-    } else { // when x is 0
-        uint16_t pos = y * 80 + 0;
-        update_xy(0, y);
-        outb(0x0F, 0x3D4);
-        outb((uint8_t) (pos & 0xFF), 0x3D5);
-        outb(0x0E, 0x3D4);
-        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5); 
-    }
-}
-
-uint16_t get_cursor_position(void) {
-    uint16_t pos = 0;
-    outb(0x0F, 0x3D4);
-    pos |= inb(0x3D5);
-    outb(0x0E, 0x3D4);
-    pos |= ((uint16_t)inb(0x3D5)) << 8;
-    return pos;
-}
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 , '0', '-', '=', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
 'p', '[', ']', '\0', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'
@@ -165,17 +105,26 @@ void kb_handler() {
         putc(' ');
         putc(' ');
         putc(' ');
+        if (kb_idx != 127) {
+            kb_buff[kb_idx] = ' ';
+            kb_idx++;
+            kb_buff[kb_idx] = ' ';
+            kb_idx++;
+            kb_buff[kb_idx] = ' ';
+            kb_idx++;
+            kb_buff[kb_idx] = ' ';
+            kb_idx++;
+        }
+        send_eoi(1);
+        return;
     }
     // if space is pressed
     if (key == 0x39) {
         putc(' ');
-    }
-
-    // // if enter is pressed
-    if (key == 0x1C) {
-        putc('\n');
-        send_eoi(1);
-        return;
+        if (kb_idx != 127) {
+            kb_buff[kb_idx] = ' ';
+            kb_idx++;
+        }
     }
 
     // if backspace is pressed
@@ -183,9 +132,47 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % 80;
         y = pos / 80;
-        update_cursor(x-1, y);
-        // update_xy(x-2, y);
-        // putc(' ');
+        if (x == 0 && y == 0) {
+            send_eoi(1);
+            return;
+        } else if (x == 0 && y != 0) {
+            update_xy(79, y-1);
+            putc(' ');
+            if (y-1 != user_y) {
+                update_xy(79, y-1);
+                update_cursor(79, y-1);
+            }
+        } else {
+            update_xy(x-1, y);
+            putc(' ');
+            update_xy(x-1, y);
+            update_cursor(x-1, y);
+        }
+        if (kb_idx != 0) {
+            kb_idx--;
+            kb_buff[kb_idx] = ' ';
+        }
+        send_eoi(1);
+        return;
+    }
+
+    // if enter is pressed
+    if (key == 0x1C) {
+        int i;
+        int j;
+        uint16_t pos = get_cursor_position();
+        x = pos % 80;
+        y = pos / 80;
+        if (x != 0) {
+            putc('\n');
+        }
+
+        first = 1;
+
+
+        t_read(0, kb_buff, (kb_idx + 1));
+        t_write(0, buf, (kb_idx + 1));
+
         send_eoi(1);
         return;
     }
@@ -220,6 +207,14 @@ void kb_handler() {
         return;
     }
 
+    if (ctrl && key == 0x26) {
+        clear();
+        update_xy(0, 0);
+        update_cursor(0, 0);
+        send_eoi(1);
+        return;
+    }
+
     // caps open and pressing shift
     if (cap && shift) {
         if (key <= 0x37) {
@@ -232,6 +227,12 @@ void kb_handler() {
                  || p == ';' || p == '\'' || p == ',' || p == '.' || p == '/') {
                     p = table_kb[key + 54];
                 }
+
+                if (kb_idx != 127) {
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                }
+
                 putc(p);
             }
         }   
@@ -247,6 +248,12 @@ void kb_handler() {
                  || p == ';' || p == '\'' || p == ',' || p == '.' || p == '/')) {
                     p = table_kb[key + 54];
                 }
+
+                if (kb_idx != 127) {
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                }
+
                 putc(p);
             }
         }       
@@ -256,6 +263,10 @@ void kb_handler() {
             char p = table_kb[key + 54];
             if (p != '\0') {
                 putc(p);   
+                if (kb_idx != 127) {
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                }
             }
         }
     // normal behav
@@ -264,6 +275,10 @@ void kb_handler() {
             char p = table_kb[key];
             if (p != '\0') {
                 putc(p);  
+                if (kb_idx != 127) {
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                }
             }
         }
     }
