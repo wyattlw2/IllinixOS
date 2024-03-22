@@ -12,6 +12,8 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "paging.h"
+#include "file_sys_driver.h"
+
 #define RUN_TESTS   1
 
 /* Macros. */
@@ -21,6 +23,8 @@
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
+
+    
 
     multiboot_info_t *mbi;
 
@@ -55,6 +59,10 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+
+        //GETTING BOOTBLOCK ADDR
+        get_bootblock_address((unsigned long)mod->mod_start);
+
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -163,8 +171,8 @@ void entry(unsigned long magic, unsigned long addr) {
     
     sti();
     
-    launch_tests();
-
+    //launch_tests();
+    print_number_of_inodes();
 
     asm volatile (".1: hlt; jmp .1;");
 

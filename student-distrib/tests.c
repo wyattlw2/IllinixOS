@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+//#include "file_sys_driver.h"
 //#include "lib.c" 
 #define PASS 1
 #define FAIL 0
@@ -68,6 +69,11 @@ void rtc_test_checkpoint_1(){
 }
 
 
+// void print_number_of_inodes(){
+// 	printf("This is the number of inodes: %d" , (int) booting_info_block->number_of_inodes);
+// }
+
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -82,6 +88,6 @@ void launch_tests(){
 	//div_by_zero_test();
 	//page_fault_test();
 	//video_mem_test();
-	rtc_test_checkpoint_1();
-	
+	//rtc_test_checkpoint_1();
+	//print_number_of_inodes(); // THIS DOESN't work here
 }

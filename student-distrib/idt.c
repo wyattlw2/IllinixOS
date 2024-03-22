@@ -3,6 +3,8 @@
 #include "asm_macro.h"  //Wyatt added
 #include "lib.h"    // needed for rtc test apparently?
 #include "rtc.h" // Aadhesh added for rtc_read
+#include "file_sys_driver.h"
+
 
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     RTC_PORT            0x71
@@ -276,6 +278,35 @@ void sys_handler() {
     
     //There is a switch statement here for all 10 syscalls for the file system
     //eax is going to have 
+
+    // switch(variable){ // What does this variable need to be 
+    //     case(0):
+    //         int open_status = file_open(ARGUMENT);
+    //         if(open_status == -1){
+    //             printf(" \n There was an error opening the file");
+    //         }
+    //         break;
+    //     case(1):
+    //         int close_status = file_close(ARGUMENT);
+    //         if(close_status == -1){
+    //             printf(" \n There was an closing the file");
+    //         }
+    //         break;
+    //     case(2):
+    //         int read_status = file_read(ARGUMENT);
+    //         if(read_status == -1){
+    //             printf(" \n There was an reading the file");
+    //         }
+    //         break;
+    //     case(3):
+    //         int write_status = file_write(ARGUMENT);
+    //         if(write_status == -1){
+    //             printf(" \n There was an writing the file\n");
+    //         }
+    //         break;
+    // }
+
+
 
     printf("THIS IS A SYSCALL HANDLE MOMENT");
     // asm("popfl") ;
