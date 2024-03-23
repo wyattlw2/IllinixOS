@@ -3,8 +3,6 @@
 #include "asm_macro.h"  //Wyatt added
 #include "lib.h"    // needed for rtc test apparently?
 #include "rtc.h" // Aadhesh added for rtc_read
-#include "file_sys_driver.h"
-
 
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     RTC_PORT            0x71
@@ -279,35 +277,6 @@ void sys_handler() {
     //There is a switch statement here for all 10 syscalls for the file system
     //eax is going to have 
 
-    // switch(variable){ // What does this variable need to be 
-    //     case(0):
-    //         int open_status = file_open(ARGUMENT);
-    //         if(open_status == -1){
-    //             printf(" \n There was an error opening the file");
-    //         }
-    //         break;
-    //     case(1):
-    //         int close_status = file_close(ARGUMENT);
-    //         if(close_status == -1){
-    //             printf(" \n There was an closing the file");
-    //         }
-    //         break;
-    //     case(2):
-    //         int read_status = file_read(ARGUMENT);
-    //         if(read_status == -1){
-    //             printf(" \n There was an reading the file");
-    //         }
-    //         break;
-    //     case(3):
-    //         int write_status = file_write(ARGUMENT);
-    //         if(write_status == -1){
-    //             printf(" \n There was an writing the file\n");
-    //         }
-    //         break;
-    // }
-
-
-
     printf("THIS IS A SYSCALL HANDLE MOMENT");
     // asm("popfl") ;
     // asm("popal") ;
@@ -363,68 +332,12 @@ void kb_handler() {
     // asm("iret") ;
 }
 
-void rtc_handler(){
-    //cli();
-    rtc_int += 1;
-    // test_interrupts();
-    outb(0x0C, 0x70);	 //select register C
-    inb(0x71);		 //just throw away contents
-    //clear();
-    send_eoi(8);
-}
+
 
 #define         RESERVED4MASK               0x1F // kill bits 7-5
 #define         NUMBER_OF_VECTORS           256
 #define         NUMBER_OF_EXCEPTIONS_DEFINING        20      //based on what the CA said, it seems like we only need these 20 exceptions 
 #define         NUMBER_OF_SYS_CALLS         10 // for letter check points, for now we just have a simply handle for sys calls -- James
-
-
-
-int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and rtc_openAadhesh
-    if(frequency < 2 || frequency > 1024) return -1; //Return failure if frequency exceeds 1024 Hz or drops below 2 Hz
-    if(frequency & (frequency - 1)) return -1; //Check that frequency is power of 2 (bitwise-and frequency and frequency -1; if power of 2, bitwise operation returns 0)
-
-    //changing interrupt rates
-    int log = 0;
-    while(frequency >>= 1) log++; //log2(frequency)
-    uint8_t rate = 16 - log; //rate must be above 2 and not over 15
-    cli(); //clear interrupts
-    outb(0x8A, 0x70); //set index to register A, disable NMI
-    char prev = inb(0x71); //get initial value of register A
-    outb(0x8A, 0x70); //reset index to A
-    outb((prev & 0xF0) | rate, 0x71); //write only our rate to A. Note, rate is the bottom 4 bits.
-    
-    prev = inb(0x70) & 0x7F; //Enable NMI by setting 0x80 bit
-    outb(prev,0x70); //Enable NMI
-    sti(); //Enable all other interrupts
-
-    
-    //must read register C so interrupt can happen again
-    //outb(0x0C, 0x70);	//select register C
-    //inb(0x71); //just throw away contents
-
-    return 0;
-}
-
-int32_t rtc_read (int32_t fd, void* buf, int32_t nbytes){ //Aadhesh
-    int32_t curr = rtc_int; //Stores current rtc
-    while(curr == rtc_int){}; //Waits until rtc_int value is changed by the rtc_handler
-    return 0;
-}
-
-int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){ //Aadhesh
-    if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
-    return rtc_set_frequency((int32_t)buf); //change frequency based on buf value 
-}
-
-int32_t rtc_open (const uint8_t* filename){ //Aadhesh
-    rtc_set_frequency(2); //Initialize RTC Frequency to 2 Hz
-    return 0; //Return zero for success 
-}
-
-int32_t rtc_close (int32_t fd){ //Aadhesh
-    return 0;
-}
 
 
 
@@ -619,4 +532,5 @@ void set_exception_params(idt_desc_t * idt_array_index, int vec){
     // }
 }
 //GOING TO HAVE A FUNCTION THAT FILLS IN A MAJORITY OF THE STRUCT, probs will take a few parameters and then change the things that need to be changed
+
 

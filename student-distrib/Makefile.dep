@@ -3,12 +3,11 @@ boot.o: boot.S multiboot.h x86_desc.h types.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
 file_sys_driver.o: file_sys_driver.c file_sys_driver.h types.h
 i8259.o: i8259.c i8259.h types.h lib.h
-idt.o: idt.c idt.h types.h x86_desc.h lib.h i8259.h asm_macro.h rtc.h \
-  file_sys_driver.h
+idt.o: idt.c idt.h types.h x86_desc.h lib.h i8259.h asm_macro.h rtc.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   tests.h idt.h keyboard.h rtc.h paging.h file_sys_driver.h
 keyboard.o: keyboard.c lib.h types.h i8259.h
 lib.o: lib.c lib.h types.h
 paging.o: paging.c paging.h types.h x86_desc.h lib.h
 rtc.o: rtc.c rtc.h types.h lib.h i8259.h
-tests.o: tests.c tests.h x86_desc.h types.h lib.h
+tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h
