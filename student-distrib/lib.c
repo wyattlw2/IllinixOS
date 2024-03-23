@@ -12,8 +12,8 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
-int user_y;
-int first = 1;
+int user_y; // user_y keeps track of user typed space
+int first = 1; // a condition variable that helps keep track of user_y
 
 /* void clear(void);
  * Inputs: void
@@ -177,17 +177,21 @@ void update_xy(uint16_t x, uint16_t y) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
 
+    // first time writing
     if (first) {
         user_y = screen_y;
         first = 0;
     }
 
-    if ((c == '\n' || c == '\r') && screen_y < 24) { // handling enter
+    // handling enter that isn't the last line
+    if ((c == '\n' || c == '\r') && screen_y < NUM_ROWS - 1) {
         screen_y++;
         screen_x = 0;
-    }  else if ((screen_x == 79 && screen_y==24) || (c == '\n' && screen_y == 24)) { // want to move current row to last row
+    // handling entering at the last line and character overflow
+    }  else if ((screen_x == NUM_COLS - 1 && screen_y== NUM_ROWS - 1) || (c == '\n' && screen_y == NUM_ROWS - 1)) { // want to move current row to last row
         int i;
         int j;
+        // shifting every content by one line up
         for (i = 0; i < NUM_ROWS - 1; i++) {
             screen_x = 0;
             screen_y = i;
@@ -198,10 +202,9 @@ void putc(uint8_t c) {
                 screen_x %= NUM_COLS;
             }
         }
-            // make a new line with the new c
-            // clear it first
-            screen_x = 0;
-            screen_y = 24;
+            // clear the very last line to make space for new characters
+            screen_x = 0; // first character space in a line
+            screen_y = NUM_ROWS - 1;
             for (j = 0; j < NUM_COLS; j++) {
                 *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
                 *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -209,9 +212,9 @@ void putc(uint8_t c) {
                 screen_x %= NUM_COLS;
                 screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
             }
-            // if not enter, we want to print the new c
-            screen_x = 0;
-            screen_y = 24;
+            // if we need a new line due to character overflow, we also need to write that character in the new line
+            screen_x = 0; // first character space in a line
+            screen_y = NUM_ROWS - 1; // very last line
             if (c != '\n') {
                 *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
                 *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -221,9 +224,9 @@ void putc(uint8_t c) {
                 // overflow, last row is still user typed characters
                 user_y -= 1;
             } else {
-                user_y = 24;
+                user_y = NUM_ROWS - 1; // very last line
             }
-    } else if (screen_x == 79) { // move to next row
+    } else if (screen_x == NUM_COLS - 1) { // move to next row
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
@@ -231,13 +234,14 @@ void putc(uint8_t c) {
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
         screen_y++;
         screen_x = 0;
-    } else {
+    } else { // normally writing characters
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
     }
+    // always updating cursor so it follows what the user is typing
     update_cursor(screen_x, screen_y);
 }
 
