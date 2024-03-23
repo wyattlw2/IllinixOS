@@ -16,6 +16,8 @@ void file_system_init() {
 
 }
 
+
+//calls dentry_by_name. this function will search for a specified directory
 int32_t file_open()    {
     return 0;
 }
@@ -57,3 +59,6 @@ int32_t directory_write()   {
 void print_number_of_inodes(){
 	printf("This is the number of inodes: %d" , (int) booting_info_block->number_of_inodes);
 }
+
+//for read_data: we're given the inode, the offset from the start of data (beginning at the first data block, but potentially extending to other blocks),
+//buf is what we're putting the data into, and length is (MAYBE) the amount of bytes you want to write into the buffer
