@@ -29,5 +29,9 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     for (i = 0; i < nbytes; i++) {
         putc(((char*)buf)[i]);    
     }
+    for (i = 0; i < nbytes; i++) {
+        ((char*)buf)[i] = '\0';   
+    }
+    kb_idx = 0;
     return 0;
 }

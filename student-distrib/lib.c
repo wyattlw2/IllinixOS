@@ -192,18 +192,18 @@ void putc(uint8_t c) {
             screen_x = 0;
             screen_y = i;
             for (j = 0; j < NUM_COLS; j++) {
-                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1));
-                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1);
+                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1));
+                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1) + 1);
                 screen_x++;
                 screen_x %= NUM_COLS;
-                screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
             }
+        }
             // make a new line with the new c
             // clear it first
             screen_x = 0;
             screen_y = 24;
             for (j = 0; j < NUM_COLS; j++) {
-                *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = " ";
+                *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
                 *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
                 screen_x++;
                 screen_x %= NUM_COLS;
@@ -218,8 +218,11 @@ void putc(uint8_t c) {
                 screen_x++;
                 screen_x %= NUM_COLS;
                 screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+                // overflow, last row is still user typed characters
+                user_y -= 1;
+            } else {
+                user_y = 24;
             }
-        }
     } else if (screen_x == 79) { // move to next row
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;

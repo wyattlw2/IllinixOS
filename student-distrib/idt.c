@@ -132,13 +132,13 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % 80;
         y = pos / 80;
-        if (x == 0 && y == 0) {
+        if (x == 0 && y == 0) { // very first row
             send_eoi(1);
             return;
-        } else if (x == 0 && y != 0) {
+        } else if (x == 0 && y != 0) { // any other row
             update_xy(79, y-1);
             putc(' ');
-            if (y-1 != user_y) {
+            if (y-1 == user_y) {
                 update_xy(79, y-1);
                 update_cursor(79, y-1);
             }
@@ -167,7 +167,7 @@ void kb_handler() {
             putc('\n');
         }
 
-        first = 1;
+        user_y += 2;
 
 
         t_read(0, kb_buff, (kb_idx + 1));
@@ -211,6 +211,7 @@ void kb_handler() {
         clear();
         update_xy(0, 0);
         update_cursor(0, 0);
+        user_y = 0;
         send_eoi(1);
         return;
     }
