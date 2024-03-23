@@ -45,8 +45,7 @@ in the identified file.
 int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
 
 
-    //dentry_struct_t* temp_dentry;
-    int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates temp_dentry with data from the file
+    int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates opened_file with data from the file
     
     //need to check if read_dentry_by_name returned an error code (can happen in case of filename being too long)
     //can also happen if no such file is found... i believe
@@ -112,6 +111,20 @@ void print_number_of_inodes(){
 
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
-    //do something really epic here
+    //i think the goal of this function is to search for a file in the boot block that corresponds to fname.
+    //TA said we need to check for filename size. maximum char count for filename is 32 chars.
+    //32 chars * 8 bits per char == 256 bits, or 32 bytes.
+
+    //do strlen bullshit here
+
+    //after checking for filename size, we can loop through the list of dentry structs in the boot block to find the fname
+    int i;
+    for (i = 0; i < 63; i++)    {
+        //check filename here as well
+    }
+
+    //fill dentry with data from identified file, return 0
+    //maybe check for errors
+    
     return 0;
 }
