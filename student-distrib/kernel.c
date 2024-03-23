@@ -26,7 +26,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     
 
-    multiboot_info_t *mbi;
+    multiboot_info_t *mbi;          // important for filesystem driver operations!
 
     /* Clear the screen. */
     clear();
