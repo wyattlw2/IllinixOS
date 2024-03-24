@@ -69,7 +69,7 @@ int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
     return 0;
 }
 
-int32_t file_read()    { //print data of a file
+int32_t file_read(dentry_struct_t dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
     return 0;
 }
 
@@ -78,7 +78,7 @@ int32_t file_read()    { //print data of a file
 *
 *
 */
-int32_t file_write()   {
+int32_t file_write()  {
     return -1; // DUNZO
 }
 
@@ -179,8 +179,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     //printf("\n passes the bootblock setup variables \n");
     inode_struct_t * inode_address = (inode_struct_t*)(booting_info_block + 1 + inode);
     uint32_t actual_length_in_bytes = inode_address->length_in_bytes;
+    //printf("\n The number of bytes is %d \n", actual_length_in_bytes);
    // printf("\n passes the initial setup variables \n");
-    if(offset+length > actual_length_in_bytes){
+    if(offset+length > actual_length_in_bytes || offset<0 || length <=0){
         return -1;
     }
     // uint32_t total_number_of_data_blocks = (actual_length_in_bytes/FOUR_KB);
