@@ -161,6 +161,7 @@ void entry(unsigned long magic, unsigned long addr) {
     //printf("Initializing Paging \n");
     sti();
     
+    terminal_test();
 
     //while(1){}
 

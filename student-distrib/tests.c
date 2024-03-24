@@ -1,6 +1,8 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "terminal.h"
+#include "keyboard.h"
 //#include "lib.c" 
 #define PASS 1
 #define FAIL 0
@@ -72,6 +74,16 @@ int exception_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+int terminal_test() {
+	TEST_HEADER;
+	char b[128];
+	user_y = 1;
+	while(1) {
+		t_read(0, b, 128);
+        t_write(0, b, 128);
+	}
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */

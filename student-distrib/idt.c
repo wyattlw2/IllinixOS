@@ -107,29 +107,23 @@ void kb_handler() {
 
     // if tab is pressed
     if (key == 0x0F) {
-        putc(' ');
-        putc(' ');
-        putc(' ');
-        putc(' ');
-        if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-            kb_buff[kb_idx] = ' ';
-            kb_idx++;
-            kb_buff[kb_idx] = ' ';
-            kb_idx++;
-            kb_buff[kb_idx] = ' ';
-            kb_idx++;
-            kb_buff[kb_idx] = ' ';
-            kb_idx++;
+        int i;
+        for (i = 0; i < 4; i++) { // i < 4 because tab prints 4 spaces
+            if (kb_idx + i != MAX_BUFF_SIZE - 1) {
+                putc(' ');
+                kb_buff[kb_idx] = ' ';
+                kb_idx++;
+            }
         }
         send_eoi(1);
         return;
     }
     // if space is pressed
     if (key == 0x39) {
-        putc(' ');
         if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
             kb_buff[kb_idx] = ' ';
             kb_idx++;
+            putc(' ');
         }
     }
 
@@ -156,7 +150,7 @@ void kb_handler() {
         }
         if (kb_idx != 0) { // if buffer isn't empty already
             kb_idx--;
-            kb_buff[kb_idx] = '\0';
+            kb_buff[kb_idx] = '\t'; // code for not print anything
         }
         send_eoi(1);
         return;
@@ -167,14 +161,11 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-        if (x != 0) {
-            putc('\n');
-        }
 
+        kb_buff[kb_idx] = '\n';
         user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
-        t_read(0, kb_buff, (kb_idx + 1));
-        t_write(0, buf, (kb_idx + 1));
+        kb_idx = 0;
 
         send_eoi(1);
         return;
@@ -237,9 +228,8 @@ void kb_handler() {
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
                     kb_idx++;
+                    putc(p);
                 }
-
-                putc(p);
             }
         }   
     // words all capped, symbols are normal
@@ -258,20 +248,19 @@ void kb_handler() {
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
                     kb_idx++;
+                    putc(p);
                 }
-
-                putc(p);
             }
         }       
     // words all capped, symbols are diff
     } else if (shift) {
         if (key <= 0x37) { // if it's within our non special character bound
             char p = table_kb[key + SPEC_CHAR_OFFSET];
-            if (p != '\0') { // check it's printable character
-                putc(p);   
+            if (p != '\0') { // check it's printable character 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
                     kb_idx++;
+                    putc(p);
                 }
             }
         }
@@ -280,10 +269,10 @@ void kb_handler() {
         if (key <= 0x37) { // if it's within our non special character bound
             char p = table_kb[key];
             if (p != '\0') { // check it's printable character
-                putc(p);  
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
                     kb_idx++;
+                    putc(p);
                 }
             }
         }

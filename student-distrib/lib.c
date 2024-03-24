@@ -188,6 +188,10 @@ void putc(uint8_t c) {
         first = 0;
     }
 
+    if (c == '\t') {
+        return;
+    }
+
     // handling enter that isn't the last line
     if ((c == '\n' || c == '\r') && screen_y < NUM_ROWS - 1) {
         screen_y++;

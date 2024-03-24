@@ -1,8 +1,13 @@
 #include "terminal.h"
 
-char* kb_buff;
+#define     MAX_BUFF_SIZE       128
+#define     NUM_COLS      80
+// buffers for collecting keyboard data and to print it
+char kb_buff[128];
 int kb_idx = 0;
-char* buf;
+char buf[128];
+// keeps track of whether enter is pressed to print buf
+int IS_KB_CLEAR = 0;
 
 /* int t_open()
  * Inputs:  none
@@ -28,11 +33,16 @@ int t_close() {
  * Function: fills up the buf buffer with characters from kb_buff */
 int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     int i; // loop index
-    for (i = 0; i < nbytes  - 1; i++) { // copy every character
-        ((char*)buf)[i] = kb_buff[i]; 
+    int j;
+    for (i = 0; i < MAX_BUFF_SIZE; i++) { // copy every character
+        ((char*)buf)[i] = kb_buff[i];
+        if (kb_buff[i] == '\n') { // kb buffer only CLEARED when enter is pressed
+            for (j = 0; j < MAX_BUFF_SIZE; j++) { // clear the kb_buffer
+                kb_buff[j] = '\t'; // code for not print anything
+                IS_KB_CLEAR = 1;
+            }
+        }
     }
-    kb_buff[nbytes - 1] = '\n'; // add the required last new space 
-
     return nbytes;
 }
 
@@ -45,12 +55,20 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
  * Function: prints all the characters in buf to the screen */
 int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     int i; // loop index
-    for (i = 0; i < nbytes; i++) { // print every character
-        putc(((char*)buf)[i]);    
+    if (buf == NULL) {
+        return -1;
     }
-    for (i = 0; i < nbytes; i++) { // clear the buffer
-        ((char*)buf)[i] = '\0';   
+
+    if (IS_KB_CLEAR) { // enter is pressed so we print what is stored
+        uint16_t pos = get_cursor_position();
+        uint16_t y = pos / NUM_COLS;
+        if (y != 0) {
+            putc('\n'); // prepare a new line to print buf
+        }
+        for (i = 0; i < 128; i++) { // print every character
+            putc(((char*)buf)[i]);
+        }
+        IS_KB_CLEAR = 0;
     }
-    kb_idx = 0; // reset the kb_idx that keeps track of kb_buff
     return 0;
 }
