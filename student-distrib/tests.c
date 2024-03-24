@@ -184,6 +184,128 @@ void file_open_test(){
 	printf("\n The error code for file_open is: %d. \n", retval);
 }
 
+void file_read_test(){
+	clear();
+	uint8_t buffer[36000];
+	// uint8_t filename[32] = {"created.txt"};
+	uint8_t filename[32] = {"frame0.txt"};
+	// uint8_t filename[32] = {"verylargetextwithverylongname.tx"};
+	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n");
+	puts(filename);
+	dentry_struct_t dentry_to_read;
+	int retval = file_open(filename, &dentry_to_read);
+	if(retval == 0){
+		printf("\n File Open Successful, attempting read \n");
+	}else{
+		printf("\n File Open Failed, please try again \n");
+		return;
+	}
+	// printf("\n Number of Bytes in the whole file: %d \n", dentry_to_read.)
+	// int num_bytes = 21; // for created.txt
+	// int num_bytes = 5277;// for verylargetext...etc 
+	int num_bytes = 187;
+	int retval2 = file_read(&dentry_to_read, buffer, num_bytes);
+	if(retval2 == 0){
+		printf("\n File Read was successful, outputting the contents of the file: \n");
+		puts(buffer);
+	} else{
+		printf("\n File Read Failed \n");
+	}
+}
+void see_all_files(){
+	printf(" \n \n \n \n \n");
+	clear();
+	see_all_files_helper();
+}
+void file_write_test(){
+	clear();
+	int retval = file_write();
+	if(retval == -1){
+		printf("\n File Write Failed, Meaning we Passed the test :)");
+	}
+}
+
+void file_close_test(){
+	clear();
+	printf("\n \n \n \n \n");
+	printf("\n Attempting File Close Test: \n");
+	printf("First attempting to open the file");
+	dentry_struct_t dentry_to_close;
+	uint8_t filename[32] = {"frame0.txt"};
+	int retval = file_open(filename, &dentry_to_close);
+	if(retval == 0){
+		printf("\n File Open Successful! \n");
+	}else{
+		printf("\n File Open Failed, please try again \n");
+		return;
+	}
+	printf("\n Attempting to close the file \n");
+	int retval2 = file_close(&dentry_to_close);
+	if(retval2 == 0){
+		printf("\n File Closure Successful, test passed \n");
+	}else{
+		printf("Something happened and the test failed, please try again");
+	}
+}
+void directory_open_close_test(){
+	clear();
+	printf("\n \n \n \n \n");
+	printf("\n Attempting Directory Open Test: \n");
+	
+	dentry_struct_t dentry_to_open;
+	uint8_t filename[32] = {"."};
+	printf("\n Attempting to open directory: ");
+	puts(filename);
+	int retval = directory_open(filename, &dentry_to_open);
+	if(retval == 0){
+		printf("\n Directory Open Successful! \n");
+	}else{
+		printf("\n Directory Open Failed, please try again \n");
+		return;
+	}
+
+
+	printf("\n Attempting to close the file \n");
+	int retval2 = directory_close(&dentry_to_open);
+	if(retval2 == 0){
+		printf("\n File Closure Successful, test passed \n");
+	}else{
+		printf("Something happened and the test failed, please try again");
+	}
+}
+void directory_write_test(){
+	clear();
+	int retval = directory_write();
+	if(retval == -1){
+		printf("\n Directory Write Test Failed, Meaning we Passed the test :)");
+	}
+}
+void directory_read_test(){
+	clear();
+	printf("\n \n \n \n \n");
+	int8_t buffer[3];
+	dentry_struct_t dentry_to_open;
+	uint8_t filename[32] = {"."};
+	printf("\n Attempting to open directory: ");
+	puts(filename);
+	int retval = directory_open(filename, &dentry_to_open);
+	if(retval == 0){
+		printf("\n Directory Open Successful! \n");
+	}else{
+		printf("\n Directory Open Failed, please try again \n");
+		return;
+	}
+	// clear();
+	printf("\n Attempting a Directory Read \n");
+	int nbytes = 1;
+	int retval2 = directory_read(&dentry_to_open, buffer, nbytes);
+	if(retval2 == 0){
+		printf("\n Directory Read Successful, the name of the directory is: ");
+		puts(buffer);
+	}else{
+		printf("\n Directory Read Failed \n");
+	}
+}
 
 
 
@@ -206,7 +328,14 @@ void launch_tests(){
 	//rtc_test();
 	//read_dentry_by_name_test();
 	//read_dentry_by_index_test();
-	read_data_test();
+	// read_data_test();
 	//file_open_test();
+	// file_read_test();
+	// see_all_files();
+	// file_write_test();
+	// file_close_test();
+	// directory_open_close_test();
+	// directory_write_test();
+	directory_read_test();
 }
 

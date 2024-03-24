@@ -52,14 +52,14 @@ int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
     //need to check if read_dentry_by_name returned an error code (can happen in case of filename being too long)
     //can also happen if no such file is found... i believe
     if  (err_code == -1)    {
-        printf(" System attempted to call read_dentry_by_name, but call failed.\n");
+        printf("\n System attempted to call read_dentry_by_name, but call failed.\n");
         return -1;
     }
 
     //from TA - a directory file and a regular file may potentially have the same name. don't know why tho
     //(file types should never have the same name, but i suppose this may be an edge case tested during demos)
     if  (opened_file->file_type != REGULAR_FILE)    {
-        printf(" System attempted to retrieve a regular file, but retrieved file type was different.\n");
+        printf("\n System attempted to retrieve a regular file, but retrieved file type was different.\n");
         return -1;
     }
 
@@ -69,7 +69,21 @@ int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
     return 0;
 }
 
-int32_t file_read(dentry_struct_t dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
+int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
+    
+    if(dentry->inode_number < 0 || dentry->inode_number > 64){
+        printf("\n Invalid Directory Entry, Please try again with a vaild Directory Entry \n");
+        return -1;
+    }
+    if(nbytes <=0){
+        printf("\n Invalid Number of Bytes, please try again with the correct number of bytes \n");
+    }
+
+    int retval = read_data(dentry->inode_number, 0, buf, nbytes);
+    if(retval == -1){
+        printf("\n read_data was attempted, but it failed, please try again \n");
+    }
+
     return 0;
 }
 
@@ -82,21 +96,68 @@ int32_t file_write()  {
     return -1; // DUNZO
 }
 
-int32_t file_close()   {
+int32_t file_close(dentry_struct_t* opened_file)   {
+    int i;
+    for(i=0; i< 32; i++){
+        opened_file->file_name[i] = 0;
+    }
+    
+    opened_file->file_type = 0;
+    opened_file->inode_number = 0;
     return 0;
 }
 
 
 
-int32_t directory_open()    {
+int32_t directory_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
+    int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates opened_file with data from the file
+    
+    //need to check if read_dentry_by_name returned an error code (can happen in case of filename being too long)
+    //can also happen if no such file is found... i believe
+    if  (err_code == -1)    {
+        printf("\n System attempted to call read_dentry_by_name, but call failed.\n");
+        return -1;
+    }
+
+    //from TA - a directory file and a regular file may potentially have the same name. don't know why tho
+    //(file types should never have the same name, but i suppose this may be an edge case tested during demos)
+    if  (opened_file->file_type != DIRECTORY_FILE)    {
+        printf("\n System attempted to retrieve a Directory, but retrieved file type was different.\n");
+        return -1;
+    }
+
+    //do something else here... not sure how to actually "open" a file. maybe include a parameter that
+    //points to data in temp_dentry? will try doing that
+
     return 0;
 }
 
-int32_t directory_close()   {
+int32_t directory_close(dentry_struct_t* opened_direc)   { // PRETTY MUCH A CARBON COPY OF file_close
+    int i;
+    for(i=0; i< 32; i++){
+        opened_direc->file_name[i] = 0;
+    }
+    
+    opened_direc->file_type = 0;
+    opened_direc->inode_number = 0;
     return 0; // DUNZO
 }
 
-int32_t directory_read()    {
+int32_t directory_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { // if num bytes is too big then fail
+    if(dentry->file_name[0] != '.'){
+        printf("\n Something went wrong, this OS only contains 1 Directory, and it is . \n"); // Prints
+        return -1;
+    }
+    if(nbytes != 1){
+        printf("\n The size of this directory is 1 byte! Read Failed \n");
+        return -1;
+    }
+    int i;
+    // for(i=0; i< nbytes; i++){
+    //     buf[i] = dentry->file_name[i];
+    // }
+    // putc(buf[0]);
+    strcpy(buf, dentry->file_name);
     return 0;
 }
 
@@ -133,7 +194,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
             if (fname[j] == booting_info_block->dir_entries[i].file_name[j]){
                 // printf("\n We made it into the name is correct if statement");
                 //putc(fname[j]);
-                if(fname[j] == NULL){
+                if(fname[j] == NULL || j == 31){
                     //printf("\n made it to the end of the string\n ");
                     file_found = 1; // we know we made it to the correct string
                 }
@@ -179,9 +240,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     //printf("\n passes the bootblock setup variables \n");
     inode_struct_t * inode_address = (inode_struct_t*)(booting_info_block + 1 + inode);
     uint32_t actual_length_in_bytes = inode_address->length_in_bytes;
-    //printf("\n The number of bytes is %d \n", actual_length_in_bytes);
+    // printf("\n The number of bytes is %d \n", actual_length_in_bytes);
    // printf("\n passes the initial setup variables \n");
     if(offset+length > actual_length_in_bytes || offset<0 || length <=0){
+        printf("\n The data requested exceeds the number of bytes contained for this file \n");
         return -1;
     }
     // uint32_t total_number_of_data_blocks = (actual_length_in_bytes/FOUR_KB);
@@ -210,4 +272,22 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     }
     return 0;
 
+}
+void see_all_files_helper(){
+    int i;
+    for(i=0; i< 63; i++){
+        printf("\n");
+        puts(booting_info_block->dir_entries[i].file_name);
+        printf(" - File Type: ");
+        if(booting_info_block->dir_entries[i].file_type == RTC_FILE){
+            printf("RTC File");
+        }else if(booting_info_block->dir_entries[i].file_type == DIRECTORY_FILE){
+            printf("Directory");
+        }else if(booting_info_block->dir_entries[i].file_type == REGULAR_FILE){
+            printf("Regular File");
+        }
+        if(i==16){
+            break;
+        }
+    }
 }

@@ -36,17 +36,17 @@ void file_system_init();
 
 int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file); // populates a dentry
 
-int32_t file_read(dentry_struct_t dentry, uint8_t * buf, uint32_t nbytes);
+int32_t file_read(dentry_struct_t *dentry, uint8_t * buf, uint32_t nbytes);
 
 int32_t file_write();
 
-int32_t file_close();
+int32_t file_close(dentry_struct_t* opened_file);
 
-int32_t directory_open();
+int32_t directory_open(const uint8_t* filename, dentry_struct_t* opened_file);
 
-int32_t directory_close();
+int32_t directory_close(dentry_struct_t* opened_direc);
 
-int32_t directory_read(); // 
+int32_t directory_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes); // 
 
 int32_t directory_write();
 
@@ -55,6 +55,8 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry);
 int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry);
 
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
+
+void see_all_files_helper();
 //Questions:
 
 //do we need to implement syscalls for this?
