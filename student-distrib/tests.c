@@ -97,7 +97,9 @@ void rtc_test(){
 	int i;
 	for(i = 1; i <= 1024; i *= 2){
 		//int freq = 2^i;
+		
 		printf("Frequency: %d", i);
+		printf("\n");
 		// for(j = 0; j < 4; j++)
 		// 	rtc_read(0,(void*)0,0);
 		//printf("Waiting");
@@ -334,17 +336,18 @@ void launch_tests(){
 	//rtc_test_checkpoint_1();
 
 	//CHECKPOINT 2:
-	//rtc_test();
+	// rtc_test();
 	//read_dentry_by_name_test();
 	//read_dentry_by_index_test();
 	// read_data_test();
-	//file_open_test();
-	// file_read_test();
+	// file_open_test();
+	file_read_test();
 	// see_all_files();
 	// file_write_test();
 	// file_close_test();
 	// directory_open_close_test();
 	// directory_write_test();
-	directory_read_test();
+	// directory_read_test();
+	// terminal_test();
 }
 

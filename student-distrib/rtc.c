@@ -36,7 +36,8 @@ void NMI_disable(){
 
 void rtc_handler(){
     cli();
-    //test_interrupts();
+    // test_interrupts();
+    // putc('1');
     rtc_int += 1;
     outb(0x0C, 0x70); //select register C
     inb(0x71); //just throw away contents

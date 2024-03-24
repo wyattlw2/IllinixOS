@@ -62,8 +62,12 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     if (IS_KB_CLEAR) { // enter is pressed so we print what is stored
         uint16_t pos = get_cursor_position();
         uint16_t y = pos / NUM_COLS;
+        uint16_t x = pos % NUM_COLS;
         if (y != 0) {
             putc('\n'); // prepare a new line to print buf
+        }
+        if (y == 0 && x != 0) {
+            putc('\n');
         }
         for (i = 0; i < 128; i++) { // print every character
             putc(((char*)buf)[i]);
