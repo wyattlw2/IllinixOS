@@ -166,6 +166,11 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+/* update_xy(uint16_t x, uint16_t y)
+ *   Inputs: uint16_t x - x coordinates in terminal
+ *           uint16_t y - y coordinates in terminal
+ *   Return Value: None
+ *    Function: Updates screen_x and screen_y to its corresponding inputs */
 void update_xy(uint16_t x, uint16_t y) {
     screen_x = x;
     screen_y = y;
