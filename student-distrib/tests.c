@@ -111,7 +111,7 @@ void rtc_test(){
 }
 void read_dentry_by_name_test(){
 	clear();
-    uint8_t test_name[32] = {"frame0.txt"};
+    uint8_t test_name[32] = {"frame1.txt"};
 	printf("\n The name of the file is: ");
 	puts((int8_t*)test_name);
     dentry_struct_t sample_dentry; 
@@ -140,14 +140,14 @@ void read_dentry_by_index_test(){
 void read_data_test(){
 	clear();
     //uint8_t test_name[32] = {"frame0.txt"};
-	uint32_t inode_num = 38;
+	uint32_t inode_num = 47; // Frame1.txt
 	printf("\n \n \n \n \n");
-	printf("\n The inode of the file being checked is: %d", inode_num);
+	printf("\n The inode of the file being checked is: %d \n", inode_num);
 	//puts(test_name);
     //dentry_struct_t sample_dentry; 
-	uint8_t buffer[100];
-    int retval = read_data(inode_num, 0, buffer, 100);
-	printf("This is the return value of the function: %d", retval);
+	uint8_t buffer[174];
+    int retval = read_data(inode_num, 0, buffer, 174);
+	printf("This is the return value of the function: %d \n", retval);
 	printf("\n This is what's inside the file: \n" );
 	puts((int8_t*)buffer);
 }
@@ -206,7 +206,7 @@ void launch_tests(){
 	//rtc_test();
 	//read_dentry_by_name_test();
 	//read_dentry_by_index_test();
-	//read_data_test();
-	file_open_test();
+	read_data_test();
+	//file_open_test();
 }
 

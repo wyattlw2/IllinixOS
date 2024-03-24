@@ -18,7 +18,7 @@ boot_struct * booting_info_block;       //will be used to point to start of file
                                             // booting_info_block = multiboot_info_t_struct->mods_addr->mod_start
                                             // turns out david already did all of that stuff so yippee
 
-extern void get_bootblock_address(unsigned long addr){
+extern void get_bootblock_address(uint32_t addr){
     booting_info_block = (boot_struct*) addr;
 }
 
@@ -176,10 +176,10 @@ int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry){
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t number_of_inodes = booting_info_block->number_of_inodes;
     uint32_t number_of_data_blocks = booting_info_block->number_of_data_blocks;
-    printf("\n passes the bootblock setup variables \n");
+    //printf("\n passes the bootblock setup variables \n");
     inode_struct_t * inode_address = (inode_struct_t*)(booting_info_block + 1 + inode);
     uint32_t actual_length_in_bytes = inode_address->length_in_bytes;
-    printf("\n passes the initial setup variables \n");
+   // printf("\n passes the initial setup variables \n");
     if(offset+length > actual_length_in_bytes){
         return -1;
     }
@@ -201,8 +201,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
             return -1; // unlikely case, but if so might as well see whats up
         }
         uint32_t full_4kb_array_index = 1 + number_of_inodes + global_datablock_index;
-        uint32_t * datablock_addr = (uint32_t *)booting_info_block + full_4kb_array_index;
-        buf[i- offset] = datablock_addr[i];
+        data_block_struct_t * datablock_addr = (data_block_struct_t *)booting_info_block + full_4kb_array_index;
+        //putc(datablock_addr[i]);
+
+        buf[i- offset] = datablock_addr->data[i % 4096];
         
     }
     return 0;

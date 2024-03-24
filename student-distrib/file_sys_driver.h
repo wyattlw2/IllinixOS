@@ -4,7 +4,7 @@
 
 void file_system_init();
 void print_number_of_inodes();
-void get_bootblock_address(unsigned long addr);
+void get_bootblock_address(uint32_t addr);
 
 
 typedef struct inode_struct_t { // page directory entry
@@ -28,10 +28,13 @@ typedef struct boot_struct {
     dentry_struct_t dir_entries[63];
 
 } boot_struct;
+typedef struct data_block_struct_t {
+    uint8_t data[4096];
+} data_block_struct_t;
 
 void file_system_init();
 
-int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file);
+int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file); // populates a dentry
 
 int32_t file_read();
 
@@ -43,7 +46,7 @@ int32_t directory_open();
 
 int32_t directory_close();
 
-int32_t directory_read();
+int32_t directory_read(); // 
 
 int32_t directory_write();
 
