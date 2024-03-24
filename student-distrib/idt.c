@@ -1,12 +1,11 @@
 #include "idt.h"
-#include "i8259.h"
-#include "asm_macro.h"  //Wyatt added
-#include "lib.h"    // needed for rtc test apparently?
-#include "rtc.h" // Aadhesh added for rtc_read
-
+#define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     RTC_PORT            0x71
-
+#define     NUM_COLS            80
+#define     NUM_ROWS            25
+#define     MAX_BUFF_SIZE       128
+#define     SPEC_CHAR_OFFSET    54
 //#include "assem_link.S"
 // ALL OF THIS IS FOR REFERENCE
 // typedef union idt_desc_t { // MOST OF THIS WILL BE THE SAME, NAKE NOTE OF WHEN TO USE TRAP GATE VS INTERRUPT vs SYSCALL vs EXCEPTION -- DVT
@@ -69,15 +68,216 @@
 //         asm(iret) ;
 
 // }
-
+// need to ask TA:
+// need help with dealing '\' cannot print it
+// need to confirm the while(1) {read write} test
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-, '0', '\0', '\0', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
-'p', '\0', '\0', '\n', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', '\0'
-, '\0', '\0', '\0', '\0', 'z', 'x', 'c', 'v', 'b', 'n', 'm'};       //WYATT ADDED
-//table_kb is needed for the keyboard ISR, which is defined in this file
-//contains the scancodes for all lowercase characters and numbers
+, '0', '-', '=', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
+'p', '[', ']', '\0', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'
+, '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/','\0', '\0',
+'!', '@', '#', '$', '%', '^', '&', '*', '(' 
+, ')', '_', '+', '\0', '\0', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O',
+'P', '{', '}', '\0', '\0', 'A', 'S', 'D', 'F', 'G', 'H' , 'J', 'K' ,'L', ':'
+, '"', '~', '\0', '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?'};
 
 
+/*
+kb_handler
+
+Description: Handles keyboard interrupts.
+    For now, this function will only take in the scancode and print the corresponding character to the screen.
+Inputs: None
+Outputs: None
+Side effects: Handles the exception/interrupt raised by the keyboard. Upon the program receiving an exception/interrupt,
+    it will jump to the keyboard handler to deal with the exception/interrupt
+*/
+
+// variables that keep track of whether shift, cap, or control is pressed
+int shift = 0;
+int cap = 0;
+int ctrl = 0;
+// variables that keep track of the x and y position of the cursor
+uint16_t x;
+uint16_t y;
+
+void kb_handler() {
+
+    unsigned char key = inb(KEYBOARD_PORT);
+
+    // if tab is pressed
+    if (key == 0x0F) {
+        int i;
+        for (i = 0; i < 4; i++) { // i < 4 because tab prints 4 spaces
+            if (kb_idx + i != MAX_BUFF_SIZE - 1) {
+                putc(' ');
+                kb_buff[kb_idx] = ' ';
+                kb_idx++;
+            }
+        }
+        send_eoi(1);
+        return;
+    }
+    // if space is pressed
+    if (key == 0x39) {
+        if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+            kb_buff[kb_idx] = ' ';
+            kb_idx++;
+            putc(' ');
+        }
+    }
+
+    // if backspace is pressed
+    if (key == 0x0E) {
+        uint16_t pos = get_cursor_position();
+        x = pos % NUM_COLS;
+        y = pos / NUM_COLS;
+        if (x == 0 && y == 0) { // very first row
+            send_eoi(1);
+            return;
+        } else if (x == 0 && y != 0) { // any other row
+            update_xy(NUM_COLS - 1, y-1);
+            putc(' ');
+            if (y-1 >= user_y) { // anything below user_y space we can delete
+                update_xy(NUM_COLS - 1, y-1);
+                update_cursor(NUM_COLS - 1, y-1);
+            }
+        } else { // just deleting charcter in a row that doesn't go to other rows
+            update_xy(x-1, y);
+            putc(' ');
+            update_xy(x-1, y);
+            update_cursor(x-1, y);
+        }
+        if (kb_idx != 0) { // if buffer isn't empty already
+            kb_idx--;
+            kb_buff[kb_idx] = '\t'; // code for not print anything
+        }
+        send_eoi(1);
+        return;
+    }
+
+    // if enter is pressed
+    if (key == 0x1C) {
+        uint16_t pos = get_cursor_position();
+        x = pos % NUM_COLS;
+        y = pos / NUM_COLS;
+
+        kb_buff[kb_idx] = '\n';
+        user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
+
+        kb_idx = 0;
+
+        send_eoi(1);
+        return;
+    }
+
+    // if LEFT or RIGHT ctrl pressed
+    if (key == 0x1D) {
+        ctrl = 1;
+        send_eoi(1);
+        return;
+    // if LEFT or RIGHT ctrl released
+    } else if (key == 0x9D) {
+        ctrl = 0;
+        send_eoi(1);
+        return;
+    }
+
+    // if right or left shift is pressed
+    if (key == 0x36 || key == 0x2A) {
+        shift = 1;
+        send_eoi(1);
+        return;
+    // right or left shift is released
+    } else if (key == 0xAA || key == 0xB6) {  
+        shift = 0;
+        send_eoi(1);
+        return;
+    }
+    // pressing caps lock
+    if (key == 0x3A) {
+        cap = !cap;
+        send_eoi(1);
+        return;
+    }
+
+    // clear screen operation
+    if (ctrl && key == 0x26) {
+        // reset everything to top left of screen
+        clear();
+        update_xy(0, 0);
+        update_cursor(0, 0);
+        user_y = 0;
+        send_eoi(1);
+        return;
+    }
+
+    // caps open and pressing shift
+    if (cap && shift) {
+        if (key <= 0x37) { // if it's within our non special character bound
+            char p = table_kb[key];
+            // check that it's a printable character
+            if (p != '\0') {
+                // check if it's a number/symbol   
+                if (p == '1' || p == '2' || p == '3' || p == '4' || p == '5' || p == '6' || p == '7'
+                 || p == '8' || p == '9' || p == '0' || p == '-' || p == '=' || p == '[' || p == ']' || p == '\\'
+                 || p == ';' || p == '\'' || p == ',' || p == '.' || p == '/') {
+                    p = table_kb[key + SPEC_CHAR_OFFSET];
+                }
+
+                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                    putc(p);
+                }
+            }
+        }   
+    // words all capped, symbols are normal
+    } else if (cap) {
+        if (key <= 0x37) { // if it's within our non special character bound
+            char p = table_kb[key];
+            // check that it's a printable character
+            if (p != '\0') {
+                // check if it's a number/symbol   
+                if (!(p == '1' || p == '2' || p == '3' || p == '4' || p == '5' || p == '6' || p == '7'
+                 || p == '8' || p == '9' || p == '0' || p == '-' || p == '=' || p == '[' || p == ']' || p == '\\'
+                 || p == ';' || p == '\'' || p == ',' || p == '.' || p == '/')) {
+                    p = table_kb[key + SPEC_CHAR_OFFSET];
+                }
+
+                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                    putc(p);
+                }
+            }
+        }       
+    // words all capped, symbols are diff
+    } else if (shift) {
+        if (key <= 0x37) { // if it's within our non special character bound
+            char p = table_kb[key + SPEC_CHAR_OFFSET];
+            if (p != '\0') { // check it's printable character 
+                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                    putc(p);
+                }
+            }
+        }
+    // normal behav
+    } else {
+        if (key <= 0x37) { // if it's within our non special character bound
+            char p = table_kb[key];
+            if (p != '\0') { // check it's printable character
+                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[kb_idx] = p;
+                    kb_idx++;
+                    putc(p);
+                }
+            }
+        }
+    }
+    send_eoi(1);
+}
 //FFI FOR ALL HANDLERS BELOW
 /*
 Function Handlers
@@ -297,42 +497,13 @@ void intr_handler() {
 
 
 
-/*
-kb_handler
-
-Description: Handles keyboard interrupts.
-    For now, this function will only take in the scancode and print the corresponding character to the screen.
-Inputs: None
-Outputs: None
-Side effects: Handles the exception/interrupt raised by the keyboard. Upon the program receiving an exception/interrupt,
-    it will jump to the keyboard handler to deal with the exception/interrupt
-*/
-void kb_handler() {
-    // if the scancode is larger than our table, we just keep it null to not crash
-
-    //asm("pushal") ;
-    //asm("pushfl");
-
-    //  while(1){
-    //     printf("\n WE MADE IT TO THE FUCKIN KB HANDLER \n");
-    //  }
-
-    unsigned char key = inb(KEYBOARD_PORT);
-
-    // if (key > 0x33) {
-    //     key = 0x00;
-    // }
-    if(key < 0x33){
-        char p = table_kb[key];
-        putc(p);
-    }
-    send_eoi(1);
-    // asm("popfl") ;
-    // asm("popal") ;
-    // asm("iret") ;
+void rtc_handler(){
+    //test_interrupts();
+    outb(0x0C, 0x70);	 //select register C
+    inb(0x71);		 //just throw away contents
+    //clear();
+    send_eoi(8);
 }
-
-
 
 #define         RESERVED4MASK               0x1F // kill bits 7-5
 #define         NUMBER_OF_VECTORS           256

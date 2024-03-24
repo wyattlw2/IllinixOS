@@ -96,7 +96,6 @@ asm volatile("                  \n\
             mov 8(%esp), %eax   \n\
             mov %eax, %cr3      \n\
                                 ");
-            return;
 }
 
 void enableExtendedPageSize(){

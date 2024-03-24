@@ -1,8 +1,4 @@
 #include "rtc.h"
-#include "types.h"
-#include "lib.h"
-#include "types.h"
-#include "i8259.h"
 
 int rtc_int;
 

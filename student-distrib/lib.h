@@ -6,6 +6,12 @@
 #define _LIB_H
 
 #include "types.h"
+#include "idt.h"
+
+// user_y keeps track of user typed space
+extern int user_y;
+// a condition variable that helps keep track of user_y
+extern int first;
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
@@ -23,6 +29,9 @@ void* memmove(void* dest, const void* src, uint32_t n);
 int32_t strncmp(const int8_t* s1, const int8_t* s2, uint32_t n);
 int8_t* strcpy(int8_t* dest, const int8_t*src);
 int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
+
+// added function that allows us to directly update screen_x and screen_y
+void update_xy(uint16_t x, uint16_t y);
 
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);
