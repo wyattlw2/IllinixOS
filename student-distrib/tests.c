@@ -113,21 +113,21 @@ void read_dentry_by_name_test(){
 	clear();
     uint8_t test_name[32] = {"frame0.txt"};
 	printf("\n The name of the file is: ");
-	puts((uint8_t*)test_name);
+	puts((int8_t*)test_name);
     dentry_struct_t sample_dentry; 
     int retval = read_dentry_by_name(test_name, &sample_dentry);
-	printf("\n Inside the Directory Entry, The name of the file is: ");
+	printf("\n Inside the directory entry, the name of the file is: ");
 	puts((int8_t*)sample_dentry.file_name);
-    printf("\n The Inode Number of this file is %d \n", sample_dentry.inode_number);
-	printf("\n The return value of this function is: %d \n", retval);
+    printf("\n The inode number of this file is %d \n", sample_dentry.inode_number);
+	printf("\n The error code for read_dentry_by_name_test is: %d \n", retval);
 }
 
 void read_dentry_by_index_test(){
 	clear();
     //uint8_t test_name[32] = {"frame0.txt"};
-	uint32_t index = 13;
+	uint32_t index = 8;
 	printf("\n \n \n \n \n");
-	printf("\n The index of the file being checked is: %d", index);
+	printf("\n The index of the file being checked is: %d \n", index);
 	//puts(test_name);
     dentry_struct_t sample_dentry; 
     int retval = read_dentry_by_index(index, &sample_dentry);
@@ -136,6 +136,7 @@ void read_dentry_by_index_test(){
     printf("\n The Inode Number of this file is %d \n", sample_dentry.inode_number);
 	printf("\n The return value of this function is: %d \n", retval);
 }
+
 void read_data_test(){
 	clear();
     //uint8_t test_name[32] = {"frame0.txt"};
@@ -150,6 +151,39 @@ void read_data_test(){
 	printf("\n This is what's inside the file: \n" );
 	puts((int8_t*)buffer);
 }
+
+
+
+
+
+
+
+//TESTS FOR FILE OPEN/READ/WRITE/CLOSE BELOW
+void file_open_test(){
+	clear();
+	printf("FILE_OPEN TEST.\n \n \n");
+    uint8_t test_name[32] = {"grinding_at_eceb"};	//set this line to whichever filename you want.
+											//i have NOT tested directory filenames yet. should theoretically be fine however
+	printf(" Opening file ");
+	puts((int8_t*)test_name);
+	printf("...\n");
+    dentry_struct_t* sample_dentry; 
+    int retval = file_open(test_name, sample_dentry);
+	printf("\n Successfully called file_open without crashing.");
+	if (retval == -1)
+	{
+		printf("\n\n However, the system either \n a.) could not locate the inputted filename,\n");
+		printf(" b.) the opened file is of type 'directory' when it should be 'regular file', or\n");
+		printf(" c.) the inputted filename exceeds 32 characters.");
+		return;
+	}
+
+	printf("\n The name of the opened file is: ");
+	puts((int8_t*)sample_dentry->file_name);
+    printf(".\n The inode number of this file is %d. \n", sample_dentry->inode_number);
+	printf("\n The error code for file_open is: %d. \n", retval);
+}
+
 
 
 
@@ -170,8 +204,9 @@ void launch_tests(){
 
 	//CHECKPOINT 2:
 	//rtc_test();
-	// read_dentry_by_name_test();
+	//read_dentry_by_name_test();
 	//read_dentry_by_index_test();
-	read_data_test();
+	//read_data_test();
+	file_open_test();
 }
 

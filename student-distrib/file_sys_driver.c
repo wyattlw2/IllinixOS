@@ -47,28 +47,24 @@ in the identified file.
 */
 int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
 
-
-   
-
     int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates opened_file with data from the file
     
     //need to check if read_dentry_by_name returned an error code (can happen in case of filename being too long)
     //can also happen if no such file is found... i believe
     if  (err_code == -1)    {
-        printf("System attempted to call read_dentry_by_name, but call failed.\n");
+        printf(" System attempted to call read_dentry_by_name, but call failed.\n");
         return -1;
     }
 
     //from TA - a directory file and a regular file may potentially have the same name. don't know why tho
     //(file types should never have the same name, but i suppose this may be an edge case tested during demos)
     if  (opened_file->file_type != REGULAR_FILE)    {
-        printf("System attempted to retrieve a regular file, but retrieved file type was different.\n");
+        printf(" System attempted to retrieve a regular file, but retrieved file type was different.\n");
         return -1;
     }
 
     //do something else here... not sure how to actually "open" a file. maybe include a parameter that
     //points to data in temp_dentry? will try doing that
-    //opened_file = temp_dentry;
 
     return 0;
 }
@@ -122,8 +118,8 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     //32 chars * 8 bits per char == 256 bits, or 32 bytes.
 
     //do strlen bullshit here
-    int string_length = strlen(fname); // Doesn't allow standard libraries -- ask about later
-    if(string_length> 32 ){
+    uint32_t string_length = strlen((int8_t*) fname); // Doesn't allow standard libraries -- ask about later
+    if(string_length > 32){
         return -1;
     }
 
@@ -133,7 +129,6 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     int file_found = 0;
     //int correct_string = 0;
     for (i = 0; i < 63; i++)    {
-        //check filename here as well
         for(j = 0; j < NUMBER_OF_FILE_CHARACTERS; j++){
             if (fname[j] == booting_info_block->dir_entries[i].file_name[j]){
                 // printf("\n We made it into the name is correct if statement");
@@ -154,7 +149,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
             // for(j = 0; j < NUMBER_OF_FILE_CHARACTERS; j++){
             //     dentry->file_name[j] =  booting_info_block->dir_entries[i].file_name[j];
             // }
-            printf("The dentry index of this file is:  %d", i);
+            //printf("The dentry index of this file is:  %d", i);
             strcpy(dentry->file_name, booting_info_block->dir_entries[i].file_name);
             dentry->file_type = booting_info_block->dir_entries[i].file_type;
             dentry->inode_number = booting_info_block->dir_entries[i].inode_number;
@@ -165,10 +160,8 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
 
     }
     return -1; // File must not have been found
-    //fill dentry with data from identified file, return 0
-    //maybe check for errors
-    
 }
+
 int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry){
     if(index < 0 || index > 62){
         return -1;
@@ -178,14 +171,13 @@ int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry){
     dentry->file_type = booting_info_block->dir_entries[index].file_type;
     dentry->inode_number = booting_info_block->dir_entries[index].inode_number;
     return 0;
-
 }
 
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t number_of_inodes = booting_info_block->number_of_inodes;
     uint32_t number_of_data_blocks = booting_info_block->number_of_data_blocks;
     printf("\n passes the bootblock setup variables \n");
-    inode_struct_t * inode_address = (inode_struct_t*)(booting_info_block + 1 +inode*FOUR_KB);
+    inode_struct_t * inode_address = (inode_struct_t*)(booting_info_block + 1 + inode);
     uint32_t actual_length_in_bytes = inode_address->length_in_bytes;
     printf("\n passes the initial setup variables \n");
     if(offset+length > actual_length_in_bytes){
@@ -209,8 +201,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
             return -1; // unlikely case, but if so might as well see whats up
         }
         uint32_t full_4kb_array_index = 1 + number_of_inodes + global_datablock_index;
-        uint32_t * datablock_addr = (uint32_t *)booting_info_block + full_4kb_array_index*FOUR_KB;
-        buf[i- offset] = datablock_addr[i%FOUR_KB];
+        uint32_t * datablock_addr = (uint32_t *)booting_info_block + full_4kb_array_index;
+        buf[i- offset] = datablock_addr[i];
         
     }
     return 0;

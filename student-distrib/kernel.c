@@ -147,26 +147,18 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    /* Init the PIC */
-
-    // int k;
-    // for(k = 0; k < 16; k++) {
-    //     disable_irq(k);
-    // }
-
     cli();
 
     i8259_init();
 
     initialize_idt();
-     // DAVID ADDED THIS IN HOPES THAT THE IDT WOULD INITIALIZE
 
-    init_keyboard();  // Supposed to initialize keyboard upon boot
+    init_keyboard();
 
     init_rtc();
 
     paging_init();
-    //printf("Initializing Paging \n");
+
     file_system_init();
     
     sti();
@@ -175,8 +167,4 @@ void entry(unsigned long magic, unsigned long addr) {
     //print_number_of_inodes();
 
     asm volatile (".1: hlt; jmp .1;");
-
-
-
-    printf("fuck yeah 222\n");
 }

@@ -1,0 +1,8 @@
+CP2 BUGLOG
+
+1. Page fault exception arises when attempting to fetch an inode block via an offset from the boot block address
+
+Solution:   Unsolved
+
+
+2. 
