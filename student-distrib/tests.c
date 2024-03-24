@@ -1,5 +1,6 @@
 #include "tests.h"
 #include "x86_desc.h"
+#include "terminal.h"
 #include "lib.h"
 #include "rtc.h" //Included for rtc_test
 #include "file_sys_driver.h"
@@ -64,6 +65,14 @@ void video_mem_test(){
 	int temp = *pointer;
 	temp++;
 	printf("\n The Video Memory Check Passed \n");
+}
+
+void terminal_test() {
+	char b[128];
+	while(1) {
+		t_read(0,b,128);
+		t_write(0,b,128);
+	}
 }
 
 void rtc_test_checkpoint_1(){
