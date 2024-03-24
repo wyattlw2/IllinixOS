@@ -172,7 +172,7 @@ void entry(unsigned long magic, unsigned long addr) {
     sti();
     
     launch_tests();
-    print_number_of_inodes();
+    //print_number_of_inodes();
 
     asm volatile (".1: hlt; jmp .1;");
 

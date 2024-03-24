@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "rtc.h" //Included for rtc_test
+#include "file_sys_driver.h"
 //#include "lib.c" 
 #define PASS 1
 #define FAIL 0
@@ -108,6 +109,49 @@ void rtc_test(){
 	//disable_irq(8);
 	return;
 }
+void read_dentry_by_name_test(){
+	clear();
+    uint8_t test_name[32] = {"frame0.txt"};
+	printf("\n The name of the file is: ");
+	puts((uint8_t*)test_name);
+    dentry_struct_t sample_dentry; 
+    int retval = read_dentry_by_name(test_name, &sample_dentry);
+	printf("\n Inside the Directory Entry, The name of the file is: ");
+	puts((int8_t*)sample_dentry.file_name);
+    printf("\n The Inode Number of this file is %d \n", sample_dentry.inode_number);
+	printf("\n The return value of this function is: %d \n", retval);
+}
+
+void read_dentry_by_index_test(){
+	clear();
+    //uint8_t test_name[32] = {"frame0.txt"};
+	uint32_t index = 13;
+	printf("\n \n \n \n \n");
+	printf("\n The index of the file being checked is: %d", index);
+	//puts(test_name);
+    dentry_struct_t sample_dentry; 
+    int retval = read_dentry_by_index(index, &sample_dentry);
+	printf("\n Inside the Directory Entry, the name of the file is: ");
+	puts(sample_dentry.file_name);
+    printf("\n The Inode Number of this file is %d \n", sample_dentry.inode_number);
+	printf("\n The return value of this function is: %d \n", retval);
+}
+void read_data_test(){
+	clear();
+    //uint8_t test_name[32] = {"frame0.txt"};
+	uint32_t inode_num = 38;
+	printf("\n \n \n \n \n");
+	printf("\n The inode of the file being checked is: %d", inode_num);
+	//puts(test_name);
+    //dentry_struct_t sample_dentry; 
+	uint8_t buffer[100];
+    int retval = read_data(inode_num, 0, buffer, 100);
+	printf("This is the return value of the function: %d", retval);
+	printf("\n This is what's inside the file: \n" );
+	puts((int8_t*)buffer);
+}
+
+
 
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -116,11 +160,18 @@ void rtc_test(){
 
 /* Test suite entry point */
 void launch_tests(){
+
+	//CHECKPOINT 1:
 	//idt_test();
 	//div_by_zero_test();
 	//page_fault_test();
 	//video_mem_test();
 	//rtc_test_checkpoint_1();
-	rtc_test();
+
+	//CHECKPOINT 2:
+	//rtc_test();
+	// read_dentry_by_name_test();
+	//read_dentry_by_index_test();
+	read_data_test();
 }
 

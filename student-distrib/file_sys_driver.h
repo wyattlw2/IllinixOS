@@ -6,7 +6,6 @@ void file_system_init();
 void print_number_of_inodes();
 void get_bootblock_address(unsigned long addr);
 
-unsigned long bootBlock_address;
 
 typedef struct inode_struct_t { // page directory entry
         uint32_t length_in_bytes;
@@ -50,6 +49,9 @@ int32_t directory_write();
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry);
 
+int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry);
+
+int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 //Questions:
 
 //do we need to implement syscalls for this?

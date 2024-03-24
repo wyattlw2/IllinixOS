@@ -40,12 +40,14 @@ void NMI_disable(){
 
 void rtc_handler(){
     cli();
-    test_interrupts();
+    //test_interrupts();
     rtc_int += 1;
     outb(0x0C, 0x70); //select register C
     inb(0x71); //just throw away contents
     //clear();
     send_eoi(8);
+
+    //AADHESH -- DO WE NEED TO RE ENABLE INTERRUPTS AFTER THIS FUNCTION??
 }
 
 int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and rtc_open -- Aadhesh
