@@ -343,12 +343,12 @@ void launch_tests(){
 	// read_data_test();
 	// file_open_test();
 	// file_read_test();
-	 see_all_files();
+	// see_all_files();
 	// file_write_test();
 	// file_close_test();
 	// directory_open_close_test();
 	// directory_write_test();
 	// directory_read_test();
-	// terminal_test();
+	terminal_test();
 }
 

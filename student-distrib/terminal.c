@@ -25,7 +25,7 @@ int t_close() {
     return 0;
 }
 
-/* int t_read()
+/* int t_read(int32_t fd, void* buf, int32_t nbytes)
  * Inputs: int32_t fd - file directory
  *         void* buf - character buf
  *         int32_t nbytes - number of bytes 
@@ -46,7 +46,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     return nbytes;
 }
 
-/* int t_write()
+/* int t_write(int32_t _fd, const void* buf, int32_t nbytes)
  * Inputs: int32_t fd - file directory
  *         const void* buf - character buf
  *         int32_t nbytes - number of bytes 
@@ -60,15 +60,9 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     }
 
     if (IS_KB_CLEAR) { // enter is pressed so we print what is stored
-        uint16_t pos = get_cursor_position();
-        uint16_t y = pos / NUM_COLS;
-        uint16_t x = pos % NUM_COLS;
-        if (y != 0) {
-            putc('\n'); // prepare a new line to print buf
-        }
-        if (y == 0 && x != 0) {
-            putc('\n');
-        }
+        // uint16_t pos = get_cursor_position();
+        // uint16_t y = pos / NUM_COLS;
+        // uint16_t x = pos % NUM_COLS;
         for (i = 0; i < 128; i++) { // print every character
             putc(((char*)buf)[i]);
         }

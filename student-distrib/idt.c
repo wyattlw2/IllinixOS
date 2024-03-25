@@ -108,7 +108,7 @@ void kb_handler() {
     if (key == 0x0F) {
         int i;
         for (i = 0; i < 4; i++) { // i < 4 because tab prints 4 spaces
-            if (kb_idx + i != MAX_BUFF_SIZE - 1) {
+            if (kb_idx != MAX_BUFF_SIZE - 1) {
                 putc(' ');
                 kb_buff[kb_idx] = ' ';
                 kb_idx++;
@@ -160,7 +160,12 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-
+        if (y != 0) {
+            putc('\n'); // prepare a new line to print buf
+        }
+        if (y == 0 && x != 0) {
+            putc('\n');
+        }
         kb_buff[kb_idx] = '\n';
         user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
