@@ -607,8 +607,6 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
 *   Side Effects:   The idt[0->20] array will be set and ready to be imported into the idt table that is defined in x86_desc.S
 *   https://wiki.osdev.org/Exceptions // FILL THESE VALUES IN WITH THE INFO FROM THIS
 */      
-
-
 void set_exception_params(idt_desc_t * idt_array_index, int vec){
     //int j;
     // do the below for every interrupt -- James 
