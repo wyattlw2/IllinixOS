@@ -66,7 +66,7 @@ Side Effects: Data is populated into the buffer
 */
 int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
     
-    if(dentry->inode_number < 0 || dentry->inode_number > 64){
+    if(dentry->inode_number < 0 || dentry->inode_number > 64){ // max number of inodes is 64
         printf("\n Invalid Directory Entry, Please try again with a vaild Directory Entry \n");
         return -1;
     }
@@ -74,7 +74,7 @@ int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    {
         printf("\n Invalid Number of Bytes, please try again with the correct number of bytes \n");
     }
 
-    int retval = read_data(dentry->inode_number, 0, buf, nbytes);
+    int retval = read_data(dentry->inode_number, 0, buf, nbytes); // all legwork done in here
     if(retval == -1){
         printf("\n read_data was attempted, but it failed, please try again \n");
     }
@@ -106,7 +106,7 @@ int32_t file_close(dentry_struct_t* opened_file)   {
         return -1;
     }
     int i;
-    for(i=0; i< 32; i++){
+    for(i=0; i< NUMBER_OF_FILE_CHARACTERS; i++){
         opened_file->file_name[i] = 0;
     }
     
@@ -159,7 +159,7 @@ int32_t directory_close(dentry_struct_t* opened_direc)   { // PRETTY MUCH A CARB
         printf("\n Unable to close the directory \n");
         return -1;
     }
-    for(i=0; i< 32; i++){
+    for(i=0; i< NUMBER_OF_FILE_CHARACTERS; i++){
         opened_direc->file_name[i] = 0;
     }
     
@@ -226,7 +226,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
 
     //do strlen bullshit here
     uint32_t string_length = strlen((int8_t*) fname); // Doesn't allow standard libraries -- ask about later
-    if(string_length > 32){
+    if(string_length > NUMBER_OF_FILE_CHARACTERS){
         return -1;
     }
 
@@ -237,10 +237,10 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     //int correct_string = 0;
     for (i = 0; i < 63; i++)    {
         for(j = 0; j < NUMBER_OF_FILE_CHARACTERS; j++){
-            if (fname[j] == booting_info_block->dir_entries[i].file_name[j]){
+            if (fname[j] == booting_info_block->dir_entries[i].file_name[j]){ // searching for the right file
                 // printf("\n We made it into the name is correct if statement");
                 //putc(fname[j]);
-                if(fname[j] == NULL || j == 31){
+                if(fname[j] == NULL || j == 31){ // 31th character indicates you are at the end of the string and all characters must have matched -- fixes the 32 char edge case
                     //printf("\n made it to the end of the string\n ");
                     file_found = 1; // we know we made it to the correct string
                 }
@@ -257,7 +257,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
             //     dentry->file_name[j] =  booting_info_block->dir_entries[i].file_name[j];
             // }
             //printf("The dentry index of this file is:  %d", i);
-            strcpy(dentry->file_name, booting_info_block->dir_entries[i].file_name);
+            strcpy(dentry->file_name, booting_info_block->dir_entries[i].file_name); // copies file information into dentry
             dentry->file_type = booting_info_block->dir_entries[i].file_type;
             dentry->inode_number = booting_info_block->dir_entries[i].inode_number;
             // Not copying over reserved, hopefully we don't care
@@ -281,7 +281,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry){
         return -1;
     } // We have a valid index
 
-    strcpy(dentry->file_name, booting_info_block->dir_entries[index].file_name);
+    strcpy(dentry->file_name, booting_info_block->dir_entries[index].file_name); // copies file information
     dentry->file_type = booting_info_block->dir_entries[index].file_type;
     dentry->inode_number = booting_info_block->dir_entries[index].inode_number;
     return 0;
@@ -327,7 +327,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         data_block_struct_t * datablock_addr = (data_block_struct_t *)booting_info_block + full_4kb_array_index;
         //putc(datablock_addr[i]);
 
-        buf[i- offset] = datablock_addr->data[i % 4096];
+        buf[i- offset] = datablock_addr->data[i % FOUR_KB];
         
     }
     return 0;
@@ -335,7 +335,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 }
 void see_all_files_helper(){
     int i;
-    for(i=0; i< 63; i++){
+    for(i=0; i< 63; i++){ // 63 is max number of files
         printf("\n");
         puts(booting_info_block->dir_entries[i].file_name);
         printf(" - File Type: ");
@@ -346,7 +346,7 @@ void see_all_files_helper(){
         }else if(booting_info_block->dir_entries[i].file_type == REGULAR_FILE){
             printf("Regular File");
         }
-        if(i==16){
+        if(i==16){ // current number of files
             printf("\n");
             printf("\n");
             break;
