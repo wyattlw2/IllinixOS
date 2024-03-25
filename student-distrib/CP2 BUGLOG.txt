@@ -14,7 +14,7 @@ Solution: This caused our file_read to fail. The fix was to make a new struct sp
 
 
 
-3. Page fault arises when attempting to open SPECIFICALLY the file "verylargetextwithverylongname.tx". All other files of length 32 work just fine. And if the length is > 32, the functions correctly returns -1 and does not pagefault.
+3. Page fault arises when attempting to open SPECIFICALLY the file "verylargetextwithverylongname.txt". All other files of length 32 work just fine. And if the length is > 32, the functions correctly returns -1 and does not pagefault.
 
 Solution: Delete this file lol
 
@@ -29,3 +29,11 @@ Solution: Use a variable to keep track of user space and only allow user to dele
 6. Write kept printing everything in the buf, causing things to be printed twice on the terminal
 
 Solution: Only allow write to actually print things when enter is in the keyboard_buffer
+
+7. rtc is not displaying any interrupts and rtc_test() automatically passses without any functionality
+
+Solution: Enabled cli() and test_interrupts() rtc_handler() but did not user clear() to ensure all interrupts are printed to the screen
+
+8. rtc_test() was not incrementing frequency to set by the necessary power of 2
+
+Solution: Alter for loop to ignore non-powers of two and only input frequencies 1 to 1024 to show that rtc can handle freuncy changes
