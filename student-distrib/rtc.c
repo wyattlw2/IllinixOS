@@ -1,15 +1,21 @@
 #include "rtc.h"
 
+#define     RTC_PORT            0x70
+#define     CMOS                0x71
+#define     REGA                0x8A
+#define     REGB                0x8B
+
+
 int rtc_int;
 
 /* OSDEV NMI Enable & Disable
 void NMI_enable(){
-    outb(0x70. inb(0x70) & 0x7F);
-    inb(0x71);
+    outb(RTC_PORT. inb(RTC_PORT) & 0x7F);
+    inb(CMOS);
 }
 void NMI_disable(){
-    outb(0x70, inb(0x70) | 0x80);
-    inb(0x71);
+    outb(RTC_PORT, inb(RTC_PORT) | 0x80);
+    inb(CMOS);
 }
 */
 
@@ -22,14 +28,14 @@ void NMI_disable(){
  void init_rtc(void){ // initializing the RTC -- Aadhesh
     enable_irq(8);
     //cli() called prior to init_rtc()
-    char prev = inb(0x70) | 0x80; //Disable NMI by setting first bit (0x80 bit) to 1 using 0x80
-    outb(prev, 0x70);
-    inb(0x71);
+    char prev = inb(RTC_PORT) | 0x80; //Disable NMI by setting first bit (0x80 bit) to 1 using 0x80
+    outb(prev, RTC_PORT);
+    inb(CMOS);
 
-    outb(0x8B, 0x70); //select register B, and disable NMI
-    prev = inb(0x71); //read the current value of register B
-    outb(0x8B, 0x70); //set the index again (a read will reset the index to register D)
-    outb(prev | 0x40, 0x71); //write the previous value ORed with 0x40. This turns on bit 6 of register B
+    outb(REGB, RTC_PORT); //select register B, and disable NMI
+    prev = inb(CMOS); //read the current value of register B
+    outb(REGB, RTC_PORT); //set the index again (a read will reset the index to register D)
+    outb(prev | 0x40, CMOS); //write the previous value ORed with 0x40. This turns on bit 6 of register B
 
     rtc_int = 0; //Initialize RTC interrupt flag
  }
@@ -45,8 +51,8 @@ void rtc_handler(){
     // test_interrupts();
     // putc('1');
     rtc_int += 1;
-    outb(0x0C, 0x70); //select register C
-    inb(0x71); //just throw away contents
+    outb(0x0C, RTC_PORT); //select register C
+    inb(CMOS); //just throw away contents
     //clear();
     send_eoi(8);
 
@@ -68,18 +74,18 @@ int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and 
     uint8_t rate = 16 - log; //rate must be above 2 and not over 15
 
     cli(); //clear interrupts
-    char prev = inb(0x70) | 0x80; //Disable NMI by setting first bit (0x80 bit) to 1 using 0x80
-    outb(prev, 0x70);
-    inb(0x71); 
+    char prev = inb(RTC_PORT) | 0x80; //Disable NMI by setting first bit (0x80 bit) to 1 using 0x80
+    outb(prev, RTC_PORT);
+    inb(CMOS); 
 
-    outb(0x8A, 0x70); //set index to register A
-    prev = inb(0x71); //get initial value of register A
-    outb(0x8A, 0x70); //reset index to A
-    outb((prev & 0xF0) | rate, 0x71); //write only our rate to A. Note, rate is the bottom 4 bits.
+    outb(REGA, RTC_PORT); //set index to register A
+    prev = inb(CMOS); //get initial value of register A
+    outb(REGA, RTC_PORT); //reset index to A
+    outb((prev & 0xF0) | rate, CMOS); //write only our rate to A. Note, rate is the bottom 4 bits.
     
-    prev = inb(0x70) & 0x7F; //Enable NMI by setting 0x80 bit to 0 using 0x7F
-    outb(prev,0x70);
-    inb(0x71);
+    prev = inb(RTC_PORT) & 0x7F; //Enable NMI by setting 0x80 bit to 0 using 0x7F
+    outb(prev,RTC_PORT);
+    inb(CMOS);
     sti(); //Enable all other interrupts
 
     return 0;

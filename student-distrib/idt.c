@@ -1,7 +1,6 @@
 #include "idt.h"
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
-#define     RTC_PORT            0x71
 #define     NUM_COLS            80
 #define     NUM_ROWS            25
 #define     MAX_BUFF_SIZE       128
