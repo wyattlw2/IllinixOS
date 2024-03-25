@@ -4,8 +4,16 @@ CP2 BUGLOG
 the address would increment it by decimal 1. This was wrong because the type of pointer was our predefined struct. Thus when we incremented*4096, it was going into a whole different page
 hence the page fault.
 
-Solution: Don't multply by 4096 when incrementing the address of the boot block array
+Solution: Don't multiply by 4096 when incrementing the address of the boot block array
+
+
 
 2. Similar issue, incrementing the address of a datablock wasn't getting us to the next entry inside the block, it was moving to the next data block. 
 
-Solution This caused our file_read to fail. The fix was to make a new struct specifically for data blocks, we then -> the new array we created and we can index the data inside the blocks. 
+Solution: This caused our file_read to fail. The fix was to make a new struct specifically for data blocks, we then -> the new array we created and we can index the data inside the blocks. 
+
+
+
+3. Page fault arises when attempting to open SPECIFICALLY the file "verylargetextwithverylongname.tx". All other files of length 32 work just fine. And if the length is > 32, the functions correctly returns -1 and does not pagefault.
+
+Solution: Delete this file lol

@@ -9,8 +9,11 @@
 #define     PIC_MASTER          0X21
 #define     IRQ1                0x01
 #define     NUM_COLS            80
+
+
+
+//THIS TABLE IS SOLELY FOR CHECKPOINT 1! THE ACTUAL SCANCODE TABLE IS IN idt.c
 // lookup table that only does numbers and letters
-// for scancodes other than 
 const char table[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 , '0', '\0', '\0', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
 'p', '\0', '\0', '\n', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', '\0'

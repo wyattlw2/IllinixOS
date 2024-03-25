@@ -152,12 +152,12 @@ int32_t directory_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)
         printf("\n The size of this directory is 1 byte! Read Failed \n");
         return -1;
     }
-    int i;
+    //int i;
     // for(i=0; i< nbytes; i++){
     //     buf[i] = dentry->file_name[i];
     // }
     // putc(buf[0]);
-    strcpy(buf, dentry->file_name);
+    strcpy((int8_t*) buf, dentry->file_name);
     return 0;
 }
 
@@ -287,6 +287,8 @@ void see_all_files_helper(){
             printf("Regular File");
         }
         if(i==16){
+            printf("\n");
+            printf("\n");
             break;
         }
     }

@@ -173,7 +173,7 @@ void read_data_test(){
 void file_open_test(){
 	clear();
 	printf("FILE_OPEN TEST.\n \n \n");
-    uint8_t test_name[32] = {"grinding_at_eceb"};	//set this line to whichever filename you want.
+    uint8_t test_name[33] = {"verylargetextwithverylongname.txt"};	//set this line to whichever filename you want.
 											//i have NOT tested directory filenames yet. should theoretically be fine however
 	printf(" Opening file ");
 	puts((int8_t*)test_name);
@@ -184,8 +184,8 @@ void file_open_test(){
 	if (retval == -1)
 	{
 		printf("\n\n However, the system either \n a.) could not locate the inputted filename,\n");
-		printf(" b.) the opened file is of type 'directory' when it should be 'regular file', or\n");
-		printf(" c.) the inputted filename exceeds 32 characters.");
+		printf(" b.) the opened file is of type 'directory' when it should be 'regular file', or");
+		printf(" c.) the inputted filename exceeds 32 characters.\n\n");
 		return;
 	}
 
@@ -202,7 +202,7 @@ void file_read_test(){
 	uint8_t filename[32] = {"frame0.txt"};
 	// uint8_t filename[32] = {"verylargetextwithverylongname.tx"};
 	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n");
-	puts(filename);
+	puts((int8_t*)filename);
 	dentry_struct_t dentry_to_read;
 	int retval = file_open(filename, &dentry_to_read);
 	if(retval == 0){
@@ -218,55 +218,56 @@ void file_read_test(){
 	int retval2 = file_read(&dentry_to_read, buffer, num_bytes);
 	if(retval2 == 0){
 		printf("\n File Read was successful, outputting the contents of the file: \n");
-		puts(buffer);
+		puts((int8_t*)buffer);
 	} else{
 		printf("\n File Read Failed \n");
 	}
 }
 void see_all_files(){
-	printf(" \n \n \n \n \n");
+	//printf("\n");	//probably written before terminal scrolling feature was merged with this code
 	clear();
+	printf("\n DUMPING ALL FILES FROM BOOT BLOCK...\n");
 	see_all_files_helper();
 }
 void file_write_test(){
 	clear();
 	int retval = file_write();
 	if(retval == -1){
-		printf("\n File Write Failed, Meaning we Passed the test :)");
+		printf("\n File Write Failed, Meaning we Passed the test :)\n\n");
 	}
 }
 
 void file_close_test(){
 	clear();
-	printf("\n \n \n \n \n");
+	//printf("\n \n \n \n \n");
 	printf("\n Attempting File Close Test: \n");
-	printf("First attempting to open the file");
+	printf(" First attempting to open the file...");
 	dentry_struct_t dentry_to_close;
 	uint8_t filename[32] = {"frame0.txt"};
 	int retval = file_open(filename, &dentry_to_close);
 	if(retval == 0){
 		printf("\n File Open Successful! \n");
 	}else{
-		printf("\n File Open Failed, please try again \n");
+		printf("\n File Open Failed, please try again. \n");
 		return;
 	}
 	printf("\n Attempting to close the file \n");
 	int retval2 = file_close(&dentry_to_close);
 	if(retval2 == 0){
-		printf("\n File Closure Successful, test passed \n");
+		printf("\n Successfully called file_close(), test passed \n");
 	}else{
-		printf("Something happened and the test failed, please try again");
+		printf("Something happened and the test failed, please try again \n");
 	}
 }
 void directory_open_close_test(){
 	clear();
-	printf("\n \n \n \n \n");
+	//printf("\n \n \n \n \n");
 	printf("\n Attempting Directory Open Test: \n");
 	
 	dentry_struct_t dentry_to_open;
 	uint8_t filename[32] = {"."};
 	printf("\n Attempting to open directory: ");
-	puts(filename);
+	puts((int8_t*)filename);
 	int retval = directory_open(filename, &dentry_to_open);
 	if(retval == 0){
 		printf("\n Directory Open Successful! \n");
@@ -288,17 +289,17 @@ void directory_write_test(){
 	clear();
 	int retval = directory_write();
 	if(retval == -1){
-		printf("\n Directory Write Test Failed, Meaning we Passed the test :)");
+		printf("\n Directory Write Test Failed, Meaning we Passed the test :)\n\n");
 	}
 }
 void directory_read_test(){
 	clear();
-	printf("\n \n \n \n \n");
-	int8_t buffer[3];
+	//printf("\n \n \n \n \n");
+	uint8_t buffer[3];		//anywhere where i changed the variable type was to remove compiler warnings
 	dentry_struct_t dentry_to_open;
 	uint8_t filename[32] = {"."};
 	printf("\n Attempting to open directory: ");
-	puts(filename);
+	puts((int8_t*)filename);
 	int retval = directory_open(filename, &dentry_to_open);
 	if(retval == 0){
 		printf("\n Directory Open Successful! \n");
@@ -312,7 +313,7 @@ void directory_read_test(){
 	int retval2 = directory_read(&dentry_to_open, buffer, nbytes);
 	if(retval2 == 0){
 		printf("\n Directory Read Successful, the name of the directory is: ");
-		puts(buffer);
+		puts((int8_t*)buffer);
 	}else{
 		printf("\n Directory Read Failed \n");
 	}
@@ -341,8 +342,8 @@ void launch_tests(){
 	//read_dentry_by_index_test();
 	// read_data_test();
 	// file_open_test();
-	file_read_test();
-	// see_all_files();
+	// file_read_test();
+	 see_all_files();
 	// file_write_test();
 	// file_close_test();
 	// directory_open_close_test();
