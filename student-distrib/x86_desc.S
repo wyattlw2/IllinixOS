@@ -118,7 +118,3 @@ idt_bottom:
 
     .align 16
 
-
-
-
-    

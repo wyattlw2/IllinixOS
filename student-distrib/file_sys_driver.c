@@ -227,6 +227,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     //do strlen bullshit here
     uint32_t string_length = strlen((int8_t*) fname); // Doesn't allow standard libraries -- ask about later
     if(string_length > NUMBER_OF_FILE_CHARACTERS){
+        printf("STRING TOO BIG");
         return -1;
     }
 
@@ -241,7 +242,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
                 // printf("\n We made it into the name is correct if statement");
                 //putc(fname[j]);
                 if(fname[j] == NULL || j == 31){ // 31th character indicates you are at the end of the string and all characters must have matched -- fixes the 32 char edge case
-                    //printf("\n made it to the end of the string\n ");
+                    // printf("\n made it to the end of the string\n ");
                     file_found = 1; // we know we made it to the correct string
                 }
             }
@@ -258,6 +259,15 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
             // }
             //printf("The dentry index of this file is:  %d", i);
             strcpy(dentry->file_name, booting_info_block->dir_entries[i].file_name); // copies file information into dentry
+            // int k;
+            // printf("debugging line: \n");
+            // for(k = 0; k< 32; k++){
+            //     // if(booting_info_block->dir_entries[i].file_name[k] == NULL){
+            //     //     break;
+            //     // }
+            //     dentry->file_name[i] = booting_info_block->dir_entries[i].file_name[k]; // THIS IS THE OFFENDER IN QUESTION RN 3/25/24 5PM
+            //     // putc(dentry->file_name[]);
+            // }
             dentry->file_type = booting_info_block->dir_entries[i].file_type;
             dentry->inode_number = booting_info_block->dir_entries[i].inode_number;
             // Not copying over reserved, hopefully we don't care

@@ -173,13 +173,15 @@ void read_data_test(){
 void file_open_test(){
 	clear();
 	printf("FILE_OPEN TEST.\n \n \n");
-    uint8_t test_name[33] = {"verylargetextwithverylongname.txt"};	//set this line to whichever filename you want.
+    	//set this line to whichever filename you want.
 											//i have NOT tested directory filenames yet. should theoretically be fine however
+	uint8_t test_name[32] = {"frame0.txt"};
 	printf(" Opening file ");
 	puts((int8_t*)test_name);
-	printf("...\n");
-    dentry_struct_t* sample_dentry; 
-    int retval = file_open(test_name, sample_dentry);
+	// printf("...\n");
+	printf(" \n ");
+    dentry_struct_t sample_dentry; 
+    int retval = file_open(test_name, &sample_dentry);
 	printf("\n Successfully called file_open without crashing.");
 	if (retval == -1)
 	{
@@ -190,8 +192,8 @@ void file_open_test(){
 	}
 
 	printf("\n The name of the opened file is: ");
-	puts((int8_t*)sample_dentry->file_name);
-    printf(".\n The inode number of this file is %d. \n", sample_dentry->inode_number);
+	puts((int8_t*)(&sample_dentry)->file_name);
+    printf(".\n The inode number of this file is %d. \n", (&sample_dentry)->inode_number);
 	printf("\n The error code for file_open is: %d. \n", retval);
 }
 
@@ -200,8 +202,9 @@ void file_read_test(){
 	uint8_t buffer[36000];
 	// uint8_t filename[32] = {"created.txt"};
 	uint8_t filename[32] = {"frame0.txt"};
+	// uint8_t filename[32] = {"shell"};
 	// uint8_t filename[32] = {"verylargetextwithverylongname.tx"};
-	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n");
+	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n ");
 	puts((int8_t*)filename);
 	dentry_struct_t dentry_to_read;
 	int retval = file_open(filename, &dentry_to_read);
@@ -219,6 +222,13 @@ void file_read_test(){
 	if(retval2 == 0){
 		printf("\n File Read was successful, outputting the contents of the file: \n");
 		puts((int8_t*)buffer);
+		// int i;
+		// for(i=0; i< num_bytes; i++){ // USE THIS IF BINARY FILES TEST
+		// 	if(buffer[i] == NULL){
+		// 		continue;
+		// 	}
+		// 	putc(buffer[i]);
+		// }
 	} else{
 		printf("\n File Read Failed \n");
 	}
@@ -321,6 +331,7 @@ void directory_read_test(){
 
 
 
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -337,11 +348,11 @@ void launch_tests(){
 	//rtc_test_checkpoint_1();
 
 	//CHECKPOINT 2:
-	// rtc_test();
+	// rtc_test(); // REMEMBER TO UNCOMMENT THE PUTC IN THE RTC HANDLER
 	//read_dentry_by_name_test();
 	//read_dentry_by_index_test();
-	// read_data_test();
-	// file_open_test();
+	read_data_test();
+	//  file_open_test();
 	// file_read_test();
 	// see_all_files();
 	// file_write_test();
