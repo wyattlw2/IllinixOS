@@ -17,3 +17,15 @@ Solution: This caused our file_read to fail. The fix was to make a new struct sp
 3. Page fault arises when attempting to open SPECIFICALLY the file "verylargetextwithverylongname.tx". All other files of length 32 work just fine. And if the length is > 32, the functions correctly returns -1 and does not pagefault.
 
 Solution: Delete this file lol
+
+4. There were many edge cases in the keyboard for instance overflowing to the next line but missed the last typed character in the previous line, delete isn't actually deleting, etc
+
+Solution: Forgot that it was 0 index stuff. Also need to carefully think about order of operations for the right behavior
+
+5. Delete could delete anything in the terminal
+
+Solution: Use a variable to keep track of user space and only allow user to delete things in its own space
+
+6. Write kept printing everything in the buf, causing things to be printed twice on the terminal
+
+Solution: Only allow write to actually print things when enter is in the keyboard_buffer
