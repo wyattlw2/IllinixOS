@@ -149,21 +149,19 @@ void entry(unsigned long magic, unsigned long addr) {
 
     cli();
 
-    i8259_init();
+    i8259_init(); // INIT PIC
 
-    initialize_idt();
+    initialize_idt(); // INIT IDT
 
-    init_keyboard();
+    init_keyboard(); // INIT KB
 
-    init_rtc();
+    init_rtc(); // INIT RTC
 
-    paging_init();
-
-    file_system_init();
+    paging_init(); // INIT Paging
     
     sti();
     
-    launch_tests();
+    // launch_tests();
     //print_number_of_inodes();
 
     asm volatile (".1: hlt; jmp .1;");

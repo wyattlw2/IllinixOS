@@ -153,7 +153,7 @@ Side effects: Sends an EOI to the corresponding IRQ line (based on irq_num) to s
 void send_eoi(uint32_t irq_num) {
     // cli();
 	if(irq_num >= 8){
-		outb(EOI | 2, PIC1_COMMAND);               
+		outb(EOI | 2, PIC1_COMMAND);   // if irq num greater than 8 we need to send the EOI into both PICs             
 		outb(EOI | (irq_num - 8), PIC2_COMMAND);
     }else{
     	outb(EOI | irq_num, PIC1_COMMAND);

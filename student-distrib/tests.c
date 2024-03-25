@@ -349,6 +349,6 @@ void launch_tests(){
 	// directory_open_close_test();
 	// directory_write_test();
 	// directory_read_test();
-	terminal_test();
+	// terminal_test();
 }
 

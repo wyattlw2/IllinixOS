@@ -14,10 +14,10 @@ void NMI_disable(){
 */
 
 /*
-* Description: 
-* Inputs: 
-* Outputs: 
-* Side Effects: 
+* Description: This function initializes the RTC.
+* Inputs: NONE
+* Outputs: NONE
+* Side Effects: RTC is initialized 
 */
  void init_rtc(void){ // initializing the RTC -- Aadhesh
     enable_irq(8);
@@ -34,6 +34,12 @@ void NMI_disable(){
     rtc_int = 0; //Initialize RTC interrupt flag
  }
 
+/*
+* Description: This function is the RTC Handler. It is used whenever the RTC generates an interrupts
+* Inputs: NONE
+* Outputs: NONE
+* Side Effects: None
+*/
 void rtc_handler(){
     cli();
     // test_interrupts();
@@ -46,7 +52,11 @@ void rtc_handler(){
 
     //AADHESH -- DO WE NEED TO RE ENABLE INTERRUPTS AFTER THIS FUNCTION??
 }
-
+/* Description: This is a helper function created to set the rtc to a given frequency. It was created to handle RTC Open and RTC Write
+* Inputs: NONE
+* Outputs: NONE
+* Side Effects: None
+*/
 int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and rtc_open -- Aadhesh
     //printf("%d", frequency);
     if(frequency < 2 || frequency > 1024) return -1; //Return failure if frequency exceeds 1024 Hz or drops below 2 Hz
@@ -74,23 +84,42 @@ int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and 
 
     return 0;
 }
-
+/* Description: This is RTC Read
+* Inputs: File Descriptor, buffer, and number of bytes
+* Outputs: Returns 0 for success and -1 for failure
+* Side Effects: None
+*/
 int32_t rtc_read (int32_t fd, void* buf, int32_t nbytes){ //Aadhesh
     int32_t curr = rtc_int; //Stores current rtc
     while(curr == rtc_int){}; //Waits until rtc_int value is changed by the rtc_handler
     return 0;
 }
 
+/* Description: This is RTC write
+* Inputs: File Descriptor, buffer, and number of bytes
+* Outputs: Returns 0 for success and -1 for failure
+* Side Effects: None
+*/
 int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){ //Aadhesh
     if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
     return rtc_set_frequency((int32_t)buf); //change frequency based on buf value 
 }
 
+/* Description: This is RTC Open
+* Inputs: inputs a file name
+* Outputs: Returns 0 for success and -1 for failure
+* Side Effects: None
+*/
 int32_t rtc_open (const uint8_t* filename){ //Aadhesh
     rtc_set_frequency(2); //Initialize RTC Frequency to 2 Hz
     return 0; //Return zero for success 
 }
 
+/* Description: This is RTC Close
+* Inputs: inputs a file descriptor
+* Outputs: Returns 0 for success and -1 for failure
+* Side Effects: None
+*/
 int32_t rtc_close (int32_t fd){ //Aadhesh
     return 0;
 }

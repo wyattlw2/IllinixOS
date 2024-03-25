@@ -71,6 +71,9 @@
 // need to ask TA:
 // need help with dealing '\' cannot print it
 // need to confirm the while(1) {read write} test
+
+
+//TABLE for the keyboard handler
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 , '0', '-', '=', '\0', '\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o',
 'p', '[', ']', '\0', '\0', 'a', 's', 'd', 'f', 'g', 'h' , 'j', 'k' ,'l', ';'

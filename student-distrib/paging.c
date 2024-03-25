@@ -56,41 +56,11 @@ void paging_init()  {
 }
 
 
-
-uint32_t page_directoryOsdev[1024] __attribute__((aligned(4096)));
-uint32_t first_page_tableOsdev[1024] __attribute__((aligned(4096)));
-void paging_init_osdev(){
-
-    
-    //set each entry to not present
-    int i;
-    for(i = 0; i < 1024; i++)
-    {
-        // This sets the following flags to the pages:
-        //   Supervisor: Only kernel-mode can access them
-        //   Write Enabled: It can be both read from and written to
-        //   Not Present: The page table is not present
-        page_directoryOsdev[i] = 0x00000002;
-    }
-    
-
-        //unsigned int i;
-    
-    //we will fill all 1024 entries in the table, mapping 4 megabytes
-    for(i = 0; i < 1024; i++)
-    {
-        // As the address is page aligned, it will always leave 12 bits zeroed.
-        // Those bits are used by the attributes ;)
-        first_page_tableOsdev[i] = (i * 0x1000) | 3; // attributes: supervisor level, read/write, present.
-    }
-    page_directoryOsdev[0] = ((unsigned int)first_page_tableOsdev) | 3;
-
-    loadPageDirectory(page_directoryOsdev);
-    //enableExtendedPageSize();
-    enablePaging();
-}
-
-
+/* Description: This is an assembly helper function to load the page directory into control register 3.
+* Inputs: inputs a page directory 
+* Outputs: None
+* Side Effects: paging directory stored in the control register
+*/
 void loadPageDirectory(unsigned int* pageDirectory){
 asm volatile("                  \n\
             mov 8(%esp), %eax   \n\
@@ -98,6 +68,11 @@ asm volatile("                  \n\
                                 ");
 }
 
+/* Description: This is an assembly helper function to load the extended page size bit into control register 4.
+* Inputs: None
+* Outputs: None
+* Side Effects: 4MB pages will be able to be created
+*/
 void enableExtendedPageSize(){
     asm volatile("          \n\
     mov %cr4, %eax          \n\
@@ -106,7 +81,11 @@ void enableExtendedPageSize(){
                ");
                return;
 }
-
+/* Description: This is an assembly helper function to load the activation bit into control register 0.
+* Inputs: None
+* Outputs: None
+* Side Effects: Paging will be enabled
+*/
 void enablePaging(){
     asm volatile("          \n\
     mov %cr0, %eax          \n\
@@ -115,31 +94,3 @@ void enablePaging(){
                ");
     return;
 }
-//void  enablePagingOsdev(){
-    //asm volatile("
-    // .text
-    // .globl loadPageDirectoryOsdev
-    // loadPageDirectoryOsdev:
-    // push %ebp
-    // mov %esp, %ebp
-    // mov 8(%esp), %eax
-    // mov %eax, %cr3
-    // mov %ebp, %esp
-    // pop %ebp
-    // ret
-               // ")
-
-
-    // .text
-    // .globl enablePagingOsdev
-    // enablePagingOsdev:
-    // push %ebp
-    // mov %esp, %ebp
-    // mov %cr0, %eax
-    // or $0x80000000, %eax
-    // mov %eax, %cr0
-    // mov %ebp, %esp
-    // pop %ebp
-    // ret
-//}
-
