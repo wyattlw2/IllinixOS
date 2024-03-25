@@ -23,27 +23,14 @@ extern void get_bootblock_address(uint32_t addr){
 }
 
 
-void file_system_init() {
-    // need to map the struct to the mod address. (already done with above function)
-    // might not need to worry about this for checkpoint 2.
-    // get_bootblock_address is already being called in kernel.c, so the bootblock is already initialized.
-    // don't see anything else we need to do just yet
-}
-
-
 /*
 file_open
-
 Description: Opens a file in an existing filesystem. Searches for the file using read_dentry_by_name.
-Points opened_file to the data contained in the identified file, assuming a matching file was found
-
+    Points opened_file to the data contained in the identified file, assuming a matching file was found
 Inputs: filename, opened_file
-
 Outputs: Returns -1 in case of error, 0 otherwise
-
-Side effects: Finds a file corresponding to inputted file name. "Opens" file by pointing opened_file to data contained
-in the identified file.
-
+Side Effects: Finds a file corresponding to inputted file name. "Opens" file by pointing opened_file to data contained
+    in the identified file.
 */
 int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
 
@@ -69,6 +56,14 @@ int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
     return 0;
 }
 
+
+/*
+file_read
+Description: Takes in a dentry, buf and nbytes and outputs the requested number of bytes into that buffer
+Inputs: directory entry, buffer, nbytes
+Outputs: Returns -1 in case of error, 0 otherwise
+Side Effects: Data is populated into the buffer
+*/
 int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
     
     if(dentry->inode_number < 0 || dentry->inode_number > 64){
@@ -88,15 +83,28 @@ int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    {
 }
 
 
-/* This is our write function, it isn't functional since our file system is read only right now 
-*
-*
+/*
+file_write
+Description: This function is non functional because our file system is read only
+Inputs: None
+Outputs: None
+Side Effects: None
 */
 int32_t file_write()  {
     return -1; // DUNZO
 }
-
+/*
+file_close
+Description: This function effectively overwrites the dentry provided so that the file cannot be read again unless file open is called again
+Inputs: Dentry of an opened file
+Outputs: success (0) or failure (-1)
+Side Effects: None
+*/
 int32_t file_close(dentry_struct_t* opened_file)   {
+    if(opened_file == NULL){
+        printf("\n Unable to close the file. \n");
+        return -1;
+    }
     int i;
     for(i=0; i< 32; i++){
         opened_file->file_name[i] = 0;
@@ -108,7 +116,13 @@ int32_t file_close(dentry_struct_t* opened_file)   {
 }
 
 
-
+/*
+directory_open
+Description: This function takes a file name and populates in the opened directory information into the dentry provided 
+Inputs: file name and empty directory entry
+Outputs: success (0) or failure (-1) 
+Side Effects: None
+*/
 int32_t directory_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
     int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates opened_file with data from the file
     
@@ -132,8 +146,19 @@ int32_t directory_open(const uint8_t* filename, dentry_struct_t* opened_file)   
     return 0;
 }
 
+/*
+directory_close
+Description: This function takes an open dentry and 
+Inputs: Dentry of an opened directory
+Outputs: success (0) or failure (-1)
+Side Effects: None
+*/
 int32_t directory_close(dentry_struct_t* opened_direc)   { // PRETTY MUCH A CARBON COPY OF file_close
     int i;
+    if(opened_direc == NULL){
+        printf("\n Unable to close the directory \n");
+        return -1;
+    }
     for(i=0; i< 32; i++){
         opened_direc->file_name[i] = 0;
     }
@@ -143,6 +168,13 @@ int32_t directory_close(dentry_struct_t* opened_direc)   { // PRETTY MUCH A CARB
     return 0; // DUNZO
 }
 
+/*
+directory_read
+Description: This function takes an open dentry, buffer, and num bytes and returns the directory name based on the information provided
+Inputs: Dentry of an opened directory, buffer, and nbytes
+Outputs: success (0) or failure (-1)
+Side Effects: None
+*/
 int32_t directory_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { // if num bytes is too big then fail
     if(dentry->file_name[0] != '.'){
         printf("\n Something went wrong, this OS only contains 1 Directory, and it is . \n"); // Prints
@@ -160,10 +192,18 @@ int32_t directory_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)
     strcpy((int8_t*) buf, dentry->file_name);
     return 0;
 }
-
+/*
+directory_write
+Description: This function is non functional because our file system is read only
+Inputs: None
+Outputs: None
+Side Effects: None
+*/
 int32_t directory_write()   {
     return -1; // DUNZO
 }
+
+//helper function used to test if file system is reading properly, ignore,
 void print_number_of_inodes(){
 	printf("This is the number of inodes: %d" , (int) booting_info_block->number_of_inodes);
 }
@@ -172,7 +212,13 @@ void print_number_of_inodes(){
 //for read_data: we're given the inode, the offset from the start of data (beginning at the first data block, but potentially extending to other blocks),
 //buf is what we're putting the data into, and length is the amount of bytes you want to write into the buffer
 
-
+/*
+read_dentry_by_name
+Description: This function takes in a file name and populates a dentry based on the name created
+Inputs: file name, and empty dentry
+Outputs: None
+Side Effects: the dentry is populated with the correct dentry based on the file name inputted 
+*/
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     //i think the goal of this function is to search for a file in the boot block that corresponds to fname.
     //TA said we need to check for filename size. maximum char count for filename is 32 chars.
@@ -223,6 +269,13 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     return -1; // File must not have been found
 }
 
+/*
+read_dentry_by_index
+Description: This function takes in a file index in the boot block [0->62 inclusive] and populates a dentry based on the index.
+Inputs: file index, and empty dentry
+Outputs: None
+Side Effects: the dentry is populated with the correct dentry based on the file index inputted 
+*/
 int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry){
     if(index < 0 || index > 62){
         return -1;
@@ -234,6 +287,13 @@ int32_t read_dentry_by_index(uint32_t index, dentry_struct_t * dentry){
     return 0;
 }
 
+/*
+read_data
+Description: This function takes in an inode, an offset, a buf, and a length and copies the number of bytes (length) into the buffer
+Inputs: file index, and empty dentry
+Outputs: None
+Side Effects: the dentry is populated with the correct dentry based on the file index inputted 
+*/
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t number_of_inodes = booting_info_block->number_of_inodes;
     uint32_t number_of_data_blocks = booting_info_block->number_of_data_blocks;
