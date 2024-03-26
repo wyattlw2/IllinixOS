@@ -479,7 +479,41 @@ void exec_handler19() {
 }
 
 // handler for sys_calls -- James
-void sys_handler() {
+// void sys_handler() {
+//     //Is it recommended that we pass the arguments with registers
+//     // are we going to pass the arguments in user space or kernel space, how does it work, who calls who... etc
+//     //Is the assembly linkage given for us in this case --ece391 assem link
+
+
+//     //There is a switch statement here for all 10 syscalls for the file system
+//     //eax is going to have number -- Probably actually going to be a jumptable though
+
+
+
+//     printf("THIS IS A SYSCALL HANDLE MOMENT");
+//     // asm("popfl") ;
+//     // asm("popal") ;
+//     //asm("iret") ;
+//     //while(1){}
+//     return;
+// }
+
+
+
+
+
+
+
+
+
+
+
+// Below are a sequence of system call handlers that correspond to a subset
+// of Linux's system calls. These are necessary for user-level programs like
+// execute, sigtest, shell, and fish to work. Each of those programs will be calling
+// some of these handlers via interrupt 0x80    -- Wyatt
+
+void sys_halt() {
     //Is it recommended that we pass the arguments with registers
     // are we going to pass the arguments in user space or kernel space, how does it work, who calls who... etc
     //Is the assembly linkage given for us in this case --ece391 assem link
@@ -487,40 +521,75 @@ void sys_handler() {
 
     //There is a switch statement here for all 10 syscalls for the file system
     //eax is going to have number -- Probably actually going to be a jumptable though
-    
-    //Here is the jumptable from mp1
-    // mp1_ioctl:
-    //     movl 4(%esp), %ecx
-    //     cmp $0, %ecx
-    //     je dispatcher_fail
-    //     movl 8(%esp), %ecx # puts the command number into register eax
-    //     cmp $0, %ecx
-    //     jl dispatcher_fail
-    //     cmp $3, %ecx
-    //     jg dispatcher_fail
-    //     jmp     *jumptable(,%ecx,4)
-	// ret
-
-    //     dispatcher_fail:
-    //             movl $-1, %eax
-    //             ret
-
-
-// jumptable:
-//     .long mp1_ioctl_add, mp1_ioctl_remove, mp1_ioctl_find, mp1_ioctl_sync
-// .end
 
 
 
-    printf("THIS IS A SYSCALL HANDLE MOMENT");
+    printf("SYSCALL *HALT* CALLED (SHOULD CORRESPOND TO SYSCALL 1, WHICH IS THE FIRST SYSCALL IN ADDENDUM B)\n\n");
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
     //while(1){}
     return;
 }
+
+void sys_execute() {
+    printf("SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
+    return;
+}
+
+void sys_read() {
+    printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
+    return;
+}
+
+void sys_write() {
+    printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
+    return;
+}
+
+void sys_open() {
+    printf("SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
+    return;
+}
+
+void sys_close() {
+    printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
+    return;
+}
+
+void sys_getargs() {
+    printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
+    return;
+}
+
+void sys_vidmap() {
+    printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
+    return;
+}
+
+void sys_set_handler() {
+    printf("SYSCALL *SET_HANDLER* CALLED (SHOULD CORRESPOND TO SYSCALL 9)\n\n");
+    return;
+}
+
+void sys_sigreturn() {
+    printf("SYSCALL *SIGRETURN* CALLED (SHOULD CORRESPOND TO SYSCALL 10)\n\n");
+    return;
+}
+
+
+
+
+
+
+
+
+
+
 // for future
 // handler for interrupt calls -- James
+// gonna make the IDT entry for non-maskable interrupt point to this.
+// for some reason the nmi interrupt vector previously redirected to sys_handler -- Wyatt
 void intr_handler() {
     // asm("pushal") ;
     // asm("pushfl");

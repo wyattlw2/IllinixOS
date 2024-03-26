@@ -38,7 +38,7 @@
 
 MY_ASM_MACRO(de, exec_handler0, 0); // THIS MIGHT NEED TO BE FIXED LATER
 MY_ASM_MACRO(db, exec_handler1, 1);
-MY_ASM_MACRO(nmi, sys_handler, 2);
+MY_ASM_MACRO(nmi, intr_handler, 2); //Wyatt -- changed this line to intr_handler, old handler was sys_call. Hopefully this doesn't break anything
 MY_ASM_MACRO(bp, exec_handler3, 3);
 MY_ASM_MACRO(of, exec_handler4, 4);
 MY_ASM_MACRO(br, exec_handler5, 5);
@@ -63,37 +63,79 @@ MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
 
 
 
+
+
+
+#Wyatt -- added Addendum B system call labels below this point. i think this will work.
+
 jumptable_dispatcher:
     pushal
     pushfl
     jmp *jumptable(,%eax,4)
 
 jumptable:  
-    .long OPEN 
-    .long WRITE 
-    .long READ 
-    .long CLOSE 
+    .long HALT
+    .long EXECUTE
+    .long READ
+    .long WRITE
+    .long OPEN
+    .long CLOSE
+    .long GETARGS
+    .long VIDMAP
+    .long SET_HANDLER
+    .long SIGRETURN
 
 
-OPEN:   
+HALT:   
     
-    call sys_handler    
+    call sys_halt  
     jmp FINISH
 
-WRITE:   
+EXECUTE:   
     
-    call sys_handler
+    call sys_execute
     jmp FINISH 
 
 READ:   
     
-    call sys_handler
+    call sys_read
     jmp FINISH 
+
+WRITE:   
+    
+    call sys_write
+    jmp FINISH 
+
+OPEN:   
+    
+    call sys_open
+    jmp FINISH
 
 CLOSE:   
     
-    call sys_handler
+    call sys_close
     jmp FINISH 
+
+GETARGS:   
+    
+    call sys_getargs
+    jmp FINISH 
+
+VIDMAP:   
+    
+    call sys_vidmap
+    jmp FINISH 
+
+SET_HANDLER:   
+    
+    call sys_set_handler
+    jmp FINISH
+
+SIGRETURN:   
+    
+    call sys_sigreturn
+    jmp FINISH 
+
 
 
 FINISH:     

@@ -361,7 +361,9 @@ void launch_tests(){
 	// directory_write_test();
 	// directory_read_test();
 	// terminal_test();
-	asm volatile("movl $1, %eax");
+
+
+	asm volatile("movl $9, %eax");	//this actually works. extremely pog
 	asm volatile("int $0x80");
 
 }
