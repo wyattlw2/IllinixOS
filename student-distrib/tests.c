@@ -351,7 +351,7 @@ void launch_tests(){
 	// rtc_test(); // REMEMBER TO UNCOMMENT THE PUTC IN THE RTC HANDLER
 	//read_dentry_by_name_test();
 	//read_dentry_by_index_test();
-	read_data_test();
+	//read_data_test();
 	//  file_open_test();
 	// file_read_test();
 	// see_all_files();
@@ -361,5 +361,8 @@ void launch_tests(){
 	// directory_write_test();
 	// directory_read_test();
 	// terminal_test();
+	asm volatile("movl $1, %eax");
+	asm volatile("int $0x80");
+
 }
 

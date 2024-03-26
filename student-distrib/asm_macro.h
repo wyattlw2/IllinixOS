@@ -25,6 +25,7 @@ void exec_c19();
 void sys_call();
 void keyboard_call();
 void rtc_call();
+void jumptable_dispatcher();
 #endif
 
 #endif /* ASM_FUNCTIONS_H */

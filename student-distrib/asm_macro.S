@@ -1,4 +1,5 @@
 //#include "asm_macro.h"
+//#include "idt.h"
 
 // sets up the necessary infrastructure for exception handling
 // our actual handler contains the logic for handling different exceptions -- James
@@ -26,6 +27,15 @@
         popal ;\
         iret ;\
 
+#define MY_ASM_MACRO_SYS_CALL(function_name) \
+    .global function_name ;\
+    function_name: ;\
+        pushal ;\
+        pushfl ;\
+        jmp *jumptable(,%eax,4) ;\
+
+
+
 MY_ASM_MACRO(de, exec_handler0, 0); // THIS MIGHT NEED TO BE FIXED LATER
 MY_ASM_MACRO(db, exec_handler1, 1);
 MY_ASM_MACRO(nmi, sys_handler, 2);
@@ -47,6 +57,58 @@ MY_ASM_MACRO_ERR_CODE(ac, exec_handler17, 17);
 MY_ASM_MACRO(mc, exec_handler18, 18);
 MY_ASM_MACRO(xf, exec_handler19, 19);
 // 20 is reserved
-MY_ASM_MACRO(sys_call, sys_handler, 0x80);
+MY_ASM_MACRO_SYS_CALL(sys_call);
 MY_ASM_MACRO(keyboard_call, kb_handler, 0x21);  //handles keyboard interrupts
 MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
+
+
+
+jumptable_dispatcher:
+    pushal
+    pushfl
+    jmp *jumptable(,%eax,4)
+
+jumptable:  
+    .long OPEN 
+    .long WRITE 
+    .long READ 
+    .long CLOSE 
+
+
+OPEN:   
+    
+    call sys_handler    
+    addl $4, %esp 
+    jmp FINISH
+
+WRITE:   
+    
+    
+    call sys_handler
+    addl $4, %esp 
+    jmp FINISH 
+
+READ:   
+    
+    
+    call sys_handler
+    addl $4, %esp 
+    jmp FINISH 
+
+CLOSE:   
+    
+    call sys_handler
+    addl $4, %esp 
+    jmp FINISH 
+
+
+FINISH:     
+    popfl 
+    popal 
+    iret 
+
+
+
+
+
+
