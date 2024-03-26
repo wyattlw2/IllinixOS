@@ -78,27 +78,21 @@ jumptable:
 OPEN:   
     
     call sys_handler    
-    addl $4, %esp 
     jmp FINISH
 
 WRITE:   
     
-    
     call sys_handler
-    addl $4, %esp 
     jmp FINISH 
 
 READ:   
     
-    
     call sys_handler
-    addl $4, %esp 
     jmp FINISH 
 
 CLOSE:   
     
     call sys_handler
-    addl $4, %esp 
     jmp FINISH 
 
 

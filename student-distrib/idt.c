@@ -516,7 +516,8 @@ void sys_handler() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
-    while(1){}
+    //while(1){}
+    return;
 }
 // for future
 // handler for interrupt calls -- James
