@@ -26,7 +26,7 @@
         popal ;\
         iret ;\
 
-MY_ASM_MACRO(de, exec_handler0, 0);
+MY_ASM_MACRO(de, exec_handler0, 0); // THIS MIGHT NEED TO BE FIXED LATER
 MY_ASM_MACRO(db, exec_handler1, 1);
 MY_ASM_MACRO(nmi, sys_handler, 2);
 MY_ASM_MACRO(bp, exec_handler3, 3);

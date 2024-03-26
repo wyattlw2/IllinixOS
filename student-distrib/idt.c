@@ -480,9 +480,37 @@ void exec_handler19() {
 
 // handler for sys_calls -- James
 void sys_handler() {
-    
+    //Is it recommended that we pass the arguments with registers
+    // are we going to pass the arguments in user space or kernel space, how does it work, who calls who... etc
+    //Is the assembly linkage given for us in this case --ece391 assem link
+
+
     //There is a switch statement here for all 10 syscalls for the file system
-    //eax is going to have 
+    //eax is going to have number -- Probably actually going to be a jumptable though
+    
+    //Here is the jumptable from mp1
+    // mp1_ioctl:
+    //     movl 4(%esp), %ecx
+    //     cmp $0, %ecx
+    //     je dispatcher_fail
+    //     movl 8(%esp), %ecx # puts the command number into register eax
+    //     cmp $0, %ecx
+    //     jl dispatcher_fail
+    //     cmp $3, %ecx
+    //     jg dispatcher_fail
+    //     jmp     *jumptable(,%ecx,4)
+	// ret
+
+    //     dispatcher_fail:
+    //             movl $-1, %eax
+    //             ret
+
+
+// jumptable:
+//     .long mp1_ioctl_add, mp1_ioctl_remove, mp1_ioctl_find, mp1_ioctl_sync
+// .end
+
+
 
     printf("THIS IS A SYSCALL HANDLE MOMENT");
     // asm("popfl") ;
