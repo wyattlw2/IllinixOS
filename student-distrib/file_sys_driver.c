@@ -316,9 +316,15 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     uint32_t actual_length_in_bytes = inode_address->length_in_bytes;
     // printf("\n The number of bytes is %d \n", actual_length_in_bytes);
    // printf("\n passes the initial setup variables \n");
-    if(offset+length > actual_length_in_bytes || offset<0 || length <=0){
-        printf("\n The data requested exceeds the number of bytes contained for this file \n");
+    if( offset<0 || length <=0){
+        printf("\n Something is off with the length and offset values \n");
         return -1;
+    }
+    int upperbound;
+    if(offset+length > actual_length_in_bytes){ // THIS IS UNTESTED, but i think it is probably fine -- MADE CHANGES TO READ DATA
+        upperbound = actual_length_in_bytes;
+    }else{
+        upperbound = offset+length;
     }
     // uint32_t total_number_of_data_blocks = (actual_length_in_bytes/FOUR_KB);
     int i;
@@ -330,7 +336,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     //global datablock index gives you the index in terms of all the datablocks
     //full 4kb array index is the total array index of the structure starting with the 4kb boot block,
     //A super global index if you will
-    for(i = offset; i < length+offset; i++){
+    
+    if()
+    for(i = offset; i < upperbound; i++){
         uint32_t local_datablock_index = i/FOUR_KB;
         uint32_t  global_datablock_index = inode_address->data_blocks[local_datablock_index];
         // buf[i] = global_datablock_index[i%FOUR_KB];

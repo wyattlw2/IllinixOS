@@ -6,9 +6,14 @@
 
 #define VIDEO               0xB8000
 #define KERNEL_START        0x01
+#define USER_PROG_0         0x02
+#define USER_PROG_1         0x03
+// #define USER_PROG_2         0x04
+// #define USER_PROG_3         0x05
+// #define USER_PROG_4         0x06
+// #define USER_PROG_5         0x07
 
-paging_dir_entry_t page_directory[1024] __attribute__((aligned(4096)));
-paging_table_t first_page_table[1024] __attribute__((aligned(4096)));   // CONTAINS PAGE FOR VIDEO MEMORY AT INDEX 0
+   // CONTAINS PAGE FOR VIDEO MEMORY AT INDEX 0
 /*  THis function Initializes paging. it's really cool you should check it out. It initializes the kernel memory and video memory
 *   Inputs: None
     Outputs: none
@@ -46,6 +51,13 @@ void paging_init()  {
     page_directory[1].page_4mb.p = 1;
     page_directory[1].page_4mb.ps = 1; // size is 1 for 4MB
     page_directory[1].page_4mb.page_base_addr = KERNEL_START;
+
+    //FOR THE SHELL PROGRAM
+    page_directory[32].page_4mb.rw = 1;
+    page_directory[32].page_4mb.us = 1; // supervisor mode for kernel obvi // FIX
+    page_directory[32].page_4mb.p = 1;
+    page_directory[32].page_4mb.ps = 1; // size is 1 for 4MB
+    // page_directory[32].page_4mb.page_base_addr = SHELL_START;
 
     loadPageDirectory((unsigned int *)page_directory);
     enableExtendedPageSize();

@@ -53,7 +53,7 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
     //task state information
     //stack pointer for a given process
 } process_control_block_t;
-int32_t processes_active[512]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
+int32_t processes_active[6]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
 
 
 

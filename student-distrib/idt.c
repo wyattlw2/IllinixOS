@@ -1,5 +1,6 @@
 #include "idt.h"
 #include "file_sys_driver.h"
+#include "paging.h"
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     NUM_COLS            80
@@ -535,11 +536,94 @@ void sys_halt() {
     //while(1){}
     return;
 }
+#define     USER_PROG_0                         0x02
+#define     USER_PROG_1                         0x03
+#define     USER_PROG_2                         0x04
+#define     USER_PROG_3                         0x05
+#define     USER_PROG_4                         0x06
+#define     USER_PROG_5                         0x07
+#define     MAX_NUM_PROCESSES                   6
+#define     VIRTUAL_USER_ADDR_WITH_OFFSET       0x08048000
+#define     PAGE_DIR_INDEX_FOR_USER_PROG        32
+
+#define     MAGIC_NUMBER_BYTE0                  0x7F
+#define     MAGIC_NUMBER_BYTE1                  0x45
+#define     MAGIC_NUMBER_BYTE2                  0x4C
+#define     MAGIC_NUMBER_BYTE3                  0x46
 
 void sys_execute() {
     uint8_t * command;
     asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
+    //might need to add some checks to see if the file is valid other than
+    //Rden by name   
+    dentry_struct_t exec_dentry;  
+    int32_t found_file = read_dentry_by_name(command, &exec_dentry);
+    uint8_t buffer[60000];
     
+    
+    if(found_file == -1){
+        printf("\n The inputted file was invalid \n");
+        return; // might need more checks for this lmao
+    }
+    int i;
+
+    //process_activating is going to be the process ID NUMBER
+    int process_activating = 500; // ridiculous value, if it is still 500, we didn't find a process and we return out
+        for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
+            if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
+                processes_active[i] = 1;
+                process_activating = i; // ASSIGNING PROCESS ID NUMBER
+                switch(process_activating){
+                    case(0):
+                        page_directory[32].page_4mb.base_addr = USER_PROG_0;
+                        break;
+                    case(1):
+                        page_directory[32].page_4mb.base_addr = USER_PROG_1;
+                        break;
+                    case(2):
+                        page_directory[32].page_4mb.base_addr = USER_PROG_2;
+                        break;
+                    case(3):
+                        page_directory[32].page_4mb.base_addr = USER_PROG_3;
+                        break;
+                    case(4):
+                        page_directory[32].page_4mb.base_addr = USER_PROG_4;
+                        break;
+                    case(5):
+                        page_directory[32].page_4mb.base_addr = USER_PROG_5;
+                        break;
+                }
+                
+                break;
+            } // HOW does this not break if we had multiple 
+
+        }
+        if(process_activating == 500){
+            printf("\n The Maximum Number of Processes are being used \n");
+            return; // MIGHT NEED MORE THAN A RETURN HERE, WORRY ABOUT IT LATER
+        }
+
+        //TIME TO LOAD THE USER LEVEL PROGRAM
+        
+        uint8_t mag_num_buf[5];
+        int32_t mag_num_check = file_read(&exec_dentry, mag_num_buf , 4);
+        if((mag_num_buf[0] != MAGIC_NUMBER_BYTE0 )||( mag_num_buf[1] != MAGIC_NUMBER_BYTE1 )||( mag_num_buf[2] != MAGIC_NUMBER_BYTE2 )||( mag_num_buf[3] != MAGIC_NUMBER_BYTE3)){
+            printf(" \n Something fucked up inside the excecutable file, you should really check that shit out \n");
+            return;
+        }
+
+
+        int8_t * user_start = VIRTUAL_USER_ADDR_WITH_OFFSET;
+        int32_t status = file_read(&exec_dentry, user_start, 60000);
+        if(status == -1){
+            printf("\n Something went wrong when copying the data over \n");
+        }
+
+        
+        
+    
+    
+
     printf("SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
     return;
 }
