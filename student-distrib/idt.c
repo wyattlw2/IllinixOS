@@ -1,10 +1,17 @@
 #include "idt.h"
+#include "file_sys_driver.h"
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     NUM_COLS            80
 #define     NUM_ROWS            25
 #define     MAX_BUFF_SIZE       128
 #define     SPEC_CHAR_OFFSET    54
+
+#define FD_START                2
+#define FD_END                  8
+#define REGULAR_FILE                    2
+#define DIRECTORY_FILE                  1
+#define RTC_FILE                        0
 //#include "assem_link.S"
 // ALL OF THIS IS FOR REFERENCE
 // typedef union idt_desc_t { // MOST OF THIS WILL BE THE SAME, NAKE NOTE OF WHEN TO USE TRAP GATE VS INTERRUPT vs SYSCALL vs EXCEPTION -- DVT
@@ -514,15 +521,12 @@ void exec_handler19() {
 // some of these handlers via interrupt 0x80    -- Wyatt
 
 void sys_halt() {
-    //Is it recommended that we pass the arguments with registers
-    // are we going to pass the arguments in user space or kernel space, how does it work, who calls who... etc
-    //Is the assembly linkage given for us in this case --ece391 assem link
+    
 
 
-    //There is a switch statement here for all 10 syscalls for the file system
-    //eax is going to have number -- Probably actually going to be a jumptable though
-
-
+    //for some reason the argument freaks out when you uncomment this, idk why -- DVT -- Worked when changed to movb and bl from ebx
+    uint8_t status;
+    asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable
 
     printf("SYSCALL *HALT* CALLED (SHOULD CORRESPOND TO SYSCALL 1, WHICH IS THE FIRST SYSCALL IN ADDENDUM B)\n\n");
     // asm("popfl") ;
@@ -533,46 +537,119 @@ void sys_halt() {
 }
 
 void sys_execute() {
+    uint8_t * command;
+    asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
+    
     printf("SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
     return;
 }
 
 void sys_read() {
+    int32_t fd;
+    void * buf;
+    int32_t nbytes;
+
+    asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+    asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
+    asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
     return;
 }
 
 void sys_write() {
+    int32_t fd;
+    void * buf;
+    int32_t nbytes;
+
+    asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+    asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
+    asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
     return;
 }
 
+//NEEDS CHANGE :: THIS IS NOT GLOBAL -- DVT, WILL GO IN PROCESS CONTROL BLOCK
+file_descriptor_array_t fd_array; // FD array might need to initialize everything to zero and also init std in and std out -- more to be done in excecute
+//this is global for a process control block which is another struct I need to make
+
+
 void sys_open() {
-    printf("SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
+    //Working on sys_open
+    //first we need to somehow get the argument (file name from the registers)
+    //Then we need to call our old file open which gives us the dentry
+    //allocate for a file descriptor, page table???
+    // will need to have checks for whenever the file descriptor is full
+    int8_t * filename;
+    asm volatile("\t movl %%ebx,%0" : "=r"(filename)); // This line basically takes a value in a register and puts it into the variable
+    int i;
+    int fd_index_to_open;
+    for(i = FD_START; i < FD_END; i++){ // find an open fd
+        if(fd_array.fd_entry[i].flags == 0){ // if it's not occupied, set the file index we are going to use
+            fd_index_to_open = i;
+            break;
+        }
+    }
+    /* POTENITAL RACE CONDITION FOR CHECKPOINT 5, we need to make sure that only one process can claim a given file, etc*/
+    fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = 0; // it's prob unnecessary to initialize these all to zero, but if we do it here we don't
+    fd_array.fd_entry[fd_index_to_open].file_position = 0;
+    fd_array.fd_entry[fd_index_to_open].inode = 0;
+    fd_array.fd_entry[fd_index_to_open].flags = 1;
+
+    // printf("\n If everything is correct, this should print out the file name: %d", filename);
+    dentry_struct_t file_to_open;
+    read_dentry_by_name((uint8_t *)filename, &file_to_open);
+    if(file_to_open.file_type == RTC_FILE){
+        //SET THE JUMP TABLE OF INSTRUCTION POINTERS
+    }else if(file_to_open.file_type == DIRECTORY_FILE){
+        //SET THE JUMP TABLE OF INSTRUCTION POINTER
+        //inode is zero for directory file
+    }else{
+        //SET THE JUMP TABLE OF INSTRUCTION POINTER
+        fd_array.fd_entry[fd_index_to_open].inode = file_to_open.inode_number;
+    }
+
+    //temporary dentry has been allocated, gives us the file type and the inode number, useful for our jumptable which keeps track of various file operations dir read vs file read
+
+    printf("\n SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
     return;
 }
 
 void sys_close() {
+    int8_t * fd;
+    asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+
     printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
     return;
 }
 
 void sys_getargs() {
+    uint8_t * buf;
+    int32_t nbytes;
+    asm volatile("\t movl %%ebx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variablle
+    asm volatile("\t movl %%ecx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
     return;
 }
 
 void sys_vidmap() {
+    uint8_t ** screen_start;
+    asm volatile("\t movl %%ebx,%0" : "=r"(screen_start)); // This line basically takes a value in a register and puts it into the variablle
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
     return;
 }
 
 void sys_set_handler() {
+    int32_t signum;
+    void * handler_address;
+
+    asm volatile("\t movl %%ebx,%0" : "=r"(signum)); // This line basically takes a value in a register and puts it into the variablle
+    asm volatile("\t movl %%ecx,%0" : "=r"(handler_address)); // This line basically takes a value in a register and puts it into the variablle
     printf("SYSCALL *SET_HANDLER* CALLED (SHOULD CORRESPOND TO SYSCALL 9)\n\n");
     return;
 }
 
 void sys_sigreturn() {
+    //no args i think? --dvt
     printf("SYSCALL *SIGRETURN* CALLED (SHOULD CORRESPOND TO SYSCALL 10)\n\n");
     return;
 }

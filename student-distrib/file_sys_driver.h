@@ -32,16 +32,31 @@ typedef struct data_block_struct_t {
     uint8_t data[4096];
 } data_block_struct_t;
 
-typedef struct file_descriptor_entry_t {
+typedef struct fd_t {
     int32_t file_operations_table_pointer;
     int32_t inode;
     int32_t file_position;
     int32_t flags;
-} file_descriptor_entry_t;
+} fd_t;
 
 typedef struct file_descriptor_array_t {
-    file_descriptor_entry_t files[8];
+    fd_t fd_entry[8];
 } file_descriptor_array_t;
+
+//NEED TO GET MORE INFO ON THIS -- specifically where to initialize it
+typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE TOP OF A GIVEN KERNEL STACK
+    file_descriptor_array_t fd_array; // probably will also need some mechanism to see if stack overflow occurs
+    int32_t ESP;
+
+    //signal information
+    //possibly all the registers
+    //task state information
+    //stack pointer for a given process
+} process_control_block_t;
+int32_t processes_active[512]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
+
+
+
 
 void file_system_init();
 

@@ -333,6 +333,14 @@ void directory_read_test(){
 
 
 /* Checkpoint 3 tests */
+
+void system_call_test_basic(){
+	asm volatile("movl $5, %eax");	//this actually works. extremely pog
+	asm volatile("movl $1, %ebx");	//this actually works. extremely pog
+	asm volatile("movl $2, %ecx");	//this actually works. extremely pog
+	asm volatile("movl $3, %edx");	//this actually works. extremely pog
+	asm volatile("int $0x80");
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -362,9 +370,9 @@ void launch_tests(){
 	// directory_read_test();
 	// terminal_test();
 
-
-	asm volatile("movl $9, %eax");	//this actually works. extremely pog
-	asm volatile("int $0x80");
+	//CHECKPOINT 3:
+	// system_call_test_basic();
+	
 
 }
 

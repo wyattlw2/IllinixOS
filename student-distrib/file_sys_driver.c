@@ -64,6 +64,10 @@ Inputs: directory entry, buffer, nbytes
 Outputs: Returns -1 in case of error, 0 otherwise
 Side Effects: Data is populated into the buffer
 */
+
+
+//NEEDS FIX, MAKE SURE THAT THIS RETURNS NBYTES READ
+//AND ALSO NEEDS TO ALLOW READING GREATER THAN THE LENGTH OF THE FILE, but JUST STOP
 int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
     
     if(dentry->inode_number < 0 || dentry->inode_number > 64){ // max number of inodes is 64
