@@ -32,6 +32,10 @@
     function_name: ;\
         pushal ;\
         pushfl ;\
+        cmp $0, %eax ;\
+        jle ERROR ;\
+        cmp $10, %eax ;\
+        jg ERROR ;\
         jmp *jumptable(,%eax,4) ;\
 
 
@@ -66,14 +70,10 @@ MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
 
 
 
-#Wyatt -- added Addendum B system call labels below this point. i think this will work.
+# Wyatt -- added Addendum B system call labels below this point. i think this will work.
 
-jumptable_dispatcher:
-    pushal
-    pushfl
-    jmp *jumptable(,%eax,4)
-
-jumptable:  
+jumptable:
+    .long ERROR
     .long HALT
     .long EXECUTE
     .long READ
@@ -136,8 +136,9 @@ SIGRETURN:
     call sys_sigreturn
     jmp FINISH 
 
-
-
+ERROR:
+    call sys_error
+    jmp FINISH
 FINISH:     
     popfl 
     popal 

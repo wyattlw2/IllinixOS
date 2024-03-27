@@ -32,6 +32,17 @@ typedef struct data_block_struct_t {
     uint8_t data[4096];
 } data_block_struct_t;
 
+typedef struct file_descriptor_entry_t {
+    int32_t file_operations_table_pointer;
+    int32_t inode;
+    int32_t file_position;
+    int32_t flags;
+} file_descriptor_entry_t;
+
+typedef struct file_descriptor_array_t {
+    file_descriptor_entry_t files[8];
+} file_descriptor_array_t;
+
 void file_system_init();
 
 int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file); // populates a dentry

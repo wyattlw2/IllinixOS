@@ -576,6 +576,9 @@ void sys_sigreturn() {
     printf("SYSCALL *SIGRETURN* CALLED (SHOULD CORRESPOND TO SYSCALL 10)\n\n");
     return;
 }
+void sys_error(){
+    printf("\n Something went wrong, It is possible, the wrong system call index was provided. \n");
+}
 
 
 
