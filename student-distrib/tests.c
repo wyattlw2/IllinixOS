@@ -343,7 +343,7 @@ void system_call_test_basic(){
 }
 
 void execute_test_file_load() {
-    int8_t var[32] = {"cat"};
+    int8_t var[32] = {"shell"};
     
     asm volatile (
         "movl %0, %%ebx;"   // Move the address of var into register ebx
@@ -352,7 +352,7 @@ void execute_test_file_load() {
     );
 
     asm volatile (
-        "movl $2, %eax"     // Set syscall number to 5 (sys_open)
+        "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
     );
 
     // For demonstration purposes only, as usage of int $0x80 is system-dependent

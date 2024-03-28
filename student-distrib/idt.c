@@ -1,12 +1,22 @@
 #include "idt.h"
 #include "file_sys_driver.h"
 #include "paging.h"
+#include "x86_desc.h"   //need to include so we can modify ESP0 field of TSS -- wyatt
+
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     NUM_COLS            80
 #define     NUM_ROWS            25
 #define     MAX_BUFF_SIZE       128
 #define     SPEC_CHAR_OFFSET    54
+
+
+#define KERNEL_CS   0x0010
+#define KERNEL_DS   0x0018
+#define USER_CS     0x0023
+#define USER_DS     0x002B
+#define KERNEL_TSS  0x0030
+#define KERNEL_LDT  0x0038
 
 #define FD_START                2
 #define FD_END                  8
@@ -588,7 +598,7 @@ void sys_execute() {
                 PID = i; // ASSIGNING PROCESS ID NUMBER
                 PCB = (process_control_block_t *) (EIGHT_MB - (PID+1)*EIGHT_KB); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
                 // PCB = (process_control_block_t *) (EIGHT_MB + 1); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
-                PCB->PID = PID;
+                
                 
                 
 
@@ -631,8 +641,15 @@ void sys_execute() {
         
         //Before loading file data into virtual address space, we need to check the first four bytes of the file
         //The first four bytes must correspond to ELF
-        uint8_t mag_num_buf[5];
-        int32_t mag_num_check = file_read(&exec_dentry, mag_num_buf , 4);
+        uint8_t mag_num_buf[30];
+        int32_t mag_num_check = file_read(&exec_dentry, mag_num_buf , 30);
+        
+        int8_t eip_ll = mag_num_buf[24]; // should give our new eip value -- since it is little endian I made it reverse order, could be off
+        int8_t eip_l = mag_num_buf[25];
+        int8_t eip_r = mag_num_buf[26];
+        int8_t eip_rr = mag_num_buf[27];
+        
+        int32_t EIP_save = eip_ll << 24 | eip_l << 16 | eip_r << 8 | eip_rr;
         if(mag_num_check == -1){
             printf(" \n Something screwed up inside the excecutable file, you should really check that out \n");
             return;
@@ -654,9 +671,28 @@ void sys_execute() {
         
         //int32_t ebp_store;
         register uint32_t ebp asm("ebp");
+        register uint32_t esp asm("esp");
+        // register uint32_t eip asm("eip");
         //printf(" \n \n %d \n \n", ebp);
+        PCB->PID = PID;
         PCB->EBP = ebp;
+        PCB->ESP = esp;
+        PCB->EIP = EIP_save;
+        tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB);
 
+        // #define USER_CS     0x0023
+        // #define USER_DS     0x002B
+
+        asm volatile("pushl $0x002B"); // EXPECTING WE HAVE SOME KIND OF FAULT HERE
+        asm volatile("pushl %esp");
+        asm volatile("pushfl"); // this could be off
+        asm volatile("pushl $0x002B");
+        // asm volatile("pushl %"); // push EIP that was stored in the executable file
+        asm volatile("push %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
+        //asm volatile("")
+        printf("\n Made it to the end of iret \n");
+        asm volatile("iret ");
+        //the registers were all pushed originally, we'll se what happens
 
 
 
@@ -666,7 +702,7 @@ void sys_execute() {
                 // : "r" (PCB->EIP)       //Moves EIP into the Process Control Block
                 // );
     
-    puts(user_start);
+    // puts(user_start);
     printf("\n Active Process Number: %d", PCB->PID);
     printf("\n Base Pointer: %d", PCB->EBP);
     // printf("\n Instruction Pointer: %d", PCB->EIP);
