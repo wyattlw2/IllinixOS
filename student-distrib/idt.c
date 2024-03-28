@@ -641,15 +641,17 @@ void sys_execute() {
         
         //Before loading file data into virtual address space, we need to check the first four bytes of the file
         //The first four bytes must correspond to ELF
-        uint8_t mag_num_buf[30];
+        uint8_t mag_num_buf[30]; // header is actually 40 bytes
         int32_t mag_num_check = file_read(&exec_dentry, mag_num_buf , 30);
         
-        int8_t eip_ll = mag_num_buf[24]; // should give our new eip value -- since it is little endian I made it reverse order, could be off
-        int8_t eip_l = mag_num_buf[25];
-        int8_t eip_r = mag_num_buf[26];
-        int8_t eip_rr = mag_num_buf[27];
+        // int8_t eip_ll = mag_num_buf[27]; // should give our new eip value -- since it is little endian I made it reverse order, could be off
+        // int8_t eip_l = mag_num_buf[26];
+        // int8_t eip_r = mag_num_buf[25];
+        // int8_t eip_rr = mag_num_buf[24];
+        int32_t EIP_save = ((uint32_t*)mag_num_buf)[6];
+        // printf("\n EIP TRY 2: %d", EIP_try2);
         
-        int32_t EIP_save = eip_ll << 24 | eip_l << 16 | eip_r << 8 | eip_rr;
+        // int32_t EIP_save = eip_ll << 24 | eip_l << 16 | eip_r << 8 | eip_rr;
         if(mag_num_check == -1){
             printf(" \n Something screwed up inside the excecutable file, you should really check that out \n");
             return;
@@ -660,8 +662,8 @@ void sys_execute() {
         }
 
 
-        int8_t * user_start = (int8_t *)VIRTUAL_USER_ADDR_WITH_OFFSET;
-        int32_t status = file_read(&exec_dentry, (uint8_t *)user_start, 60000);
+        uint8_t * user_start = (uint8_t *)VIRTUAL_USER_ADDR_WITH_OFFSET;
+        int32_t status = file_read(&exec_dentry, user_start, 0x400000);
         if(status == -1){
             printf("\n Something went wrong when copying the data over \n");
         }
@@ -677,20 +679,20 @@ void sys_execute() {
         PCB->PID = PID;
         PCB->EBP = ebp;
         PCB->ESP = esp;
-        PCB->EIP = EIP_save;
-        tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB);
+        // PCB->EIP = EIP_save;
+        tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4;
 
         // #define USER_CS     0x0023
         // #define USER_DS     0x002B
 
         asm volatile("pushl $0x002B"); // EXPECTING WE HAVE SOME KIND OF FAULT HERE
-        asm volatile("pushl %esp");
+        asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
         asm volatile("pushfl"); // this could be off
-        asm volatile("pushl $0x002B");
+        asm volatile("pushl $0x0023");
         // asm volatile("pushl %"); // push EIP that was stored in the executable file
-        asm volatile("push %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
+        asm volatile("pushl %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
         //asm volatile("")
-        printf("\n Made it to the end of iret \n");
+        // printf("\n Made it to the end of iret \n");
         asm volatile("iret ");
         //the registers were all pushed originally, we'll se what happens
 
