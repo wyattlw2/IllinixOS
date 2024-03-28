@@ -10,7 +10,7 @@
 #define DIRECTORY_FILE                  1
 #define RTC_FILE                        0
 #define NUMBER_OF_FILE_CHARACTERS       32
-#define FOUR_KB                   4096
+#define FOUR_KB                         4096
 //Note that this doesn't require paging to be working
 
 boot_struct * booting_info_block;       //will be used to point to start of filesystem
@@ -337,7 +337,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     //full 4kb array index is the total array index of the structure starting with the 4kb boot block,
     //A super global index if you will
     
-    if()
+    // if()
     for(i = offset; i < upperbound; i++){
         uint32_t local_datablock_index = i/FOUR_KB;
         uint32_t  global_datablock_index = inode_address->data_blocks[local_datablock_index];

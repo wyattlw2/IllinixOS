@@ -341,6 +341,25 @@ void system_call_test_basic(){
 	asm volatile("movl $3, %edx");	//this actually works. extremely pog
 	asm volatile("int $0x80");
 }
+
+void execute_test_file_load() {
+    int8_t var[32] = {"cat"};
+    
+    asm volatile (
+        "movl %0, %%ebx;"   // Move the address of var into register ebx
+        :                   // Output operand list is empty
+        : "r" (var)         // Input operand list, specifying that var is an input
+    );
+
+    asm volatile (
+        "movl $2, %eax"     // Set syscall number to 5 (sys_open)
+    );
+
+    // For demonstration purposes only, as usage of int $0x80 is system-dependent
+    asm volatile (
+        "int $0x80"         // Execute syscall
+    );
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -372,7 +391,7 @@ void launch_tests(){
 
 	//CHECKPOINT 3:
 	// system_call_test_basic();
-	
+	execute_test_file_load();
 
 }
 

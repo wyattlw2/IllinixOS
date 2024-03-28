@@ -551,6 +551,16 @@ void sys_halt() {
 #define     MAGIC_NUMBER_BYTE2                  0x4C
 #define     MAGIC_NUMBER_BYTE3                  0x46
 
+// #define     EIGHT_MB                            0x00800000 // 4096 bytes * 8 bits per byte
+// #define     EIGHT_KB                            0x00002000
+
+#define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
+#define     EIGHT_KB                            (1 << 13)
+
+
+
+//TSS
+//MORE INFO ABOUT CONTEXT SWITCH
 void sys_execute() {
     uint8_t * command;
     asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
@@ -558,7 +568,7 @@ void sys_execute() {
     //Rden by name   
     dentry_struct_t exec_dentry;  
     int32_t found_file = read_dentry_by_name(command, &exec_dentry);
-    uint8_t buffer[60000];
+    // uint8_t buffer[60000];
     
     
     if(found_file == -1){
@@ -568,63 +578,103 @@ void sys_execute() {
     int i;
 
     //process_activating is going to be the process ID NUMBER
-    int process_activating = 500; // ridiculous value, if it is still 500, we didn't find a process and we return out
+    process_control_block_t * PCB;
+    int PID = 500; // ridiculous value, if it is still 500, we didn't find a process and we return out
+
+    
         for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
             if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
                 processes_active[i] = 1;
-                process_activating = i; // ASSIGNING PROCESS ID NUMBER
-                switch(process_activating){
+                PID = i; // ASSIGNING PROCESS ID NUMBER
+                PCB = (process_control_block_t *) (EIGHT_MB - (PID+1)*EIGHT_KB); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
+                // PCB = (process_control_block_t *) (EIGHT_MB + 1); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
+                PCB->PID = PID;
+                
+                
+
+
+                switch(PID){
                     case(0):
-                        page_directory[32].page_4mb.base_addr = USER_PROG_0;
+                        page_directory[32].page_4mb.page_base_addr = USER_PROG_0;
                         break;
                     case(1):
-                        page_directory[32].page_4mb.base_addr = USER_PROG_1;
+                        page_directory[32].page_4mb.page_base_addr = USER_PROG_1;
                         break;
                     case(2):
-                        page_directory[32].page_4mb.base_addr = USER_PROG_2;
+                        page_directory[32].page_4mb.page_base_addr = USER_PROG_2;
                         break;
                     case(3):
-                        page_directory[32].page_4mb.base_addr = USER_PROG_3;
+                        page_directory[32].page_4mb.page_base_addr = USER_PROG_3;
                         break;
                     case(4):
-                        page_directory[32].page_4mb.base_addr = USER_PROG_4;
+                        page_directory[32].page_4mb.page_base_addr = USER_PROG_4;
                         break;
                     case(5):
-                        page_directory[32].page_4mb.base_addr = USER_PROG_5;
+                        page_directory[32].page_4mb.page_base_addr = USER_PROG_5;
                         break;
                 }
                 
+                //FLUSH TLB
+                asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+                asm volatile("movl %ebx, %cr3");
+
                 break;
             } // HOW does this not break if we had multiple 
 
         }
-        if(process_activating == 500){
+        if(PID == 500){
             printf("\n The Maximum Number of Processes are being used \n");
             return; // MIGHT NEED MORE THAN A RETURN HERE, WORRY ABOUT IT LATER
         }
 
         //TIME TO LOAD THE USER LEVEL PROGRAM
         
+        //Before loading file data into virtual address space, we need to check the first four bytes of the file
+        //The first four bytes must correspond to ELF
         uint8_t mag_num_buf[5];
         int32_t mag_num_check = file_read(&exec_dentry, mag_num_buf , 4);
+        if(mag_num_check == -1){
+            printf(" \n Something screwed up inside the excecutable file, you should really check that out \n");
+            return;
+        }
         if((mag_num_buf[0] != MAGIC_NUMBER_BYTE0 )||( mag_num_buf[1] != MAGIC_NUMBER_BYTE1 )||( mag_num_buf[2] != MAGIC_NUMBER_BYTE2 )||( mag_num_buf[3] != MAGIC_NUMBER_BYTE3)){
             printf(" \n Something fucked up inside the excecutable file, you should really check that shit out \n");
             return;
         }
 
 
-        int8_t * user_start = VIRTUAL_USER_ADDR_WITH_OFFSET;
-        int32_t status = file_read(&exec_dentry, user_start, 60000);
+        int8_t * user_start = (int8_t *)VIRTUAL_USER_ADDR_WITH_OFFSET;
+        int32_t status = file_read(&exec_dentry, (uint8_t *)user_start, 60000);
         if(status == -1){
             printf("\n Something went wrong when copying the data over \n");
         }
-
+                                                                                                // ONE GLOBAL TSS
+                                                                                                //TSS Has information about how to get back to kernel, ie HALT?
+                                                                                                //when we hit up checkpoint 5 is this messed up because 
         
-        
-    
-    
+        //int32_t ebp_store;
+        register uint32_t ebp asm("ebp");
+        //printf(" \n \n %d \n \n", ebp);
+        PCB->EBP = ebp;
 
-    printf("SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
+
+
+
+                // asm volatile ( // LEAVING THIS OUT FOR NOW
+                // "movl %0, %%eip;"   
+                // :                   
+                // : "r" (PCB->EIP)       //Moves EIP into the Process Control Block
+                // );
+    
+    puts(user_start);
+    printf("\n Active Process Number: %d", PCB->PID);
+    printf("\n Base Pointer: %d", PCB->EBP);
+    // printf("\n Instruction Pointer: %d", PCB->EIP);
+    // printf("\n Active Process Number: %d", PCB->PID);
+
+    //Potentially push eip, ask for more info later
+
+    printf("\n SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
     return;
 }
 

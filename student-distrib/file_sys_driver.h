@@ -45,9 +45,11 @@ typedef struct file_descriptor_array_t {
 
 //NEED TO GET MORE INFO ON THIS -- specifically where to initialize it
 typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE TOP OF A GIVEN KERNEL STACK
+    int32_t PID;
+    int32_t EBP;
+    int32_t EIP;
     file_descriptor_array_t fd_array; // probably will also need some mechanism to see if stack overflow occurs
-    int32_t ESP;
-
+    
     //signal information
     //possibly all the registers
     //task state information
