@@ -7,6 +7,7 @@
 
 #include "types.h"
 #include "idt.h"
+#include "terminal.h"
 
 // user_y keeps track of user typed space
 extern int user_y;

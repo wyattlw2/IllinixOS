@@ -47,7 +47,7 @@ void NMI_disable(){
 * Side Effects: None
 */
 void rtc_handler(){
-    cli();
+    // cli();
     // test_interrupts();
     // putc('1');
     rtc_int += 1;

@@ -186,7 +186,7 @@ void putc(uint8_t c) {
 
     // first time writing
     if (first) {
-        user_y = screen_y;
+        // user_y = screen_y;
         first = 0;
     }
 
@@ -211,9 +211,9 @@ void putc(uint8_t c) {
             screen_x = 0;
             screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
             // overflow, last row is still user typed characters
-            user_y -= 1;
+            // user_y -= 1;
         } else {
-            user_y = NUM_ROWS - 1; // very last line
+            // user_y = NUM_ROWS - 1; // very last line
         }
         // shifting every content by one line up
         for (i = 0; i < NUM_ROWS - 1; i++) {
@@ -253,6 +253,11 @@ void putc(uint8_t c) {
     }
     // always updating cursor so it follows what the user is typing
     update_cursor(screen_x, screen_y);
+    if (c == ' ') {
+        kb_idx--;
+    } else {
+        kb_idx++;
+    }
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

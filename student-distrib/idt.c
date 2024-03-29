@@ -2,6 +2,7 @@
 #include "file_sys_driver.h"
 #include "paging.h"
 #include "x86_desc.h"   //need to include so we can modify ESP0 field of TSS -- wyatt
+#include "terminal.h"
 
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
@@ -131,7 +132,7 @@ void kb_handler() {
             if (kb_idx != MAX_BUFF_SIZE - 1) {
                 putc(' ');
                 kb_buff[kb_idx] = ' ';
-                kb_idx++;
+                // kb_idx++;
             }
         }
         send_eoi(1);
@@ -141,7 +142,7 @@ void kb_handler() {
     if (key == 0x39) {
         if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
             kb_buff[kb_idx] = ' ';
-            kb_idx++;
+            // kb_idx++;
             putc(' ');
         }
     }
@@ -168,7 +169,7 @@ void kb_handler() {
             update_cursor(x-1, y);
         }
         if (kb_idx != 0) { // if buffer isn't empty already
-            kb_idx--;
+            kb_idx -= 2;
             kb_buff[kb_idx] = '\t'; // code for not print anything
         }
         send_eoi(1);
@@ -187,7 +188,7 @@ void kb_handler() {
             putc('\n');
         }
         kb_buff[kb_idx] = '\n';
-        user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
+        // user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
         kb_idx = 0;
 
@@ -231,7 +232,7 @@ void kb_handler() {
         clear();
         update_xy(0, 0);
         update_cursor(0, 0);
-        user_y = 0;
+        // user_y = 0;
         send_eoi(1);
         return;
     }
@@ -251,7 +252,7 @@ void kb_handler() {
 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    kb_idx++;
+                    // kb_idx++;
                     putc(p);
                 }
             }
@@ -271,7 +272,7 @@ void kb_handler() {
 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    kb_idx++;
+                    // kb_idx++;
                     putc(p);
                 }
             }
@@ -283,7 +284,7 @@ void kb_handler() {
             if (p != '\0') { // check it's printable character 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    kb_idx++;
+                    // kb_idx++;
                     putc(p);
                 }
             }
@@ -295,7 +296,7 @@ void kb_handler() {
             if (p != '\0') { // check it's printable character
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    kb_idx++;
+                    // kb_idx++;
                     putc(p);
                 }
             }
@@ -693,6 +694,7 @@ void sys_execute() {
         asm volatile("pushl %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
         //asm volatile("")
         // printf("\n Made it to the end of iret \n");
+        // sti();
         asm volatile("iret ");
         //the registers were all pushed originally, we'll se what happens
 
@@ -724,6 +726,12 @@ void sys_read() {
     asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
+
+    if(fd == 0){
+        // printf("\n Calling Terminal Read Now \n");
+        t_read(fd, buf, nbytes);
+    }
+
     printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
     return;
 }
@@ -736,7 +744,13 @@ void sys_write() {
     asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
-    printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
+    // printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
+    if(fd == 1){
+        t_write(fd, buf, nbytes);
+    }
+
+
+
     return;
 }
 
@@ -904,13 +918,13 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     idt_desc_t * idt_array_index = &(idt[0x80]);
     idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
     idt_array_index->reserved4 = 0;
-    idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
+    idt_array_index->reserved3 = 1; // 0 corresponds to interrupt, 1 is trap
     idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
     idt_array_index->reserved1 = 1;
     idt_array_index->size = 1; // Means we are in 32 bit mode
     idt_array_index->reserved0 = 0;
     
-    idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
+    idt_array_index->dpl = 3; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
     SET_IDT_ENTRY((*idt_array_index), sys_call);
 
@@ -928,7 +942,7 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     idt_array_index->size = 1; // Means we are in 32 bit mode
     idt_array_index->reserved0 = 0;
     
-    idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
+    idt_array_index->dpl = 3; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
     SET_IDT_ENTRY((*idt_array_index), keyboard_call);
     // while(1){

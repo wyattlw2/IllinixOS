@@ -33,16 +33,20 @@ int t_close() {
  * Function: fills up the buf buffer with characters from kb_buff */
 int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     int i; // loop index
-    int j;
-    for (i = 0; i < MAX_BUFF_SIZE; i++) { // copy every character
-        ((char*)buf)[i] = kb_buff[i];
-        if (kb_buff[i] == '\n') { // kb buffer only CLEARED when enter is pressed
-            for (j = 0; j < MAX_BUFF_SIZE; j++) { // clear the kb_buffer
-                kb_buff[j] = '\t'; // code for not print anything
-                IS_KB_CLEAR = 1;
+
+
+    while (kb_buff[nbytes] != '\n') {
+        for (i = 0; i < nbytes; i++) { // copy every character
+            ((char*)buf)[i] = kb_buff[i];
+        }
+        if (kb_buff[nbytes] == '\n') {
+            for (i = 0; i < nbytes; i++) { // clear every character
+                kb_buff[i] = '\t';
             }
         }
     }
+
+
     return nbytes;
 }
 
@@ -59,14 +63,9 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
         return -1;
     }
 
-    if (IS_KB_CLEAR) { // enter is pressed so we print what is stored
-        // uint16_t pos = get_cursor_position();
-        // uint16_t y = pos / NUM_COLS;
-        // uint16_t x = pos % NUM_COLS;
-        for (i = 0; i < 128; i++) { // print every character
-            putc(((char*)buf)[i]);
-        }
-        IS_KB_CLEAR = 0;
+    for (i = 0; i < nbytes; i++) { // print every character
+        putc(((char*)buf)[i]);
     }
-    return 0;
+
+    return nbytes;
 }
