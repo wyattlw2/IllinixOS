@@ -34,15 +34,20 @@ int t_close() {
 int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     int i; // loop index
 
+    int b = 0;
 
-    while (kb_buff[nbytes] != '\n') {
+    while (1) {
         for (i = 0; i < nbytes; i++) { // copy every character
             ((char*)buf)[i] = kb_buff[i];
+            if (kb_buff[i] == '\n') {
+                b = 1;
+            }
         }
-        if (kb_buff[nbytes] == '\n') {
+        if (b) {
             for (i = 0; i < nbytes; i++) { // clear every character
                 kb_buff[i] = '\t';
             }
+            break;
         }
     }
 
