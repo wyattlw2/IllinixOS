@@ -591,6 +591,7 @@ int32_t sys_execute() {
 
     //process_activating is going to be the process ID NUMBER
     process_control_block_t * PCB;
+
     int PID = 500; // ridiculous value, if it is still 500, we didn't find a process and we return out
 
     
@@ -792,28 +793,36 @@ int32_t sys_open() {
     fd_array.fd_entry[fd_index_to_open].inode = 0;
     fd_array.fd_entry[fd_index_to_open].flags = 1;
 
-    fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+    //fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
 
     // // printf("\n If everything is correct, this should print out the file name: %d", filename);
     dentry_struct_t file_to_open;
     read_dentry_by_name((uint8_t *)filename, &file_to_open);
     if(file_to_open.file_type == RTC_FILE){
         //SET THE JUMP TABLE OF INSTRUCTION POINTERS
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = RTCJ;
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = rtc_jumptable;
+        // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+        printf(" \n\n Janky rtc jumptable called here!\n\n");
+        //asm volatile("jmp rtc_jumptable");
     }else if(file_to_open.file_type == DIRECTORY_FILE){
         //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = DIRJ;
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = directory_jumptable;
+        // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+        printf(" \n\n Janky directory jumptable called here!\n\n");
+        //asm volatile("jmp directory_jumptable");
     }else{
         //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = FILEJ;
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = file_jumptable;
+        // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+        printf(" \n\n Janky file jumptable called here!\n\n");
+        //asm volatile("jmp file_jumptable");
+    
     }
 
     //temporary dentry has been allocated, gives us the file type and the inode number, useful for our jumptable which keeps track of various file operations dir read vs file read
 
     printf("\n SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
+    //PCB->fdesc_array = fd_array;
     return 0;
 }
 

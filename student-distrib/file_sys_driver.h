@@ -50,7 +50,7 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
     int32_t ESP;
     int32_t EIP;
     //current esp and ebp
-    file_descriptor_array_t fd_array; // probably will also need some mechanism to see if stack overflow occurs
+    file_descriptor_array_t fdesc_array; // probably will also need some mechanism to see if stack overflow occurs
     
     //signal information
     //possibly all the registers
