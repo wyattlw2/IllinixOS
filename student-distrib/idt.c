@@ -572,7 +572,8 @@ void sys_halt() {
 
 //TSS
 //MORE INFO ABOUT CONTEXT SWITCH
-void sys_execute() {
+int32_t sys_execute() {
+    int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     uint8_t * command;
     asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
     //might need to add some checks to see if the file is valid other than
@@ -583,8 +584,8 @@ void sys_execute() {
     
     
     if(found_file == -1){
-        printf("\n The inputted file was invalid \n");
-        return; // might need more checks for this lmao
+        printf("\n The inputted file was invalid. \n");
+        return -1; // might need more checks for this lmao
     }
     int i;
 
@@ -635,7 +636,7 @@ void sys_execute() {
         }
         if(PID == 500){
             printf("\n The Maximum Number of Processes are being used \n");
-            return; // MIGHT NEED MORE THAN A RETURN HERE, WORRY ABOUT IT LATER
+            return -1; // MIGHT NEED MORE THAN A RETURN HERE, WORRY ABOUT IT LATER
         }
 
         //TIME TO LOAD THE USER LEVEL PROGRAM
@@ -655,11 +656,11 @@ void sys_execute() {
         // int32_t EIP_save = eip_ll << 24 | eip_l << 16 | eip_r << 8 | eip_rr;
         if(mag_num_check == -1){
             printf(" \n Something screwed up inside the excecutable file, you should really check that out \n");
-            return;
+            return -1;
         }
         if((mag_num_buf[0] != MAGIC_NUMBER_BYTE0 )||( mag_num_buf[1] != MAGIC_NUMBER_BYTE1 )||( mag_num_buf[2] != MAGIC_NUMBER_BYTE2 )||( mag_num_buf[3] != MAGIC_NUMBER_BYTE3)){
             printf(" \n Something fucked up inside the excecutable file, you should really check that shit out \n");
-            return;
+            return -1;
         }
 
 
@@ -715,10 +716,10 @@ void sys_execute() {
     //Potentially push eip, ask for more info later
 
     printf("\n SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
-    return;
+    return retval;
 }
 
-void sys_read() {
+int32_t sys_read() {
     int32_t fd;
     void * buf;
     int32_t nbytes;
@@ -733,10 +734,10 @@ void sys_read() {
     }
 
     printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
-    return;
+    return 0;
 }
 
-void sys_write() {
+int32_t sys_write() {
     int32_t fd;
     void * buf;
     int32_t nbytes;
@@ -751,15 +752,24 @@ void sys_write() {
 
 
 
-    return;
+    return 0;
 }
 
 //NEEDS CHANGE :: THIS IS NOT GLOBAL -- DVT, WILL GO IN PROCESS CONTROL BLOCK
 file_descriptor_array_t fd_array; // FD array might need to initialize everything to zero and also init std in and std out -- more to be done in excecute
 //this is global for a process control block which is another struct I need to make
 
+// global value for fil ops jump table
+// index 0 = open, index 1 = close, index 2 = read, index 3 = write
+// extern uint32_t* rtc_jumptable[];
+// extern uint32_t* file_jumptable[];
+// extern uint32_t* directory_jumptable[];
 
-void sys_open() {
+extern uint32_t* rtc_jumptable;
+extern uint32_t* file_jumptable;
+extern uint32_t* directory_jumptable;
+
+int32_t sys_open() {
     //Working on sys_open
     //first we need to somehow get the argument (file name from the registers)
     //Then we need to call our old file open which gives us the dentry
@@ -775,72 +785,80 @@ void sys_open() {
             break;
         }
     }
+
     /* POTENITAL RACE CONDITION FOR CHECKPOINT 5, we need to make sure that only one process can claim a given file, etc*/
-    fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = 0; // it's prob unnecessary to initialize these all to zero, but if we do it here we don't
+    // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = 0; // it's prob unnecessary to initialize these all to zero, but if we do it here we don't
     fd_array.fd_entry[fd_index_to_open].file_position = 0;
     fd_array.fd_entry[fd_index_to_open].inode = 0;
     fd_array.fd_entry[fd_index_to_open].flags = 1;
 
-    // printf("\n If everything is correct, this should print out the file name: %d", filename);
+    fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
+
+    // // printf("\n If everything is correct, this should print out the file name: %d", filename);
     dentry_struct_t file_to_open;
     read_dentry_by_name((uint8_t *)filename, &file_to_open);
     if(file_to_open.file_type == RTC_FILE){
         //SET THE JUMP TABLE OF INSTRUCTION POINTERS
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = RTCJ;
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
     }else if(file_to_open.file_type == DIRECTORY_FILE){
         //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        //inode is zero for directory file
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = DIRJ;
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
     }else{
         //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].inode = file_to_open.inode_number;
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = FILEJ;
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
     }
 
     //temporary dentry has been allocated, gives us the file type and the inode number, useful for our jumptable which keeps track of various file operations dir read vs file read
 
     printf("\n SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
-    return;
+    return 0;
 }
 
-void sys_close() {
+int32_t sys_close() {
     int8_t * fd;
     asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
 
     printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
-    return;
+    return 0;
 }
 
-void sys_getargs() {
+int32_t sys_getargs() {
     uint8_t * buf;
     int32_t nbytes;
     asm volatile("\t movl %%ebx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variablle
     asm volatile("\t movl %%ecx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
-    return;
+    return 0;
 }
 
-void sys_vidmap() {
+int32_t sys_vidmap() {
     uint8_t ** screen_start;
     asm volatile("\t movl %%ebx,%0" : "=r"(screen_start)); // This line basically takes a value in a register and puts it into the variablle
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
-    return;
+    return 0;
 }
 
-void sys_set_handler() {
+int32_t sys_set_handler() {
     int32_t signum;
     void * handler_address;
 
     asm volatile("\t movl %%ebx,%0" : "=r"(signum)); // This line basically takes a value in a register and puts it into the variablle
     asm volatile("\t movl %%ecx,%0" : "=r"(handler_address)); // This line basically takes a value in a register and puts it into the variablle
     printf("SYSCALL *SET_HANDLER* CALLED (SHOULD CORRESPOND TO SYSCALL 9)\n\n");
-    return;
+    return 0;
 }
 
-void sys_sigreturn() {
+int32_t sys_sigreturn() {
     //no args i think? --dvt
     printf("SYSCALL *SIGRETURN* CALLED (SHOULD CORRESPOND TO SYSCALL 10)\n\n");
-    return;
+    return 0;
 }
-void sys_error(){
+int32_t sys_error(){
     printf("\n Something went wrong, It is possible, the wrong system call index was provided. \n");
+    return -1;
 }
 
 

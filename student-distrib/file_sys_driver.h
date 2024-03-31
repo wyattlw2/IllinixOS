@@ -33,7 +33,7 @@ typedef struct data_block_struct_t {
 } data_block_struct_t;
 
 typedef struct fd_t {
-    int32_t file_operations_table_pointer;
+    void* file_operations_table_pointer;
     int32_t inode;
     int32_t file_position;
     int32_t flags;

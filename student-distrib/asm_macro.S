@@ -85,6 +85,26 @@ jumptable:
     .long SET_HANDLER
     .long SIGRETURN
 
+.global RTCJ
+rtc_jumptable:
+    jmp rtc_open
+    jmp rtc_close
+    jmp rtc_read
+    jmp rtc_write
+
+.global FILEJ
+file_jumptable:
+    jmp file_open
+    jmp file_close
+    jmp file_read
+    jmp file_write
+
+.global DIRJ
+directory_jumptable:
+    jmp directory_open
+    jmp directory_close
+    jmp directory_read
+    jmp directory_write
 
 HALT:   
     

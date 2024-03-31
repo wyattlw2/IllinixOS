@@ -343,7 +343,7 @@ void system_call_test_basic(){
 }
 
 void execute_test_file_load() {
-    int8_t var[32] = {"shell"};
+    int8_t var[32] = {"testprint"};
     
     asm volatile (
         "movl %0, %%ebx;"   // Move the address of var into register ebx

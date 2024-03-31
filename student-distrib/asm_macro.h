@@ -26,6 +26,10 @@ void sys_call();
 void keyboard_call();
 void rtc_call();
 void jumptable_dispatcher();
+
+void RTCJ();
+void FILEJ();
+void DIRJ();
 #endif
 
 #endif /* ASM_FUNCTIONS_H */
