@@ -32,13 +32,24 @@ typedef struct data_block_struct_t {
     uint8_t data[4096];
 } data_block_struct_t;
 
+
+
+typedef struct function_pointers_t {
+    int32_t (*open)(uint8_t * filename);
+    int32_t (*close)(int32_t fd);
+    int32_t (*read)(int32_t fd, void * buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const void * buf, int32_t nbytes);
+} function_pointers_t;
+
+
 typedef struct fd_t {
-    void* file_operations_table_pointer;
+    function_pointers_t file_operations_table_pointer;
     int32_t inode;
     int32_t file_position;
     int32_t flags;
+    //int32T (*open)(int32 fd, buf ,)
 } fd_t;
-
+// static  rtc = {rtc_open, rtc_close, };
 typedef struct file_descriptor_array_t {
     fd_t fd_entry[8];
 } file_descriptor_array_t;
@@ -61,6 +72,7 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
 
 int32_t processes_active[6]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
 process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now --W
+int32_t current_process_idx;
 
 
 

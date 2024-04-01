@@ -3,6 +3,7 @@
 #include "paging.h"
 #include "x86_desc.h"   //need to include so we can modify ESP0 field of TSS -- wyatt
 #include "terminal.h"
+#include "rtc.h"
 
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
@@ -24,6 +25,10 @@
 #define REGULAR_FILE                    2
 #define DIRECTORY_FILE                  1
 #define RTC_FILE                        0
+
+static int32_t *rtc_functions[4] = {(int32_t*)rtc_open, (int32_t*)rtc_close, (int32_t*)rtc_read, (int32_t*)rtc_write};
+static int32_t *directory_functions[4] = {(int32_t*)directory_open, (int32_t*)directory_close, (int32_t*)directory_read, (int32_t*)directory_write};
+static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, (int32_t*)file_read, (int32_t*)file_write};
 //#include "assem_link.S"
 // ALL OF THIS IS FOR REFERENCE
 // typedef union idt_desc_t { // MOST OF THIS WILL BE THE SAME, NAKE NOTE OF WHEN TO USE TRAP GATE VS INTERRUPT vs SYSCALL vs EXCEPTION -- DVT
@@ -545,29 +550,81 @@ void sys_halt() {
     //Once you have accessed the parent PCB via PCB_array[prev_PID], just reverse what was done in sys_execute().
     //TLDR put the parent process context on the stack and set ESP0 of TSS to point to the old process's kernel stack. --W
 
-    if(num_active_processes == 1)   {
-        return; //cannot halt the program if there will be zero running programs
-    }
+    //idk if the prev_PID thing will work for cp 5, but we should keep it for now to get a base
+
+
+    //W-- it will not. i asked a TA last night and the way cp5 works is you will have another global array for
+    //each terminal. there can be three terminals. each value in the terminal array will be the value of the parent_PID
+    //for the process. i can explain better in person
+
+    //W-- yes? i think. in GDB i was returning to the handler for SYS_HALT which is wrong - it should be SYS_EXECUTE, this 
+    //was also on my local code tho and i had made some additional changes
+
+    //DVT -- hmm, so if we call return you thought it would go to exec, or it is supposed to at least
+
+    //W-- right. the slides that Sanjeevi posted for discussion suggest that we return to the old context
+    //from the parent process, which in the case of returning to shell will be the context from the last execute
+    //look at the slides Sanjeevi posted 
+
+    //DVT -- yeah maybe we need to alter the stack or something before we call return,
+
+    //W-- I will lose internet access for the next 25 minutes or so, gotta head off the liveshare rn
+
+    //yeah fair, ok sg // that if statement was causing one of the page faults, but hypothetically, it should just return out successfully?
+    printf("\n Made it to line 549 in halt \n");
+    //i am in
+    //it was pagefaulting before that too
+    //the issue might be with return address from stack? or TSS esp0
+    // gotcha, keep that comment there, i'm on queue but nobody is here yet :(, I'm gonna see if the if statement executes rq
+    //also IDK if we are supposed to have shell be the first process, in the test case you guys are manually putting testprint in there
+
+
+    // if(num_active_processes == 1)   {
+    //     // printf("\n The code makes it inside num_active_processes if statement in Sys Halt \n");
+    //     return; //cannot halt the program if there will be zero running programs
+    // }
+
+    //Maybe add some kind of check to make sure that the Shell can't halt
 
     //for some reason the argument freaks out when you uncomment this, idk why -- DVT -- Worked when changed to movb and bl from ebx
     uint8_t status;
-    asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable
+    asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable -- 
 
+    printf("\n Made it to line 560 in halt \n");
+
+    //potentially is freaking out due to this line right here:
+    printf("\n This is the value of prev_PID before it is called inside halt: %d", prev_PID);
     int32_t temp_reg = PCB_array[prev_PID]->EBP;    //old value of ebp that we saved during sys_execute()
-    asm volatile (  
+    // int32_t temp_reg = 0;
+    printf("\n Temp Reg val line 594: %d\n", temp_reg); // value of ebp changes in between this and below 
+    asm volatile (
         "movl %0, %%ebp;"  
         :
         : "r" (temp_reg)    //supposed to put parent's ebp into current ebp  
     );
+    printf("\n Temp Reg val line 599: %d\n", temp_reg);
     asm volatile (  
         "movl %0, %%esp;"  //literally the same thing but we copy to esp too(?) according to Sanjeevi's discussion slides
         :
         : "r" (temp_reg)    
     );
+    printf("\n Temp Reg val line 605: %d\n", temp_reg);
 
     asm volatile ("pop %ebp");
     
-    asm("ret") ;
+    // printf("\n Made it to line 605 in halt \n");
+    
+    // essentially calling ret here does not return to the asm link of sys_exec
+    
+    //Flush the TLB is not a bad idea
+
+    //setup the tss again
+
+    //undo the paging
+
+    //needs to return status after this
+    asm volatile("ret") ; 
+    //USE A GOTO to get back to exectur -- asm jmp
 
     return;
 }
@@ -630,7 +687,7 @@ int32_t sys_execute() {
                                             // if it is, set it equal to the PID of the parent process.
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
-                printf("Prev PID: %d\n\n", prev_PID);
+                printf("(Inside Exec) Prev PID: %d\n\n", prev_PID);
 
                 switch(PID){
                     case(0):
@@ -677,7 +734,7 @@ int32_t sys_execute() {
         // int8_t eip_l = mag_num_buf[26];
         // int8_t eip_r = mag_num_buf[25];
         // int8_t eip_rr = mag_num_buf[24];
-        int32_t EIP_save = ((uint32_t*)mag_num_buf)[6];
+        int32_t EIP_save = ((uint32_t*)mag_num_buf)[6]; // Extracting the EIP from the string
         // printf("\n EIP TRY 2: %d", EIP_try2);
         
         // int32_t EIP_save = eip_ll << 24 | eip_l << 16 | eip_r << 8 | eip_rr;
@@ -709,24 +766,31 @@ int32_t sys_execute() {
         PCB->EBP = ebp;
         PCB->ESP = esp;
         prev_PID = PID;     //Have to save the current PID as the last PID
+        current_process_idx = PID;
+        PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read;
+        PCB->fdesc_array.fd_entry[1].file_operations_table_pointer.write = t_write;
+
+
+
         printf("New prev PID: %d\n\n", prev_PID);
         // PCB->EIP = EIP_save;
-        tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4;
+        tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4; // updating the esp0
 
         // #define USER_CS     0x0023
         // #define USER_DS     0x002B
 
         
-        asm volatile("pushl $0x002B"); // EXPECTING WE HAVE SOME KIND OF FAULT HERE
+        asm volatile("pushl $0x002B"); // pushing User DS
         asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
-        asm volatile("pushfl"); // this could be off
-        asm volatile("pushl $0x0023");
+        asm volatile("pushfl"); // this could be off -- pushing flags
+        asm volatile("pushl $0x0023");  //pushing the USER CS
         // asm volatile("pushl %"); // push EIP that was stored in the executable file
         asm volatile("pushl %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
         //asm volatile("")
         // printf("\n Made it to the end of iret \n");
         // sti();
         asm volatile("iret ");
+
         //the registers were all pushed originally, we'll se what happens
 
 
@@ -746,8 +810,14 @@ int32_t sys_execute() {
     //Potentially push eip, ask for more info later
 
     printf("\n SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
+
+    //WILL NEED TO CHANGE THE return value that THE SYSTEM
     return retval;
 }
+
+//NEEDS CHANGE :: THIS IS NOT GLOBAL -- DVT, WILL GO IN PROCESS CONTROL BLOCK
+file_descriptor_array_t fd_array; // FD array might need to initialize everything to zero and also init std in and std out -- more to be done in excecute
+//this is global for a process control block which is another struct I need to make
 
 int32_t sys_read() {
     int32_t fd;
@@ -758,10 +828,7 @@ int32_t sys_read() {
     asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
 
-    if(fd == 0){
-        // printf("\n Calling Terminal Read Now \n");
-        t_read(fd, buf, nbytes);
-    }
+    (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
 
     printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
     return 0;
@@ -776,30 +843,14 @@ int32_t sys_write() {
     asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     // printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
-    if(fd == 1){
-        t_write(fd, buf, nbytes);
-    }
 
-
+    (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
 
     return 0;
 }
 
-//NEEDS CHANGE :: THIS IS NOT GLOBAL -- DVT, WILL GO IN PROCESS CONTROL BLOCK
-file_descriptor_array_t fd_array; // FD array might need to initialize everything to zero and also init std in and std out -- more to be done in excecute
-//this is global for a process control block which is another struct I need to make
-
-// global value for fil ops jump table
-// index 0 = open, index 1 = close, index 2 = read, index 3 = write
-// extern uint32_t* rtc_jumptable[];
-// extern uint32_t* file_jumptable[];
-// extern uint32_t* directory_jumptable[];
-
-extern uint32_t* rtc_jumptable;
-extern uint32_t* file_jumptable;
-extern uint32_t* directory_jumptable;
-
 int32_t sys_open() {
+    printf("\n made it to sys open \n ");
     //Working on sys_open
     //first we need to somehow get the argument (file name from the registers)
     //Then we need to call our old file open which gives us the dentry
@@ -816,6 +867,8 @@ int32_t sys_open() {
         }
     }
 
+
+    
     /* POTENITAL RACE CONDITION FOR CHECKPOINT 5, we need to make sure that only one process can claim a given file, etc*/
     // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = 0; // it's prob unnecessary to initialize these all to zero, but if we do it here we don't
     fd_array.fd_entry[fd_index_to_open].file_position = 0;
@@ -823,31 +876,40 @@ int32_t sys_open() {
     fd_array.fd_entry[fd_index_to_open].flags = 1;
 
     //fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
-
+    printf("\n made it to line 881 \n");
     // // printf("\n If everything is correct, this should print out the file name: %d", filename);
     dentry_struct_t file_to_open;
     read_dentry_by_name((uint8_t *)filename, &file_to_open);
     if(file_to_open.file_type == RTC_FILE){
         //SET THE JUMP TABLE OF INSTRUCTION POINTERS
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = rtc_jumptable;
-        // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
-        printf(" \n\n Janky rtc jumptable called here!\n\n");
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open = (void *)rtc_functions[0];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close = (void *)rtc_functions[1];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)rtc_functions[2];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)rtc_functions[3];
+        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) 0);
+        printf(" \n\n RTC Janky rtc jumptable called here!\n\n");
         //asm volatile("jmp rtc_jumptable");
     }else if(file_to_open.file_type == DIRECTORY_FILE){
         //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = directory_jumptable;
-        // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
-        printf(" \n\n Janky directory jumptable called here!\n\n");
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open =  (void *)directory_functions[0];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)directory_functions[1];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)directory_functions[2];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)directory_functions[3];
+        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) 0);
+        printf(" \n\n DIRECTORY Janky directory jumptable called here!\n\n");
         //asm volatile("jmp directory_jumptable");
     }else{
         //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = file_jumptable;
-        // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
-        printf(" \n\n Janky file jumptable called here!\n\n");
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open =  (void *)file_functions[0];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)file_functions[1];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)file_functions[2];
+        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)file_functions[3];
+        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) 0);
+        printf(" \n\n FILE Janky file jumptable called here!\n\n");
         //asm volatile("jmp file_jumptable");
     
     }
-
+    printf("\n made it to line 905 \n");
     //temporary dentry has been allocated, gives us the file type and the inode number, useful for our jumptable which keeps track of various file operations dir read vs file read
 
     printf("\n SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
@@ -856,8 +918,10 @@ int32_t sys_open() {
 }
 
 int32_t sys_close() {
-    int8_t * fd;
+    int32_t fd;
     asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+
+    (*fd_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
 
     printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
     return 0;
