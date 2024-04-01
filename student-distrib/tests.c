@@ -352,7 +352,7 @@ void execute_test_file_load() {
     );
 
     asm volatile (
-        "movl $5, %eax"     // Set syscall number to 5 (sys_open)
+        "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
     );
 
     // For demonstration purposes only, as usage of int $0x80 is system-dependent

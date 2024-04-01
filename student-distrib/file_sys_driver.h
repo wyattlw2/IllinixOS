@@ -46,6 +46,7 @@ typedef struct file_descriptor_array_t {
 //NEED TO GET MORE INFO ON THIS -- specifically where to initialize it
 typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE TOP OF A GIVEN KERNEL STACK
     int32_t PID;
+    int32_t parent_PID; 
     int32_t EBP;
     int32_t ESP;
     int32_t EIP;
@@ -57,8 +58,9 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
     //task state information
     //stack pointer for a given process
 } process_control_block_t;
-int32_t processes_active[6]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
 
+int32_t processes_active[6]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
+process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now --W
 
 
 

@@ -532,19 +532,43 @@ void exec_handler19() {
 // execute, sigtest, shell, and fish to work. Each of those programs will be calling
 // some of these handlers via interrupt 0x80    -- Wyatt
 
-void sys_halt() {
-    
 
+int32_t num_active_processes = 0;   // cannot be decremented below 1 once it reaches that value. used in sys_halt() to determine
+                                    // if halting the process will result in 0 running programs.
+
+int32_t prev_PID = 70;  //initialized to 70 because we need to signify that the first process has no valid parent PID
+
+void sys_halt() {
+    //this function segfaults right now lol
+    printf("SYSCALL *HALT* CALLED \n\n");
+    //The key to this function is using the global variable "prev_PID" to determine which process is the parent process...
+    //Once you have accessed the parent PCB via PCB_array[prev_PID], just reverse what was done in sys_execute().
+    //TLDR put the parent process context on the stack and set ESP0 of TSS to point to the old process's kernel stack. --W
+
+    if(num_active_processes == 1)   {
+        return; //cannot halt the program if there will be zero running programs
+    }
 
     //for some reason the argument freaks out when you uncomment this, idk why -- DVT -- Worked when changed to movb and bl from ebx
     uint8_t status;
     asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable
 
-    printf("SYSCALL *HALT* CALLED (SHOULD CORRESPOND TO SYSCALL 1, WHICH IS THE FIRST SYSCALL IN ADDENDUM B)\n\n");
-    // asm("popfl") ;
-    // asm("popal") ;
-    //asm("iret") ;
-    //while(1){}
+    int32_t temp_reg = PCB_array[prev_PID]->EBP;    //old value of ebp that we saved during sys_execute()
+    asm volatile (  
+        "movl %0, %%ebp;"  
+        :
+        : "r" (temp_reg)    //supposed to put parent's ebp into current ebp  
+    );
+    asm volatile (  
+        "movl %0, %%esp;"  //literally the same thing but we copy to esp too(?) according to Sanjeevi's discussion slides
+        :
+        : "r" (temp_reg)    
+    );
+
+    asm volatile ("pop %ebp");
+    
+    asm("ret") ;
+
     return;
 }
 #define     USER_PROG_0                         0x02
@@ -570,9 +594,10 @@ void sys_halt() {
 
 
 
-//TSS
-//MORE INFO ABOUT CONTEXT SWITCH
+//TA (Jeremy I think) specified that for CP3, we do not need to worry about having multiple shells running at once - a shell can open a
+//shell, but for now we do not need to worry about more than one program executing at a time. --W
 int32_t sys_execute() {
+
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     uint8_t * command;
     asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
@@ -590,21 +615,22 @@ int32_t sys_execute() {
     int i;
 
     //process_activating is going to be the process ID NUMBER
+    // process_control_block_t * PCB;  //going to turn into a global variable for now -- W
+
     process_control_block_t * PCB;
-
     int PID = 500; // ridiculous value, if it is still 500, we didn't find a process and we return out
-
-    
         for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
             if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
+                num_active_processes++;
                 processes_active[i] = 1;
                 PID = i; // ASSIGNING PROCESS ID NUMBER
                 PCB = (process_control_block_t *) (EIGHT_MB - (PID+1)*EIGHT_KB); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
-                // PCB = (process_control_block_t *) (EIGHT_MB + 1); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
-                
-                
-                
-
+                PCB_array[i] = PCB;
+                PCB->parent_PID = prev_PID; // specifies if the current process is a child of another process.
+                                            // if it is, set it equal to the PID of the parent process.
+                                            // otherwise, set the PID to an absolutely crazy value to signify that it
+                                            // is not a child process    
+                printf("Prev PID: %d\n\n", prev_PID);
 
                 switch(PID){
                     case(0):
@@ -682,12 +708,15 @@ int32_t sys_execute() {
         PCB->PID = PID;
         PCB->EBP = ebp;
         PCB->ESP = esp;
+        prev_PID = PID;     //Have to save the current PID as the last PID
+        printf("New prev PID: %d\n\n", prev_PID);
         // PCB->EIP = EIP_save;
         tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4;
 
         // #define USER_CS     0x0023
         // #define USER_DS     0x002B
 
+        
         asm volatile("pushl $0x002B"); // EXPECTING WE HAVE SOME KIND OF FAULT HERE
         asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
         asm volatile("pushfl"); // this could be off
