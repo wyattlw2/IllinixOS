@@ -181,7 +181,7 @@ void file_open_test(){
 	// printf("...\n");
 	printf(" \n ");
     dentry_struct_t sample_dentry; 
-    int retval = file_open(test_name, &sample_dentry);
+    int retval = file_open(test_name);
 	printf("\n Successfully called file_open without crashing.");
 	if (retval == -1)
 	{
@@ -207,7 +207,7 @@ void file_read_test(){
 	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n ");
 	puts((int8_t*)filename);
 	dentry_struct_t dentry_to_read;
-	int retval = file_open(filename, &dentry_to_read);
+	int retval = file_open(filename);
 	if(retval == 0){
 		printf("\n File Open Successful, attempting read \n");
 	}else{
@@ -254,7 +254,7 @@ void file_close_test(){
 	printf(" First attempting to open the file...");
 	dentry_struct_t dentry_to_close;
 	uint8_t filename[32] = {"frame0.txt"};
-	int retval = file_open(filename, &dentry_to_close);
+	int retval = file_open(filename);
 	if(retval == 0){
 		printf("\n File Open Successful! \n");
 	}else{

@@ -137,7 +137,7 @@ void kb_handler() {
             if (kb_idx != MAX_BUFF_SIZE - 1) {
                 putc(' ');
                 kb_buff[kb_idx] = ' ';
-                // kb_idx++;
+                kb_idx++;
             }
         }
         send_eoi(1);
@@ -147,7 +147,7 @@ void kb_handler() {
     if (key == 0x39) {
         if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
             kb_buff[kb_idx] = ' ';
-            // kb_idx++;
+            kb_idx++;
             putc(' ');
         }
     }
@@ -257,7 +257,7 @@ void kb_handler() {
 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    // kb_idx++;
+                    kb_idx++;
                     putc(p);
                 }
             }
@@ -277,7 +277,7 @@ void kb_handler() {
 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    // kb_idx++;
+                    kb_idx++;
                     putc(p);
                 }
             }
@@ -289,7 +289,7 @@ void kb_handler() {
             if (p != '\0') { // check it's printable character 
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    // kb_idx++;
+                    kb_idx++;
                     putc(p);
                 }
             }
@@ -301,7 +301,7 @@ void kb_handler() {
             if (p != '\0') { // check it's printable character
                 if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
                     kb_buff[kb_idx] = p;
-                    // kb_idx++;
+                    kb_idx++;
                     putc(p);
                 }
             }
@@ -543,6 +543,11 @@ int32_t num_active_processes = 0;   // cannot be decremented below 1 once it rea
 
 int32_t prev_PID = 70;  //initialized to 70 because we need to signify that the first process has no valid parent PID
 
+#define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
+#define     EIGHT_KB                            (1 << 13)
+#define     PID_OFFSET_TO_GET_PHYSICAL_ADDRESS      2
+
+
 void sys_halt() {
     //this function segfaults right now lol
     printf("SYSCALL *HALT* CALLED \n\n");
@@ -578,11 +583,27 @@ void sys_halt() {
     // gotcha, keep that comment there, i'm on queue but nobody is here yet :(, I'm gonna see if the if statement executes rq
     //also IDK if we are supposed to have shell be the first process, in the test case you guys are manually putting testprint in there
 
+    //CHECKING IF WE ARE KILLING THE SHELL
+    if(num_active_processes == 1)   {
+            printf("\n Can't Close Shell!! \n");
+            int8_t var[32] = {"shell"};
+            //restarting shell sequence
+        asm volatile (
+            "movl %0, %%ebx;"   // Move the address of var into register ebx
+            :                   // Output operand list is empty
+            : "r" (var)         // Input operand list, specifying that var is an input
+        );
+        asm volatile (
+            "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
+        );
+            asm volatile (
+                "int $0x80"         // Execute syscall
+            );
+            return; //cannot halt the program if there will be zero running programs
+    }
 
-    // if(num_active_processes == 1)   {
-    //     // printf("\n The code makes it inside num_active_processes if statement in Sys Halt \n");
-    //     return; //cannot halt the program if there will be zero running programs
-    // }
+
+
 
     //Maybe add some kind of check to make sure that the Shell can't halt
 
@@ -612,6 +633,18 @@ void sys_halt() {
 
     asm volatile ("pop %ebp");
     
+    
+
+    page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //reseting the PID to be what it needs to be
+    
+    asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+    asm volatile("movl %ebx, %cr3");
+    
+    tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->parent_PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
+
+
+    current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index
+    num_active_processes--;
     // printf("\n Made it to line 605 in halt \n");
     
     // essentially calling ret here does not return to the asm link of sys_exec
@@ -623,10 +656,8 @@ void sys_halt() {
     //undo the paging
 
     //needs to return status after this
-    asm volatile("ret") ; 
     //USE A GOTO to get back to exectur -- asm jmp
-
-    return;
+    asm volatile("jmp execute_to_halt");
 }
 #define     USER_PROG_0                         0x02
 #define     USER_PROG_1                         0x03
@@ -646,8 +677,7 @@ void sys_halt() {
 // #define     EIGHT_MB                            0x00800000 // 4096 bytes * 8 bits per byte
 // #define     EIGHT_KB                            0x00002000
 
-#define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
-#define     EIGHT_KB                            (1 << 13)
+
 
 
 
@@ -658,6 +688,8 @@ int32_t sys_execute() {
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     uint8_t * command;
     asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
+    // register uint32_t ebx asm("ebx");
+    //command = ()
     //might need to add some checks to see if the file is valid other than
     //Rden by name   
     dentry_struct_t exec_dentry;  
@@ -791,6 +823,14 @@ int32_t sys_execute() {
         // sti();
         asm volatile("iret ");
 
+        asm volatile("execute_to_halt:");
+
+        asm volatile("popl %eax"); // popping all of these off the stack -- that we just pushed
+        asm volatile("popl %eax"); 
+        asm volatile("popl %eax"); // this could be off -- pushing flags
+        asm volatile("popl %eax");  //pushing the USER CS
+        asm volatile("popl %eax");
+
         //the registers were all pushed originally, we'll se what happens
 
 
@@ -823,15 +863,21 @@ int32_t sys_read() {
     int32_t fd;
     void * buf;
     int32_t nbytes;
-
     asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
     asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
 
-    (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
+    return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
 
-    printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
-    return 0;
+    // printf("calling puts \n");
+    // puts(buf);
+
+    // printf("SYSCALL *READ* CALLED (SHOULD CORRESPOND TO SYSCALL 3)\n\n");
+    // int i;
+    // for(i=0; i<5; i++){
+        
+    // } 
+    // return 0;
 }
 
 int32_t sys_write() {
@@ -886,7 +932,7 @@ int32_t sys_open() {
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close = (void *)rtc_functions[1];
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)rtc_functions[2];
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)rtc_functions[3];
-        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) 0);
+        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
         printf(" \n\n RTC Janky rtc jumptable called here!\n\n");
         //asm volatile("jmp rtc_jumptable");
     }else if(file_to_open.file_type == DIRECTORY_FILE){
@@ -895,7 +941,7 @@ int32_t sys_open() {
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)directory_functions[1];
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)directory_functions[2];
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)directory_functions[3];
-        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) 0);
+        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
         printf(" \n\n DIRECTORY Janky directory jumptable called here!\n\n");
         //asm volatile("jmp directory_jumptable");
     }else{
@@ -904,7 +950,7 @@ int32_t sys_open() {
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)file_functions[1];
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)file_functions[2];
         fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)file_functions[3];
-        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) 0);
+        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
         printf(" \n\n FILE Janky file jumptable called here!\n\n");
         //asm volatile("jmp file_jumptable");
     

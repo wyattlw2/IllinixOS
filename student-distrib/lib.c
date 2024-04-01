@@ -253,11 +253,11 @@ void putc(uint8_t c) {
     }
     // always updating cursor so it follows what the user is typing
     update_cursor(screen_x, screen_y);
-    if (c == ' ') {
-        kb_idx--;
-    } else {
-        kb_idx++;
-    }
+    // if (c == ' ') {
+    //     kb_idx--;
+    // } else {
+    //     kb_idx++;
+    // }
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

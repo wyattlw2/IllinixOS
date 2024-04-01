@@ -35,7 +35,6 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     int i; // loop index
 
     int b = 0;
-
     while (1) {
         for (i = 0; i < nbytes; i++) { // copy every character
             ((char*)buf)[i] = kb_buff[i];

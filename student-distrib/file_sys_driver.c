@@ -32,9 +32,9 @@ Outputs: Returns -1 in case of error, 0 otherwise
 Side Effects: Finds a file corresponding to inputted file name. "Opens" file by pointing opened_file to data contained
     in the identified file.
 */
-int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
-
-    int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates opened_file with data from the file
+int32_t file_open(const uint8_t* filename)    {
+    dentry_struct_t opened_file;
+    int32_t err_code = read_dentry_by_name(filename, &opened_file);   //populates opened_file with data from the file
     
     //need to check if read_dentry_by_name returned an error code (can happen in case of filename being too long)
     //can also happen if no such file is found... i believe
@@ -45,7 +45,7 @@ int32_t file_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
 
     //from TA - a directory file and a regular file may potentially have the same name. don't know why tho
     //(file types should never have the same name, but i suppose this may be an edge case tested during demos)
-    if  (opened_file->file_type != REGULAR_FILE)    {
+    if  (opened_file.file_type != REGULAR_FILE)    {
         printf("\n System attempted to retrieve a regular file, but retrieved file type was different.\n");
         return -1;
     }
