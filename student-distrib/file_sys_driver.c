@@ -68,19 +68,23 @@ Side Effects: Data is populated into the buffer
 
 //NEEDS FIX, MAKE SURE THAT THIS RETURNS NBYTES READ
 //AND ALSO NEEDS TO ALLOW READING GREATER THAN THE LENGTH OF THE FILE, but JUST STOP
-int32_t file_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { //print data of a file
+int32_t file_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { //print data of a file
+    int32_t inode_num = PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].inode;
+    int32_t offset = PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position;
     
-    if(dentry->inode_number < 0 || dentry->inode_number > 64){ // max number of inodes is 64
+    if(inode_num < 0 || inode_num > 64){ // max number of inodes is 64
         printf("\n Invalid Directory Entry, Please try again with a vaild Directory Entry \n");
         return -1;
     }
     if(nbytes <=0){
         printf("\n Invalid Number of Bytes, please try again with the correct number of bytes \n");
+        return -1;
     }
 
-    int retval = read_data(dentry->inode_number, 0, buf, nbytes); // all legwork done in here
+    int retval = read_data(inode_num, offset, buf, nbytes); // all legwork done in here
     if(retval == -1){
         printf("\n read_data was attempted, but it failed, please try again \n");
+        return -1;
     }
 
     return 0;
@@ -94,7 +98,7 @@ Inputs: None
 Outputs: None
 Side Effects: None
 */
-int32_t file_write()  {
+int32_t file_write(int32_t fd, const void * buf, int32_t nbytes)  {
     return -1; // DUNZO
 }
 /*
@@ -104,19 +108,12 @@ Inputs: Dentry of an opened file
 Outputs: success (0) or failure (-1)
 Side Effects: None
 */
-int32_t file_close(dentry_struct_t* opened_file)   {
-    if(opened_file == NULL){
-        printf("\n Unable to close the file. \n");
+int32_t file_close(int32_t fd)   {
+    if(fd >=8 || fd < 0){
+        printf("\n Unable to close the directory \n");
         return -1;
     }
-    int i;
-    for(i=0; i< NUMBER_OF_FILE_CHARACTERS; i++){
-        opened_file->file_name[i] = 0;
-    }
-    
-    opened_file->file_type = 0;
-    opened_file->inode_number = 0;
-    return 0;
+    return 0; // DUNZO
 }
 
 
@@ -127,20 +124,21 @@ Inputs: file name and empty directory entry
 Outputs: success (0) or failure (-1) 
 Side Effects: None
 */
-int32_t directory_open(const uint8_t* filename, dentry_struct_t* opened_file)    {
-    int32_t err_code = read_dentry_by_name(filename, opened_file);   //populates opened_file with data from the file
+int32_t directory_open(const uint8_t* filename){
+    dentry_struct_t opened_file;
+    int32_t err_code = read_dentry_by_name(filename, &opened_file);   //populates opened_file with data from the file
     
     //need to check if read_dentry_by_name returned an error code (can happen in case of filename being too long)
     //can also happen if no such file is found... i believe
     if  (err_code == -1)    {
-        printf("\n System attempted to call read_dentry_by_name, but call failed.\n");
+        printf("\n System attempted to call read_dentry_by_name for directory open, but call failed.\n");
         return -1;
     }
 
     //from TA - a directory file and a regular file may potentially have the same name. don't know why tho
     //(file types should never have the same name, but i suppose this may be an edge case tested during demos)
-    if  (opened_file->file_type != DIRECTORY_FILE)    {
-        printf("\n System attempted to retrieve a Directory, but retrieved file type was different.\n");
+    if  ((&opened_file)->file_type != DIRECTORY_FILE)    {
+        printf("\n System attempted to open a Directory, but retrieved file type was different.\n");
         return -1;
     }
 
@@ -157,18 +155,12 @@ Inputs: Dentry of an opened directory
 Outputs: success (0) or failure (-1)
 Side Effects: None
 */
-int32_t directory_close(dentry_struct_t* opened_direc)   { // PRETTY MUCH A CARBON COPY OF file_close
-    int i;
-    if(opened_direc == NULL){
+int32_t directory_close(int32_t fd)   { // PRETTY MUCH A CARBON COPY OF file_close
+    // int i;
+    if(fd >=8 || fd < 0){
         printf("\n Unable to close the directory \n");
         return -1;
     }
-    for(i=0; i< NUMBER_OF_FILE_CHARACTERS; i++){
-        opened_direc->file_name[i] = 0;
-    }
-    
-    opened_direc->file_type = 0;
-    opened_direc->inode_number = 0;
     return 0; // DUNZO
 }
 
@@ -179,22 +171,53 @@ Inputs: Dentry of an opened directory, buffer, and nbytes
 Outputs: success (0) or failure (-1)
 Side Effects: None
 */
-int32_t directory_read(dentry_struct_t * dentry, uint8_t * buf, uint32_t nbytes)    { // if num bytes is too big then fail
-    if(dentry->file_name[0] != '.'){
-        printf("\n Something went wrong, this OS only contains 1 Directory, and it is . \n"); // Prints
-        return -1;
-    }
-    if(nbytes != 1){
-        printf("\n The size of this directory is 1 byte! Read Failed \n");
-        return -1;
-    }
+int32_t directory_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { // if num bytes is too big then fail
+    
+    // read_dentry_by_index();
+
+    //
+
+    // if(dentry->file_name[0] != '.'){
+    //     printf("\n Something went wrong, this OS only contains 1 Directory, and it is . \n"); // Prints
+    //     return -1;
+    // }
+    // if(nbytes != 1){
+    //     printf("\n The size of this directory is 1 byte! Read Failed \n");
+    //     return -1;
+    // }
     //int i;
     // for(i=0; i< nbytes; i++){
     //     buf[i] = dentry->file_name[i];
     // }
     // putc(buf[0]);
-    strcpy((int8_t*) buf, dentry->file_name);
+    // strcpy((int8_t*) buf, dentry->file_name);
     return 0;
+}
+
+//Assumes 32
+int32_t directory_read_helper(uint32_t offset, uint8_t* buf, uint32_t length){
+    int i;
+    // if(offset+length)
+    // for(i=offset; i<length; i++){
+        // uint32_t cur_dir_name_length = strlen(booting_info_block->dir_entries[0].file_name)
+        // buf[i-offset] = booting_info_block->dir_entries[]
+    // }
+    // int end = 0;
+    // int index = offset;
+    // while(end == 0){
+    //     int32_t current_file_index;
+    //     dentry_struct_t dentry;
+    //     for(i=0;i<index; i++){
+    //         if()
+    //         read_dentry_by_index( , &dentry)
+    //     }
+
+    //     buf[index] = 
+    //     index++;
+    //     if(index-offset >= length){
+    //         end = 1;
+    //     }
+    // }
 }
 /*
 directory_write
@@ -203,7 +226,7 @@ Inputs: None
 Outputs: None
 Side Effects: None
 */
-int32_t directory_write()   {
+int32_t directory_write(int32_t fd, const void * buf, int32_t nbytes)   {
     return -1; // DUNZO
 }
 

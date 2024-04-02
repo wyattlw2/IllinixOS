@@ -269,65 +269,65 @@ void file_close_test(){
 		printf("Something happened and the test failed, please try again \n");
 	}
 }
-void directory_open_close_test(){
-	clear();
-	//printf("\n \n \n \n \n");
-	printf("\n Attempting Directory Open Test: \n");
+// void directory_open_close_test(){
+// 	clear();
+// 	//printf("\n \n \n \n \n");
+// 	printf("\n Attempting Directory Open Test: \n");
 	
-	dentry_struct_t dentry_to_open;
-	uint8_t filename[32] = {"."};
-	printf("\n Attempting to open directory: ");
-	puts((int8_t*)filename);
-	int retval = directory_open(filename, &dentry_to_open);
-	if(retval == 0){
-		printf("\n Directory Open Successful! \n");
-	}else{
-		printf("\n Directory Open Failed, please try again \n");
-		return;
-	}
+// 	dentry_struct_t dentry_to_open;
+// 	uint8_t filename[32] = {"."};
+// 	printf("\n Attempting to open directory: ");
+// 	puts((int8_t*)filename);
+// 	int retval = directory_open(filename, &dentry_to_open);
+// 	if(retval == 0){
+// 		printf("\n Directory Open Successful! \n");
+// 	}else{
+// 		printf("\n Directory Open Failed, please try again \n");
+// 		return;
+// 	}
 
 
-	printf("\n Attempting to close the file \n");
-	int retval2 = directory_close(&dentry_to_open);
-	if(retval2 == 0){
-		printf("\n File Closure Successful, test passed \n");
-	}else{
-		printf("Something happened and the test failed, please try again");
-	}
-}
-void directory_write_test(){
-	clear();
-	int retval = directory_write();
-	if(retval == -1){
-		printf("\n Directory Write Test Failed, Meaning we Passed the test :)\n\n");
-	}
-}
-void directory_read_test(){
-	clear();
-	//printf("\n \n \n \n \n");
-	uint8_t buffer[3];		//anywhere where i changed the variable type was to remove compiler warnings
-	dentry_struct_t dentry_to_open;
-	uint8_t filename[32] = {"."};
-	printf("\n Attempting to open directory: ");
-	puts((int8_t*)filename);
-	int retval = directory_open(filename, &dentry_to_open);
-	if(retval == 0){
-		printf("\n Directory Open Successful! \n");
-	}else{
-		printf("\n Directory Open Failed, please try again \n");
-		return;
-	}
-	// clear();
-	printf("\n Attempting a Directory Read \n");
-	int nbytes = 1;
-	int retval2 = directory_read(&dentry_to_open, buffer, nbytes);
-	if(retval2 == 0){
-		printf("\n Directory Read Successful, the name of the directory is: ");
-		puts((int8_t*)buffer);
-	}else{
-		printf("\n Directory Read Failed \n");
-	}
-}
+// 	printf("\n Attempting to close the file \n");
+// 	int retval2 = directory_close(&dentry_to_open);
+// 	if(retval2 == 0){
+// 		printf("\n File Closure Successful, test passed \n");
+// 	}else{
+// 		printf("Something happened and the test failed, please try again");
+// 	}
+// }
+// void directory_write_test(){
+// 	clear();
+// 	int retval = directory_write();
+// 	if(retval == -1){
+// 		printf("\n Directory Write Test Failed, Meaning we Passed the test :)\n\n");
+// 	}
+// }
+// void directory_read_test(){
+// 	clear();
+// 	//printf("\n \n \n \n \n");
+// 	uint8_t buffer[3];		//anywhere where i changed the variable type was to remove compiler warnings
+// 	dentry_struct_t dentry_to_open;
+// 	uint8_t filename[32] = {"."};
+// 	printf("\n Attempting to open directory: ");
+// 	puts((int8_t*)filename);
+// 	int retval = directory_open(filename, &dentry_to_open);
+// 	if(retval == 0){
+// 		printf("\n Directory Open Successful! \n");
+// 	}else{
+// 		printf("\n Directory Open Failed, please try again \n");
+// 		return;
+// 	}
+// 	// clear();
+// 	printf("\n Attempting a Directory Read \n");
+// 	int nbytes = 1;
+// 	int retval2 = directory_read(&dentry_to_open, buffer, nbytes);
+// 	if(retval2 == 0){
+// 		printf("\n Directory Read Successful, the name of the directory is: ");
+// 		puts((int8_t*)buffer);
+// 	}else{
+// 		printf("\n Directory Read Failed \n");
+// 	}
+// }
 
 
 
@@ -379,6 +379,32 @@ void function_pointers_test(){
     );
 }
 
+void file_open_test_cp3(){
+	int8_t var[32] = {"frame0.txt"};
+    
+    asm volatile (
+        "movl %0, %%ebx;"   // Move the address of var into register ebx
+        :                   // Output operand list is empty
+        : "r" (var)         // Input operand list, specifying that var is an input
+    );
+
+    asm volatile (
+        "movl $5, %eax"     // Set syscall number to 5 (sys_open)
+    );
+
+    // For demonstration purposes only, as usage of int $0x80 is system-dependent
+    asm volatile (
+        "int $0x80"         // Execute syscall
+    );
+	int32_t status;
+	asm volatile("\t movl %%ebx,%0" : "=r"(status));
+	// register uint32_t eax asm("eax");
+	// uint32_t status = eax;
+	if(status == 0){
+		printf("File Open Succeeded Successfully");
+	}
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -410,8 +436,8 @@ void launch_tests(){
 
 	//CHECKPOINT 3:
 	// system_call_test_basic();
-	execute_test_file_load();
+	// execute_test_file_load();
 	// function_pointers_test();
-
+	file_open_test_cp3();
 }
 

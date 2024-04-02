@@ -799,8 +799,8 @@ int32_t sys_execute() {
         PCB->ESP = esp;
         prev_PID = PID;     //Have to save the current PID as the last PID
         current_process_idx = PID;
-        PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read;
-        PCB->fdesc_array.fd_entry[1].file_operations_table_pointer.write = t_write;
+        PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read; //setting std in
+        PCB->fdesc_array.fd_entry[1].file_operations_table_pointer.write = t_write; // setting std out
 
 
 
@@ -855,9 +855,6 @@ int32_t sys_execute() {
     return retval;
 }
 
-//NEEDS CHANGE :: THIS IS NOT GLOBAL -- DVT, WILL GO IN PROCESS CONTROL BLOCK
-file_descriptor_array_t fd_array; // FD array might need to initialize everything to zero and also init std in and std out -- more to be done in excecute
-//this is global for a process control block which is another struct I need to make
 
 int32_t sys_read() {
     int32_t fd;
@@ -890,11 +887,16 @@ int32_t sys_write() {
     asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     // printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
 
-    (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
-
+    int32_t retval = (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
+    if(retval == -1){
+        return -1;
+    }
     return 0;
 }
 
+
+#define     FAILURE         -1
+//Hypothetically works, haven't been able to check if EAX is auto populated with 
 int32_t sys_open() {
     printf("\n made it to sys open \n ");
     //Working on sys_open
@@ -903,11 +905,12 @@ int32_t sys_open() {
     //allocate for a file descriptor, page table???
     // will need to have checks for whenever the file descriptor is full
     int8_t * filename;
+    
     asm volatile("\t movl %%ebx,%0" : "=r"(filename)); // This line basically takes a value in a register and puts it into the variable
     int i;
     int fd_index_to_open;
     for(i = FD_START; i < FD_END; i++){ // find an open fd
-        if(fd_array.fd_entry[i].flags == 0){ // if it's not occupied, set the file index we are going to use
+        if(PCB_array[current_process_idx]->fdesc_array.fd_entry[i].flags == 0){ // if it's not occupied, set the file index we are going to use
             fd_index_to_open = i;
             break;
         }
@@ -916,46 +919,63 @@ int32_t sys_open() {
 
     
     /* POTENITAL RACE CONDITION FOR CHECKPOINT 5, we need to make sure that only one process can claim a given file, etc*/
-    // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = 0; // it's prob unnecessary to initialize these all to zero, but if we do it here we don't
-    fd_array.fd_entry[fd_index_to_open].file_position = 0;
-    fd_array.fd_entry[fd_index_to_open].inode = 0;
-    fd_array.fd_entry[fd_index_to_open].flags = 1;
+    // fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer = 0; // it's prob unnecessary to initialize these all to zero, but if we do it here we don't -past david
+
+    //only 1 cpu lol -Future David
+
+
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_position = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].inode = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].flags = 1; // declaring a fd 
 
     //fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer[0];
-    printf("\n made it to line 881 \n");
+    // printf("\n made it to line 881 \n");
     // // printf("\n If everything is correct, this should print out the file name: %d", filename);
     dentry_struct_t file_to_open;
-    read_dentry_by_name((uint8_t *)filename, &file_to_open);
+    int32_t retval = read_dentry_by_name((uint8_t *)filename, &file_to_open);
+    if(retval == FAILURE){
+        printf("\n Sys Open Failed \n");
+        return FAILURE;
+    }
     if(file_to_open.file_type == RTC_FILE){
-        //SET THE JUMP TABLE OF INSTRUCTION POINTERS
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open = (void *)rtc_functions[0];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close = (void *)rtc_functions[1];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)rtc_functions[2];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)rtc_functions[3];
-        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
-        printf(" \n\n RTC Janky rtc jumptable called here!\n\n");
-        //asm volatile("jmp rtc_jumptable");
+        //It is an RTC file
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open = (void *)rtc_functions[0];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close = (void *)rtc_functions[1];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)rtc_functions[2];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)rtc_functions[3];
+        int32_t rtc_open_stat = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
+        if(rtc_open_stat == FAILURE){
+            printf("\n Sys Open Failed -- RTC_Open \n");
+            return FAILURE;
+        }
     }else if(file_to_open.file_type == DIRECTORY_FILE){
-        //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open =  (void *)directory_functions[0];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)directory_functions[1];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)directory_functions[2];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)directory_functions[3];
-        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
-        printf(" \n\n DIRECTORY Janky directory jumptable called here!\n\n");
+        //it is a directory
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open =  (void *)directory_functions[0];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)directory_functions[1];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)directory_functions[2];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)directory_functions[3];
+        int32_t dopen_stat = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
+        if(dopen_stat == FAILURE){
+            printf("\n Sys Open Failed -- D_Open \n");
+            return FAILURE;
+        }
+        
+        //printf(" \n\n DIRECTORY Janky directory jumptable called here!\n\n");
         //asm volatile("jmp directory_jumptable");
     }else{
-        //SET THE JUMP TABLE OF INSTRUCTION POINTER
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open =  (void *)file_functions[0];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)file_functions[1];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)file_functions[2];
-        fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)file_functions[3];
-        (*fd_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
-        printf(" \n\n FILE Janky file jumptable called here!\n\n");
-        //asm volatile("jmp file_jumptable");
-    
+        //It is a file
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open =  (void *)file_functions[0];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.close =  (void *)file_functions[1];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.read =  (void *)file_functions[2];
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.write =  (void *)file_functions[3];
+        int32_t fopen_stat = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_operations_table_pointer.open)((uint8_t*) filename);
+        if(fopen_stat == FAILURE){
+            printf("\n Sys Open Failed -- F_Open \n");
+            return FAILURE;
+        }
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].inode = file_to_open.inode_number;     // setting inode number
     }
-    printf("\n made it to line 905 \n");
+    // printf("\n made it to line 905 \n");
     //temporary dentry has been allocated, gives us the file type and the inode number, useful for our jumptable which keeps track of various file operations dir read vs file read
 
     printf("\n SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");
@@ -966,8 +986,22 @@ int32_t sys_open() {
 int32_t sys_close() {
     int32_t fd;
     asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
-
-    (*fd_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
+    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
+        printf("\n Attempted to Close Something that was not open in the first place \n");
+        return FAILURE;
+    } //zero out the fd
+    int32_t retval = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
+    if(retval == FAILURE){
+        return FAILURE;
+    }
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.open = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].inode = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags = 0;
+    
 
     printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
     return 0;
