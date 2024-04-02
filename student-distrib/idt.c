@@ -645,6 +645,8 @@ void sys_halt() {
 
     current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index
     num_active_processes--;
+
+    asm volatile("ret");
     // printf("\n Made it to line 605 in halt \n");
     
     // essentially calling ret here does not return to the asm link of sys_exec
@@ -657,7 +659,7 @@ void sys_halt() {
 
     //needs to return status after this
     //USE A GOTO to get back to exectur -- asm jmp
-    asm volatile("jmp execute_to_halt");
+    // asm volatile("jmp execute_to_halt");
 }
 #define     USER_PROG_0                         0x02
 #define     USER_PROG_1                         0x03
@@ -760,7 +762,7 @@ int32_t sys_execute() {
         //Before loading file data into virtual address space, we need to check the first four bytes of the file
         //The first four bytes must correspond to ELF
         uint8_t mag_num_buf[30]; // header is actually 40 bytes
-        int32_t mag_num_check = file_read(&exec_dentry, mag_num_buf , 30);
+        int32_t mag_num_check = read_data((&exec_dentry)->inode_number, 0, mag_num_buf , 30);
         
         // int8_t eip_ll = mag_num_buf[27]; // should give our new eip value -- since it is little endian I made it reverse order, could be off
         // int8_t eip_l = mag_num_buf[26];
@@ -781,7 +783,7 @@ int32_t sys_execute() {
 
 
         uint8_t * user_start = (uint8_t *)VIRTUAL_USER_ADDR_WITH_OFFSET;
-        int32_t status = file_read(&exec_dentry, user_start, 0x400000);
+        int32_t status = read_data((&exec_dentry)->inode_number, 0, user_start, 0x400000);
         if(status == -1){
             printf("\n Something went wrong when copying the data over \n");
         }

@@ -196,7 +196,8 @@ int32_t directory_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { // if nu
 
 //Assumes 32
 int32_t directory_read_helper(uint32_t offset, uint8_t* buf, uint32_t length){
-    int i;
+    return 0;
+    // int i;
     // if(offset+length)
     // for(i=offset; i<length; i++){
         // uint32_t cur_dir_name_length = strlen(booting_info_block->dir_entries[0].file_name)

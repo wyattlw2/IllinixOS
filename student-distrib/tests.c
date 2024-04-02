@@ -170,105 +170,105 @@ void read_data_test(){
 
 
 //TESTS FOR FILE OPEN/READ/WRITE/CLOSE BELOW
-void file_open_test(){
-	clear();
-	printf("FILE_OPEN TEST.\n \n \n");
-    	//set this line to whichever filename you want.
-											//i have NOT tested directory filenames yet. should theoretically be fine however
-	uint8_t test_name[32] = {"frame0.txt"};
-	printf(" Opening file ");
-	puts((int8_t*)test_name);
-	// printf("...\n");
-	printf(" \n ");
-    dentry_struct_t sample_dentry; 
-    int retval = file_open(test_name);
-	printf("\n Successfully called file_open without crashing.");
-	if (retval == -1)
-	{
-		printf("\n\n However, the system either \n a.) could not locate the inputted filename,\n");
-		printf(" b.) the opened file is of type 'directory' when it should be 'regular file', or");
-		printf(" c.) the inputted filename exceeds 32 characters.\n\n");
-		return;
-	}
+// void file_open_test(){
+// 	clear();
+// 	printf("FILE_OPEN TEST.\n \n \n");
+//     	//set this line to whichever filename you want.
+// 											//i have NOT tested directory filenames yet. should theoretically be fine however
+// 	uint8_t test_name[32] = {"frame0.txt"};
+// 	printf(" Opening file ");
+// 	puts((int8_t*)test_name);
+// 	// printf("...\n");
+// 	printf(" \n ");
+//     dentry_struct_t sample_dentry; 
+//     int retval = file_open(test_name);
+// 	printf("\n Successfully called file_open without crashing.");
+// 	if (retval == -1)
+// 	{
+// 		printf("\n\n However, the system either \n a.) could not locate the inputted filename,\n");
+// 		printf(" b.) the opened file is of type 'directory' when it should be 'regular file', or");
+// 		printf(" c.) the inputted filename exceeds 32 characters.\n\n");
+// 		return;
+// 	}
 
-	printf("\n The name of the opened file is: ");
-	puts((int8_t*)(&sample_dentry)->file_name);
-    printf(".\n The inode number of this file is %d. \n", (&sample_dentry)->inode_number);
-	printf("\n The error code for file_open is: %d. \n", retval);
-}
+// 	printf("\n The name of the opened file is: ");
+// 	puts((int8_t*)(&sample_dentry)->file_name);
+//     printf(".\n The inode number of this file is %d. \n", (&sample_dentry)->inode_number);
+// 	printf("\n The error code for file_open is: %d. \n", retval);
+// }
 
-void file_read_test(){
-	clear();
-	uint8_t buffer[36000];
-	// uint8_t filename[32] = {"created.txt"};
-	uint8_t filename[32] = {"frame0.txt"};
-	// uint8_t filename[32] = {"shell"};
-	// uint8_t filename[32] = {"verylargetextwithverylongname.tx"};
-	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n ");
-	puts((int8_t*)filename);
-	dentry_struct_t dentry_to_read;
-	int retval = file_open(filename);
-	if(retval == 0){
-		printf("\n File Open Successful, attempting read \n");
-	}else{
-		printf("\n File Open Failed, please try again \n");
-		return;
-	}
-	// printf("\n Number of Bytes in the whole file: %d \n", dentry_to_read.)
-	// int num_bytes = 21; // for created.txt
-	// int num_bytes = 5277;// for verylargetext...etc 
-	int num_bytes = 187;
-	int retval2 = file_read(&dentry_to_read, buffer, num_bytes);
-	if(retval2 == 0){
-		printf("\n File Read was successful, outputting the contents of the file: \n");
-		puts((int8_t*)buffer);
-		// int i;
-		// for(i=0; i< num_bytes; i++){ // USE THIS IF BINARY FILES TEST
-		// 	if(buffer[i] == NULL){
-		// 		continue;
-		// 	}
-		// 	putc(buffer[i]);
-		// }
-	} else{
-		printf("\n File Read Failed \n");
-	}
-}
-void see_all_files(){
-	//printf("\n");	//probably written before terminal scrolling feature was merged with this code
-	clear();
-	printf("\n DUMPING ALL FILES FROM BOOT BLOCK...\n");
-	see_all_files_helper();
-}
-void file_write_test(){
-	clear();
-	int retval = file_write();
-	if(retval == -1){
-		printf("\n File Write Failed, Meaning we Passed the test :)\n\n");
-	}
-}
+// void file_read_test(){
+// 	clear();
+// 	uint8_t buffer[36000];
+// 	// uint8_t filename[32] = {"created.txt"};
+// 	uint8_t filename[32] = {"frame0.txt"};
+// 	// uint8_t filename[32] = {"shell"};
+// 	// uint8_t filename[32] = {"verylargetextwithverylongname.tx"};
+// 	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n ");
+// 	puts((int8_t*)filename);
+// 	dentry_struct_t dentry_to_read;
+// 	int retval = file_open(filename);
+// 	if(retval == 0){
+// 		printf("\n File Open Successful, attempting read \n");
+// 	}else{
+// 		printf("\n File Open Failed, please try again \n");
+// 		return;
+// 	}
+// 	// printf("\n Number of Bytes in the whole file: %d \n", dentry_to_read.)
+// 	// int num_bytes = 21; // for created.txt
+// 	// int num_bytes = 5277;// for verylargetext...etc 
+// 	int num_bytes = 187;
+// 	int retval2 = file_read(&dentry_to_read, buffer, num_bytes);
+// 	if(retval2 == 0){
+// 		printf("\n File Read was successful, outputting the contents of the file: \n");
+// 		puts((int8_t*)buffer);
+// 		// int i;
+// 		// for(i=0; i< num_bytes; i++){ // USE THIS IF BINARY FILES TEST
+// 		// 	if(buffer[i] == NULL){
+// 		// 		continue;
+// 		// 	}
+// 		// 	putc(buffer[i]);
+// 		// }
+// 	} else{
+// 		printf("\n File Read Failed \n");
+// 	}
+// }
+// void see_all_files(){
+// 	//printf("\n");	//probably written before terminal scrolling feature was merged with this code
+// 	clear();
+// 	printf("\n DUMPING ALL FILES FROM BOOT BLOCK...\n");
+// 	see_all_files_helper();
+// }
+// void file_write_test(){
+// 	clear();
+// 	int retval = file_write();
+// 	if(retval == -1){
+// 		printf("\n File Write Failed, Meaning we Passed the test :)\n\n");
+// 	}
+// }
 
-void file_close_test(){
-	clear();
-	//printf("\n \n \n \n \n");
-	printf("\n Attempting File Close Test: \n");
-	printf(" First attempting to open the file...");
-	dentry_struct_t dentry_to_close;
-	uint8_t filename[32] = {"frame0.txt"};
-	int retval = file_open(filename);
-	if(retval == 0){
-		printf("\n File Open Successful! \n");
-	}else{
-		printf("\n File Open Failed, please try again. \n");
-		return;
-	}
-	printf("\n Attempting to close the file \n");
-	int retval2 = file_close(&dentry_to_close);
-	if(retval2 == 0){
-		printf("\n Successfully called file_close(), test passed \n");
-	}else{
-		printf("Something happened and the test failed, please try again \n");
-	}
-}
+// void file_close_test(){
+// 	clear();
+// 	//printf("\n \n \n \n \n");
+// 	printf("\n Attempting File Close Test: \n");
+// 	printf(" First attempting to open the file...");
+// 	dentry_struct_t dentry_to_close;
+// 	uint8_t filename[32] = {"frame0.txt"};
+// 	int retval = file_open(filename);
+// 	if(retval == 0){
+// 		printf("\n File Open Successful! \n");
+// 	}else{
+// 		printf("\n File Open Failed, please try again. \n");
+// 		return;
+// 	}
+// 	printf("\n Attempting to close the file \n");
+// 	int retval2 = file_close(&dentry_to_close);
+// 	if(retval2 == 0){
+// 		printf("\n Successfully called file_close(), test passed \n");
+// 	}else{
+// 		printf("Something happened and the test failed, please try again \n");
+// 	}
+// }
 // void directory_open_close_test(){
 // 	clear();
 // 	//printf("\n \n \n \n \n");
@@ -436,8 +436,8 @@ void launch_tests(){
 
 	//CHECKPOINT 3:
 	// system_call_test_basic();
-	// execute_test_file_load();
+	execute_test_file_load();
 	// function_pointers_test();
-	file_open_test_cp3();
+	// file_open_test_cp3();
 }
 
