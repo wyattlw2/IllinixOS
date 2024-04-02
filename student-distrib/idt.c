@@ -557,7 +557,6 @@ void sys_halt() {
 
     //idk if the prev_PID thing will work for cp 5, but we should keep it for now to get a base
 
-
     //W-- it will not. i asked a TA last night and the way cp5 works is you will have another global array for
     //each terminal. there can be three terminals. each value in the terminal array will be the value of the parent_PID
     //for the process. i can explain better in person
@@ -588,6 +587,13 @@ void sys_halt() {
             printf("\n Can't Close Shell!! \n");
             int8_t var[32] = {"shell"};
             //restarting shell sequence
+            
+        prev_PID = 70;                  //signify that the process has no parent process
+
+        num_active_processes--;         //must do this here because we increment this value in execute
+
+        processes_active[current_process_idx] = 0;  //signify that the currently executing program needs to be re-executed in the same spot!
+                                                    //this is hardcoded to call shell.exe for now, but why would you want to call anything else?
         asm volatile (
             "movl %0, %%ebx;"   // Move the address of var into register ebx
             :                   // Output operand list is empty
@@ -596,10 +602,10 @@ void sys_halt() {
         asm volatile (
             "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
         );
-            asm volatile (
-                "int $0x80"         // Execute syscall
-            );
-            return; //cannot halt the program if there will be zero running programs
+        asm volatile (
+            "int $0x80"         // Execute syscall
+        );
+        return; //cannot halt the program if there will be zero running programs
     }
 
 
