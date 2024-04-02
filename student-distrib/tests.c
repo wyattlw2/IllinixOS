@@ -359,6 +359,7 @@ void execute_test_file_load() {
     asm volatile (
         "int $0x80"         // Execute syscall
     );
+
 }
 void function_pointers_test(){
 	int8_t var[32] = {"frame0.txt"};

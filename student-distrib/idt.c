@@ -649,8 +649,8 @@ void sys_halt() {
     tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->parent_PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
 
 
-    current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index
-    num_active_processes--;
+    //current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index    //there might be an issue with these lines
+    //num_active_processes--;
 
     asm volatile("ret");
     // printf("\n Made it to line 605 in halt \n");
