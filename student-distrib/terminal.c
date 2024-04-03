@@ -35,11 +35,15 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     int i; // loop index
 
     int b = 0;
+    int count = 0;
     while (1) {
+        count = 0;
         for (i = 0; i < nbytes; i++) { // copy every character
             ((char*)buf)[i] = kb_buff[i];
+            count++;
             if (kb_buff[i] == '\n') {
                 b = 1;
+                break;
             }
         }
         if (b) {
@@ -51,7 +55,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     }
 
 
-    return nbytes;
+    return count;
 }
 
 /* int t_write(int32_t _fd, const void* buf, int32_t nbytes)

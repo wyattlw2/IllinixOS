@@ -72,6 +72,9 @@ MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
 
 # Wyatt -- added Addendum B system call labels below this point. i think this will work.
 
+storage:
+    .long 0
+
 jumptable:
     .long ERROR
     .long HALT
@@ -141,8 +144,10 @@ ERROR:
     jmp FINISH
     
 FINISH:     
-    popfl 
-    popal 
+    popfl
+    movl %eax , storage 
+    popal
+    movl storage, %eax 
     iret 
 
 

@@ -173,24 +173,20 @@ Side Effects: None
 */
 int32_t directory_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { // if num bytes is too big then fail
     
-    // read_dentry_by_index();
-
-    //
-
-    // if(dentry->file_name[0] != '.'){
-    //     printf("\n Something went wrong, this OS only contains 1 Directory, and it is . \n"); // Prints
-    //     return -1;
-    // }
-    // if(nbytes != 1){
-    //     printf("\n The size of this directory is 1 byte! Read Failed \n");
-    //     return -1;
-    // }
-    //int i;
-    // for(i=0; i< nbytes; i++){
-    //     buf[i] = dentry->file_name[i];
-    // }
-    // putc(buf[0]);
-    // strcpy((int8_t*) buf, dentry->file_name);
+    int index = PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position;
+    dentry_struct_t dentry;
+    int retval = read_dentry_by_index(index, &dentry);
+    if(retval == -1){
+        return -1;
+    }
+    int i;
+    for(i=0; i< nbytes; i++){
+        if(dentry.file_name[i] == '\0'){
+            break;
+        }
+        buf[i] = dentry.file_name[i];
+    }
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position++;
     return 0;
 }
 
@@ -272,6 +268,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
                 if(fname[j] == NULL || j == 31){ // 31th character indicates you are at the end of the string and all characters must have matched -- fixes the 32 char edge case
                     // printf("\n made it to the end of the string\n ");
                     file_found = 1; // we know we made it to the correct string
+                    break; // RECENTLY ADDED 4/2/24
                 }
             }
             else{
