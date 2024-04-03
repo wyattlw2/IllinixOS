@@ -584,9 +584,9 @@ void sys_halt() {
 
     //CHECKING IF WE ARE KILLING THE SHELL
     if(num_active_processes == 1)   {
-            printf("\n Can't Close Shell!! \n");
-            int8_t var[32] = {"shell"};
-            //restarting shell sequence
+        printf("\n Can't Close Shell!! \n");
+        int8_t var[32] = {"shell"};
+        //restarting shell sequence
             
         prev_PID = 70;                  //signify that the process has no parent process
 
@@ -608,52 +608,34 @@ void sys_halt() {
         return; //cannot halt the program if there will be zero running programs
     }
 
+    processes_active[current_process_idx] = 0;  //signify that the currently executing program needs to be re-executed in the same spot!
 
-
-
-    //Maybe add some kind of check to make sure that the Shell can't halt
-
-    //for some reason the argument freaks out when you uncomment this, idk why -- DVT -- Worked when changed to movb and bl from ebx
-    uint8_t status;
-    asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable -- 
-
-    printf("\n Made it to line 560 in halt \n");
-
-    //potentially is freaking out due to this line right here:
-    printf("\n This is the value of prev_PID before it is called inside halt: %d", prev_PID);
-    int32_t temp_reg = PCB_array[prev_PID]->EBP;    //old value of ebp that we saved during sys_execute()
-    // int32_t temp_reg = 0;
-    printf("\n Temp Reg val line 594: %d\n", temp_reg); // value of ebp changes in between this and below 
-    asm volatile (
-        "movl %0, %%ebp;"  
-        :
-        : "r" (temp_reg)    //supposed to put parent's ebp into current ebp  
-    );
-    printf("\n Temp Reg val line 599: %d\n", temp_reg);
-    asm volatile (  
-        "movl %0, %%esp;"  //literally the same thing but we copy to esp too(?) according to Sanjeevi's discussion slides
-        :
-        : "r" (temp_reg)    
-    );
-    printf("\n Temp Reg val line 605: %d\n", temp_reg);
-
-    asm volatile ("pop %ebp");
-    
-    
-
-    page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //reseting the PID to be what it needs to be
+    page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
     
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
     asm volatile("movl %ebx, %cr3");
     
     tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->parent_PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
 
+    current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index to be the parent's PID
+    prev_PID = PCB_array[current_process_idx]->parent_PID;  //update previous process index to be the parent's parent_PID
+    num_active_processes--;
 
-    //current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index    //there might be an issue with these lines
-    //num_active_processes--;
+    //Code above HAS to be before we retrieve the parent ESP because prev_PID needs to be changed to reflect the old PID
 
+    uint8_t status;
+    asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable -- 
+
+    printf("\n Made it to line 620 in halt \n");
+
+    //potentially is freaking out due to this line right here:
+    printf("\n This is the value of prev_PID before it is called inside halt: %d", current_process_idx);
+    int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
+    
+    asm volatile ("movl %0, %%ebp;" : : "r" (treg));
+    asm volatile ("movl %ebp, %esp");
+    asm volatile ("pop %ebp");
     asm volatile("ret");
-    // printf("\n Made it to line 605 in halt \n");
     
     // essentially calling ret here does not return to the asm link of sys_exec
     
@@ -801,7 +783,8 @@ int32_t sys_execute() {
         register uint32_t ebp asm("ebp");
         register uint32_t esp asm("esp");
         // register uint32_t eip asm("eip");
-        //printf(" \n \n %d \n \n", ebp);
+        printf(" \n \n %d \n \n", ebp);
+        printf(" \n \n %d \n \n", esp);
         PCB->PID = PID;
         PCB->EBP = ebp;
         PCB->ESP = esp;
@@ -824,11 +807,8 @@ int32_t sys_execute() {
         asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
         asm volatile("pushfl"); // this could be off -- pushing flags
         asm volatile("pushl $0x0023");  //pushing the USER CS
-        // asm volatile("pushl %"); // push EIP that was stored in the executable file
         asm volatile("pushl %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
-        //asm volatile("")
-        // printf("\n Made it to the end of iret \n");
-        // sti();
+       
         asm volatile("iret ");
 
         asm volatile("execute_to_halt:");
@@ -841,15 +821,6 @@ int32_t sys_execute() {
 
         //the registers were all pushed originally, we'll se what happens
 
-
-
-                // asm volatile ( // LEAVING THIS OUT FOR NOW
-                // "movl %0, %%eip;"   
-                // :                   
-                // : "r" (PCB->EIP)       //Moves EIP into the Process Control Block
-                // );
-    
-    // puts(user_start);
     printf("\n Active Process Number: %d", PCB->PID);
     printf("\n Base Pointer: %d", PCB->EBP);
     // printf("\n Instruction Pointer: %d", PCB->EIP);
