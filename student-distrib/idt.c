@@ -550,7 +550,7 @@ int32_t prev_PID = 70;  //initialized to 70 because we need to signify that the 
 
 void sys_halt() {
     //this function segfaults right now lol
-    printf("SYSCALL *HALT* CALLED \n\n");
+    // printf("SYSCALL *HALT* CALLED \n\n");
     //The key to this function is using the global variable "prev_PID" to determine which process is the parent process...
     //Once you have accessed the parent PCB via PCB_array[prev_PID], just reverse what was done in sys_execute().
     //TLDR put the parent process context on the stack and set ESP0 of TSS to point to the old process's kernel stack. --W
@@ -575,7 +575,7 @@ void sys_halt() {
     //W-- I will lose internet access for the next 25 minutes or so, gotta head off the liveshare rn
 
     //yeah fair, ok sg // that if statement was causing one of the page faults, but hypothetically, it should just return out successfully?
-    printf("\n Made it to line 549 in halt \n");
+    // printf("\n Made it to line 549 in halt \n");
     //i am in
     //it was pagefaulting before that too
     //the issue might be with return address from stack? or TSS esp0
@@ -617,7 +617,7 @@ void sys_halt() {
     
     tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->parent_PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
 
-    current_process_idx = PCB_array[current_process_idx]->parent_PID; //updating current process index to be the parent's PID
+     //updating current process index to be the parent's PID
     prev_PID = PCB_array[current_process_idx]->parent_PID;  //update previous process index to be the parent's parent_PID
     num_active_processes--;
 
@@ -626,12 +626,14 @@ void sys_halt() {
     uint8_t status;
     asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable -- 
 
-    printf("\n Made it to line 620 in halt \n");
+    // printf("\n Made it to line 620 in halt \n");
 
     //potentially is freaking out due to this line right here:
-    printf("\n This is the value of prev_PID before it is called inside halt: %d", current_process_idx);
+    // printf("\n This is the value of prev_PID before it is called inside halt: %d", current_process_idx);
     int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
-    
+    current_process_idx = PCB_array[current_process_idx]->parent_PID;
+    printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
+
     asm volatile ("movl %0, %%ebp;" : : "r" (treg));
     asm volatile ("movl %ebp, %esp");
     asm volatile ("pop %ebp");
@@ -674,6 +676,10 @@ void sys_halt() {
 //TA (Jeremy I think) specified that for CP3, we do not need to worry about having multiple shells running at once - a shell can open a
 //shell, but for now we do not need to worry about more than one program executing at a time. --W
 int32_t sys_execute() {
+    register uint32_t ebp asm("ebp");
+    register uint32_t esp asm("esp");
+    uint32_t ebp_save = ebp;
+    uint32_t esp_save = esp;
 
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     uint8_t * command;
@@ -709,7 +715,7 @@ int32_t sys_execute() {
                                             // if it is, set it equal to the PID of the parent process.
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
-                printf("(Inside Exec) Prev PID: %d\n\n", prev_PID);
+                // printf("(Inside Exec) Prev PID: %d\n\n", prev_PID);
 
                 switch(PID){
                     case(0):
@@ -780,14 +786,13 @@ int32_t sys_execute() {
                                                                                                 //when we hit up checkpoint 5 is this messed up because 
         
         //int32_t ebp_store;
-        register uint32_t ebp asm("ebp");
-        register uint32_t esp asm("esp");
+        
         // register uint32_t eip asm("eip");
-        printf(" \n \n %d \n \n", ebp);
-        printf(" \n \n %d \n \n", esp);
+        printf(" \n \n EBP save: %d \n \n", ebp_save);
+        printf(" \n \n ESP save: %d \n \n", esp_save);
         PCB->PID = PID;
-        PCB->EBP = ebp;
-        PCB->ESP = esp;
+        PCB->EBP = ebp_save;
+        PCB->ESP = esp_save;
         prev_PID = PID;     //Have to save the current PID as the last PID
         current_process_idx = PID;
         PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read; //setting std in
@@ -811,13 +816,13 @@ int32_t sys_execute() {
        
         asm volatile("iret ");
 
-        asm volatile("execute_to_halt:");
+        // asm volatile("execute_to_halt:");
 
-        asm volatile("popl %eax"); // popping all of these off the stack -- that we just pushed
-        asm volatile("popl %eax"); 
-        asm volatile("popl %eax"); // this could be off -- pushing flags
-        asm volatile("popl %eax");  //pushing the USER CS
-        asm volatile("popl %eax");
+        // asm volatile("popl %eax"); // popping all of these off the stack -- that we just pushed
+        // asm volatile("popl %eax"); 
+        // asm volatile("popl %eax"); // this could be off -- pushing flags
+        // asm volatile("popl %eax");  //pushing the USER CS
+        // asm volatile("popl %eax");
 
         //the registers were all pushed originally, we'll se what happens
 
@@ -828,7 +833,7 @@ int32_t sys_execute() {
 
     //Potentially push eip, ask for more info later
 
-    printf("\n SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
+    // printf("\n SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
 
     //WILL NEED TO CHANGE THE return value that THE SYSTEM
     return retval;
