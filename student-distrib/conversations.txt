@@ -1,0 +1,36 @@
+conversations.txt
+
+    //this function segfaults right now lol
+    // printf("SYSCALL *HALT* CALLED \n\n");
+    //The key to this function is using the global variable "prev_PID" to determine which process is the parent process...
+    //Once you have accessed the parent PCB via PCB_array[prev_PID], just reverse what was done in sys_execute().
+    //TLDR put the parent process context on the stack and set ESP0 of TSS to point to the old process's kernel stack. --W
+
+    //idk if the prev_PID thing will work for cp 5, but we should keep it for now to get a base
+
+    //W-- it will not. i asked a TA last night and the way cp5 works is you will have another global array for
+    //each terminal. there can be three terminals. each value in the terminal array will be the value of the parent_PID
+    //for the process. i can explain better in person
+
+    //W-- yes? i think. in GDB i was returning to the handler for SYS_HALT which is wrong - it should be SYS_EXECUTE, this 
+    //was also on my local code tho and i had made some additional changes
+
+    //DVT -- hmm, so if we call return you thought it would go to exec, or it is supposed to at least
+
+    //W-- right. the slides that Sanjeevi posted for discussion suggest that we return to the old context
+    //from the parent process, which in the case of returning to shell will be the context from the last execute
+    //look at the slides Sanjeevi posted 
+
+    //DVT -- yeah maybe we need to alter the stack or something before we call return,
+
+    //W-- I will lose internet access for the next 25 minutes or so, gotta head off the liveshare rn
+
+    //yeah fair, ok sg // that if statement was causing one of the page faults, but hypothetically, it should just return out successfully?
+    // printf("\n Made it to line 549 in halt \n");
+    //i am in
+    //it was pagefaulting before that too
+    //the issue might be with return address from stack? or TSS esp0
+    // gotcha, keep that comment there, i'm on queue but nobody is here yet :(, I'm gonna see if the if statement executes rq
+    //also IDK if we are supposed to have shell be the first process, in the test case you guys are manually putting testprint in there
+
+    //CHECKING IF WE ARE KILLING THE SHELL
