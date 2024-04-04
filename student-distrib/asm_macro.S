@@ -89,53 +89,76 @@ jumptable:
     .long SIGRETURN
 
 
-HALT:   
-    
-    call sys_halt  
+HALT:
+    movl %ebx, %eax
+    xorl %ebx, %ebx
+    movb %al, %bl
+    pushl %ebx
+    call sys_halt
+    popl %ebx  
     jmp FINISH
 
 EXECUTE:   
-    
+    pushl %ebx
     call sys_execute
+    popl %ebx
     jmp FINISH 
 
 READ:   
-    
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
     call sys_read
+    popl %ebx
+    popl %ecx
+    popl %edx
     jmp FINISH 
 
 WRITE:   
-    
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
     call sys_write
+    popl %ebx
+    popl %ecx
+    popl %edx
     jmp FINISH 
 
 OPEN:   
-    
+    pushl %ebx
     call sys_open
+    popl %ebx
     jmp FINISH
 
 CLOSE:   
-    
+    pushl %ebx
     call sys_close
+    popl %ebx
     jmp FINISH 
 
 GETARGS:   
-    
+    pushl %ecx
+    pushl %ebx
     call sys_getargs
+    popl %ebx
+    popl %ecx
     jmp FINISH 
 
 VIDMAP:   
-    
+    pushl %ebx
     call sys_vidmap
+    popl %ebx
     jmp FINISH 
 
 SET_HANDLER:   
-    
+    pushl %ecx
+    pushl %ebx
     call sys_set_handler
+    popl %ebx
+    popl %ecx
     jmp FINISH
 
 SIGRETURN:   
-    
     call sys_sigreturn
     jmp FINISH 
 

@@ -548,7 +548,7 @@ int32_t prev_PID = 70;  //initialized to 70 because we need to signify that the 
 #define     PID_OFFSET_TO_GET_PHYSICAL_ADDRESS      2
 
 
-void sys_halt() {
+void sys_halt(uint8_t status) {
     //this function segfaults right now lol
     // printf("SYSCALL *HALT* CALLED \n\n");
     //The key to this function is using the global variable "prev_PID" to determine which process is the parent process...
@@ -605,7 +605,8 @@ void sys_halt() {
         asm volatile (
             "int $0x80"         // Execute syscall
         );
-        return; //cannot halt the program if there will be zero running programs
+        return;
+        // return -5000746; //cannot halt the program if there will be zero running programs
     }
 
     processes_active[current_process_idx] = 0;  //signify that the currently executing program needs to be re-executed in the same spot!
@@ -623,8 +624,8 @@ void sys_halt() {
 
     //Code above HAS to be before we retrieve the parent ESP because prev_PID needs to be changed to reflect the old PID
 
-    uint8_t status;
-    asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable -- 
+    // uint8_t status;
+    // asm volatile("\t movb %%bl,%0" : "=r"(status)); // This line basically takes a value in a register and puts it into the variable -- 
 
     // printf("\n Made it to line 620 in halt \n");
 
@@ -632,12 +633,21 @@ void sys_halt() {
     // printf("\n This is the value of prev_PID before it is called inside halt: %d", current_process_idx);
     int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
     current_process_idx = PCB_array[current_process_idx]->parent_PID;
-    printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
+    // printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
 
     asm volatile ("movl %0, %%ebp;" : : "r" (treg));
     asm volatile ("movl %ebp, %esp");
     asm volatile ("pop %ebp");
+
+    //SETTING THE RETURN VALUE -dvt
+    asm volatile("xorl %eax, %eax");
+    asm volatile (
+            "movb %0, %%al;"   // Move the address of var into register ebx
+            :                   // Output operand list is empty
+            : "r" (status)         // Input operand list, specifying that var is an input
+        );
     asm volatile("ret");
+    // return status;
     
     // essentially calling ret here does not return to the asm link of sys_exec
     
@@ -675,15 +685,15 @@ void sys_halt() {
 
 //TA (Jeremy I think) specified that for CP3, we do not need to worry about having multiple shells running at once - a shell can open a
 //shell, but for now we do not need to worry about more than one program executing at a time. --W
-int32_t sys_execute() {
+int32_t sys_execute(uint8_t * command) {
     register uint32_t ebp asm("ebp");
     register uint32_t esp asm("esp");
     uint32_t ebp_save = ebp;
     uint32_t esp_save = esp;
 
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
-    uint8_t * command;
-    asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
+    // uint8_t * command;
+    // asm volatile("\t movl %%ebx,%0" : "=r"(command)); // This line basically takes a value in a register and puts it into the variable
     // register uint32_t ebx asm("ebx");
     //command = ()
     //might need to add some checks to see if the file is valid other than
@@ -771,7 +781,7 @@ int32_t sys_execute() {
             return -1;
         }
         if((mag_num_buf[0] != MAGIC_NUMBER_BYTE0 )||( mag_num_buf[1] != MAGIC_NUMBER_BYTE1 )||( mag_num_buf[2] != MAGIC_NUMBER_BYTE2 )||( mag_num_buf[3] != MAGIC_NUMBER_BYTE3)){
-            printf(" \n Something fucked up inside the excecutable file, you should really check that shit out \n");
+            printf(" \n Something messed up inside the excecutable file, you should really check that out -- Magic Number Test Failed \n");
             return -1;
         }
 
@@ -788,8 +798,8 @@ int32_t sys_execute() {
         //int32_t ebp_store;
         
         // register uint32_t eip asm("eip");
-        printf(" \n \n EBP save: %d \n \n", ebp_save);
-        printf(" \n \n ESP save: %d \n \n", esp_save);
+        // printf(" \n \n EBP save: %d \n \n", ebp_save);
+        // printf(" \n \n ESP save: %d \n \n", esp_save);
         PCB->PID = PID;
         PCB->EBP = ebp_save;
         PCB->ESP = esp_save;
@@ -800,7 +810,7 @@ int32_t sys_execute() {
 
 
 
-        printf("New prev PID: %d\n\n", prev_PID);
+        // printf("New prev PID: %d\n\n", prev_PID);
         // PCB->EIP = EIP_save;
         tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4; // updating the esp0
 
@@ -826,8 +836,8 @@ int32_t sys_execute() {
 
         //the registers were all pushed originally, we'll se what happens
 
-    printf("\n Active Process Number: %d", PCB->PID);
-    printf("\n Base Pointer: %d", PCB->EBP);
+    // printf("\n Active Process Number: %d", PCB->PID);
+    // printf("\n Base Pointer: %d", PCB->EBP);
     // printf("\n Instruction Pointer: %d", PCB->EIP);
     // printf("\n Active Process Number: %d", PCB->PID);
 
@@ -835,18 +845,17 @@ int32_t sys_execute() {
 
     // printf("\n SYSCALL *EXECUTE* CALLED (SHOULD CORRESPOND TO SYSCALL 2)\n\n");
 
-    //WILL NEED TO CHANGE THE return value that THE SYSTEM
+    
+    //Will Never Return here
     return retval;
 }
 
 
-int32_t sys_read() {
-    int32_t fd;
-    void * buf;
-    int32_t nbytes;
-    asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
-    asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
-    asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
+int32_t sys_read(int32_t fd, void * buf, int32_t nbytes) {
+    
+    // asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+    // asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
+    // asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
 
     return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
 
@@ -861,14 +870,14 @@ int32_t sys_read() {
     // return 0;
 }
 
-int32_t sys_write() {
-    int32_t fd;
-    void * buf;
-    int32_t nbytes;
+int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
+    // int32_t fd;
+    // void * buf;
+    // int32_t nbytes;
 
-    asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
-    asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
-    asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
+    // asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+    // asm volatile("\t movl %%ecx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variable
+    // asm volatile("\t movl %%edx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     // printf("SYSCALL *WRITE* CALLED (SHOULD CORRESPOND TO SYSCALL 4)\n\n");
 
     int32_t retval = (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
@@ -881,16 +890,16 @@ int32_t sys_write() {
 
 #define     FAILURE         -1
 //Hypothetically works, haven't been able to check if EAX is auto populated with 
-int32_t sys_open() {
+int32_t sys_open(int8_t * filename) {
     printf("\n made it to sys open \n ");
     //Working on sys_open
     //first we need to somehow get the argument (file name from the registers)
     //Then we need to call our old file open which gives us the dentry
     //allocate for a file descriptor, page table???
     // will need to have checks for whenever the file descriptor is full
-    int8_t * filename;
+    // int8_t * filename;
     
-    asm volatile("\t movl %%ebx,%0" : "=r"(filename)); // This line basically takes a value in a register and puts it into the variable
+    // asm volatile("\t movl %%ebx,%0" : "=r"(filename)); // This line basically takes a value in a register and puts it into the variable
     int i;
     int fd_index_to_open;
     for(i = FD_START; i < FD_END; i++){ // find an open fd
@@ -967,9 +976,8 @@ int32_t sys_open() {
     return 0;
 }
 
-int32_t sys_close() {
-    int32_t fd;
-    asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
+int32_t sys_close(int32_t fd) {
+    // asm volatile("\t movl %%ebx,%0" : "=r"(fd)); // This line basically takes a value in a register and puts it into the variable
     if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
         printf("\n Attempted to Close Something that was not open in the first place \n");
         return FAILURE;
@@ -991,25 +999,24 @@ int32_t sys_close() {
     return 0;
 }
 
-int32_t sys_getargs() {
-    uint8_t * buf;
-    int32_t nbytes;
-    asm volatile("\t movl %%ebx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variablle
-    asm volatile("\t movl %%ecx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
+int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
+    
+    // asm volatile("\t movl %%ebx,%0" : "=r"(buf)); // This line basically takes a value in a register and puts it into the variablle
+    // asm volatile("\t movl %%ecx,%0" : "=r"(nbytes)); // This line basically takes a value in a register and puts it into the variable
     printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
     return 0;
 }
 
-int32_t sys_vidmap() {
-    uint8_t ** screen_start;
-    asm volatile("\t movl %%ebx,%0" : "=r"(screen_start)); // This line basically takes a value in a register and puts it into the variablle
+int32_t sys_vidmap(uint8_t ** screen_start) {
+    // uint8_t ** screen_start;
+    // asm volatile("\t movl %%ebx,%0" : "=r"(screen_start)); // This line basically takes a value in a register and puts it into the variablle
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
     return 0;
 }
 
-int32_t sys_set_handler() {
-    int32_t signum;
-    void * handler_address;
+int32_t sys_set_handler(int32_t signum, void * handler_address) {
+    // int32_t signum;
+    // void * handler_address;
 
     asm volatile("\t movl %%ebx,%0" : "=r"(signum)); // This line basically takes a value in a register and puts it into the variablle
     asm volatile("\t movl %%ecx,%0" : "=r"(handler_address)); // This line basically takes a value in a register and puts it into the variablle
