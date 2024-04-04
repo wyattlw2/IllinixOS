@@ -1,7 +1,5 @@
 #include "idt.h"
 #include "x86_desc.h"   //need to include so we can modify ESP0 field of TSS -- wyatt
-#include "terminal.h"
-#include "rtc.h"
 #include "syscalls.h"
 
 #define     VIDEO               0xB8000

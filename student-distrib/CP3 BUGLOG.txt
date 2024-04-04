@@ -2,6 +2,11 @@ CP3 BUGLOG.txt
 
 
 
-1. While attempting to call halt(), the program would return to the wrong address, and we would pagefault
+1. While attempting to call halt(), the program would return to the wrong address, and we would pagefault.
 
-Solution:   
+Solution:   We were using the wrong value of EBP. We were using the parent process's EBP in their respective execute. We were supposed to use the current process's
+EBP from their respective execute instead.
+
+
+
+2. 
