@@ -338,8 +338,6 @@ int32_t sys_open(int8_t * filename) {
         }
         PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].inode = file_to_open.inode_number;     // setting inode number
     }
-
-    printf("\n SYSCALL *OPEN* CALLED (SHOULD CORRESPOND TO SYSCALL 5)\n\n");;
     return fd_index_to_open;
 }
 

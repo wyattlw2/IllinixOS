@@ -7,18 +7,6 @@
 
 
 int rtc_int;
-
-/* OSDEV NMI Enable & Disable
-void NMI_enable(){
-    outb(RTC_PORT. inb(RTC_PORT) & 0x7F);
-    inb(CMOS);
-}
-void NMI_disable(){
-    outb(RTC_PORT, inb(RTC_PORT) | 0x80);
-    inb(CMOS);
-}
-*/
-
 /*
 * Description: This function initializes the RTC.
 * Inputs: NONE
@@ -58,6 +46,7 @@ void rtc_handler(){
 
     //AADHESH -- DO WE NEED TO RE ENABLE INTERRUPTS AFTER THIS FUNCTION??
 }
+
 /* Description: This is a helper function created to set the rtc to a given frequency. It was created to handle RTC Open and RTC Write
 * Inputs: NONE
 * Outputs: NONE

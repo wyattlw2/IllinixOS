@@ -6,15 +6,10 @@
 
 #define VIDEO               0xB8000
 #define KERNEL_START        0x01
-// #define USER_PROG_0         0x02
-// #define USER_PROG_1         0x03
-// #define USER_PROG_2         0x04
-// #define USER_PROG_3         0x05
-// #define USER_PROG_4         0x06
-// #define USER_PROG_5         0x07
 
-   // CONTAINS PAGE FOR VIDEO MEMORY AT INDEX 0
-/*  THis function Initializes paging. it's really cool you should check it out. It initializes the kernel memory and video memory
+
+
+/*  This function initializes paging. It initializes the kernel memory and video memory
 *   Inputs: None
     Outputs: none
 *   Side Effects:
