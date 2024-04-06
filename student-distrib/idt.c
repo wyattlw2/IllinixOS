@@ -53,10 +53,20 @@ int ctrl = 0;
 // variables that keep track of the x and y position of the cursor
 uint16_t x;
 uint16_t y;
+uint16_t og_x;
+uint16_t og_y;
+
+int setup = 1;
 
 void kb_handler() {
 
     unsigned char key = inb(KEYBOARD_PORT);
+    if (setup) {
+        uint16_t p = get_cursor_position();
+        og_x = p % NUM_COLS;
+        og_y = p / NUM_COLS;
+        setup = 0;
+    }
 
     // if tab is pressed
     if (key == 0x0F) {
@@ -85,25 +95,24 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-        if (x == 0 && y == 0) { // very first row
-            send_eoi(1);
-            return;
-        } else if (x == 0 && y != 0) { // any other row
-            update_xy(NUM_COLS - 1, y-1);
-            putc(' ');
-            if (y-1 >= user_y) { // anything below user_y space we can delete
+        if (x-1 >= og_x && y >= og_y || y-1 >= og_y) { 
+            if (x == 0 && y != 0) { // any other row
                 update_xy(NUM_COLS - 1, y-1);
-                update_cursor(NUM_COLS - 1, y-1);
+                putc(' ');
+                if (y-1 >= og_y) { // anything below user_y space we can delete
+                    update_xy(NUM_COLS - 1, y-1);
+                    update_cursor(NUM_COLS - 1, y-1);
+                }
+            } else { // just deleting charcter in a row that doesn't go to other rows
+                update_xy(x-1, y);
+                putc(' ');
+                update_xy(x-1, y);
+                update_cursor(x-1, y);
             }
-        } else { // just deleting charcter in a row that doesn't go to other rows
-            update_xy(x-1, y);
-            putc(' ');
-            update_xy(x-1, y);
-            update_cursor(x-1, y);
-        }
-        if (kb_idx != 0) { // if buffer isn't empty already
-            kb_idx -= 2;
-            kb_buff[kb_idx] = '\t'; // code for not print anything
+            if (kb_idx != 0) { // if buffer isn't empty already
+                kb_idx -= 1;
+                kb_buff[kb_idx] = '\t'; // code for not print anything
+            }
         }
         send_eoi(1);
         return;
@@ -124,7 +133,7 @@ void kb_handler() {
         // user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
         kb_idx = 0;
-
+        setup = 1;
         send_eoi(1);
         return;
     }
