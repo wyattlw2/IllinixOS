@@ -61,7 +61,7 @@ static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, 
 
 
 void sys_halt(uint8_t status) {
-    
+
     if(num_active_processes == 1)   {
         printf("\n Can't Close Shell!! \n");
         int8_t var[32] = {"shell"};
@@ -104,21 +104,17 @@ void sys_halt(uint8_t status) {
     int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
     current_process_idx = PCB_array[current_process_idx]->parent_PID;
     // printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
-
-    int32_t check_for_exception;
-    // asm volatile(
-    //     "movl %%eax, %0;" 
-    //     : "=r" (check_for_exception) 
-    //     : 
-    //     : "eax" 
-    // );
-    // if(check_for_exception == 256)  {
-    //     asm volatile ("movl %0, %%ebp;" : : "r" (treg));
-    //     asm volatile ("movl %ebp, %esp");
-    //     asm volatile ("pop %ebp");
-    //     asm volatile("ret");
-    // }
-
+    
+    if(EXCEPTION_FLAG == 1)  {
+        //if exception has occurred: put 256 in eax and return immediately 
+        EXCEPTION_FLAG = 0;
+        asm volatile ("movl %0, %%ebp;" : : "r" (treg));
+        asm volatile ("movl %ebp, %esp");
+        asm volatile ("pop %ebp");
+        asm volatile ("movl $256, %eax");
+        asm volatile("ret");
+    }
+    
     uint8_t err_code;
     asm volatile(
         "movb %%bl, %0;" 
@@ -134,9 +130,9 @@ void sys_halt(uint8_t status) {
     //SETTING THE RETURN VALUE -dvt
     asm volatile("xorl %eax, %eax");
     asm volatile (
-            "movb %0, %%al;"   // Move the address of var into register ebx
-            :                   // Output operand list is empty
-            : "r" (err_code)         // Input operand list, specifying that var is an input
+            "movb %0, %%al;"   
+            :                   
+            : "r" (err_code)       
         );
     asm volatile("ret");
 }

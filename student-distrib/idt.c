@@ -387,6 +387,7 @@ void exec_handler14() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler15() {
