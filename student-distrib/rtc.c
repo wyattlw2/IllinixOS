@@ -95,9 +95,10 @@ int32_t rtc_read (int32_t fd, void* buf, int32_t nbytes){ //Aadhesh
 * Outputs: Returns 0 for success and -1 for failure
 * Side Effects: None
 */
-int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){ //Aadhesh
+int32_t rtc_write (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
+    int32_t* buffer = (int32_t *) buf;
     if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
-    return rtc_set_frequency((int32_t)buf); //change frequency based on buf value 
+    return rtc_set_frequency(*buffer); //change frequency based on buf value 
 }
 
 /* Description: This is RTC Open

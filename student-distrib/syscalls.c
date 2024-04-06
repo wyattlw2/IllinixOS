@@ -63,7 +63,7 @@ static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, 
 void sys_halt(uint8_t status) {
 
     if(num_active_processes == 1)   {
-        printf("\n Can't Close Shell!! \n");
+        // printf("\n Can't Close Shell!! \n");
         int8_t var[32] = {"shell"};
         //restarting shell sequence
             
@@ -154,7 +154,7 @@ int32_t sys_execute(uint8_t * command) {
     
     
     if(found_file == -1){
-        printf("\n The inputted file was invalid. \n");
+        // printf("\n The inputted file was invalid. \n");
         return -1; // might need more checks for this lmao
     }
     int i;

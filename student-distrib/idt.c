@@ -95,7 +95,7 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-        if (x-1 >= og_x && y >= og_y || y-1 >= og_y) { 
+        if ((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
             if (x == 0 && y != 0) { // any other row
                 update_xy(NUM_COLS - 1, y-1);
                 putc(' ');
@@ -176,6 +176,9 @@ void kb_handler() {
         update_cursor(0, 0);
         // user_y = 0;
         send_eoi(1);
+        // uint8_t string[1];
+        // string[0] = '\n';
+        // t_write(1, string, 1);
         return;
     }
 
