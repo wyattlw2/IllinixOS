@@ -106,18 +106,26 @@ void sys_halt(uint8_t status) {
     // printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
 
     int32_t check_for_exception;
+    // asm volatile(
+    //     "movl %%eax, %0;" 
+    //     : "=r" (check_for_exception) 
+    //     : 
+    //     : "eax" 
+    // );
+    // if(check_for_exception == 256)  {
+    //     asm volatile ("movl %0, %%ebp;" : : "r" (treg));
+    //     asm volatile ("movl %ebp, %esp");
+    //     asm volatile ("pop %ebp");
+    //     asm volatile("ret");
+    // }
+
+    uint8_t err_code;
     asm volatile(
-        "movl %%eax, %0;" 
-        : "=r" (check_for_exception) 
+        "movb %%bl, %0;" 
+        : "=r" (err_code) 
         : 
-        : "eax" 
+        : "ebx" 
     );
-    if(check_for_exception == 256)  {
-        asm volatile ("movl %0, %%ebp;" : : "r" (treg));
-        asm volatile ("movl %ebp, %esp");
-        asm volatile ("pop %ebp");
-        asm volatile("ret");
-    }
 
     asm volatile ("movl %0, %%ebp;" : : "r" (treg));
     asm volatile ("movl %ebp, %esp");
@@ -128,7 +136,7 @@ void sys_halt(uint8_t status) {
     asm volatile (
             "movb %0, %%al;"   // Move the address of var into register ebx
             :                   // Output operand list is empty
-            : "r" (status)         // Input operand list, specifying that var is an input
+            : "r" (err_code)         // Input operand list, specifying that var is an input
         );
     asm volatile("ret");
 }
