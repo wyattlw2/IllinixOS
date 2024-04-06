@@ -180,6 +180,7 @@ int32_t directory_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { // if nu
         return -1;
     }
     int i;
+    // int count = 0;
     for(i=0; i< nbytes; i++){
         if(dentry.file_name[i] == '\0'){
             break;
@@ -187,12 +188,12 @@ int32_t directory_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { // if nu
         buf[i] = dentry.file_name[i];
     }
     PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position++;
-    return 0;
+    return i;
 }
 
 //Assumes 32
-int32_t directory_read_helper(uint32_t offset, uint8_t* buf, uint32_t length){
-    return 0;
+// int32_t directory_read_helper(uint32_t offset, uint8_t* buf, uint32_t length){
+    // return 0;
     // int i;
     // if(offset+length)
     // for(i=offset; i<length; i++){
@@ -215,7 +216,7 @@ int32_t directory_read_helper(uint32_t offset, uint8_t* buf, uint32_t length){
     //         end = 1;
     //     }
     // }
-}
+// }
 /*
 directory_write
 Description: This function is non functional because our file system is read only

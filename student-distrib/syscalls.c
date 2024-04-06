@@ -279,7 +279,7 @@ int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
 
 
 int32_t sys_open(int8_t * filename) {
-    printf("\n made it to sys open \n ");
+    // printf("\n made it to sys open \n ");
 
     int i;
     int fd_index_to_open;
