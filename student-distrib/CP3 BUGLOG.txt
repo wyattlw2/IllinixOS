@@ -9,4 +9,6 @@ EBP from their respective execute instead.
 
 
 
-2. 
+2. Our backspace was able to delete anything that was in the terminal
+
+Solution: Made a variable that keeps track of what can be deleted by user. Update that variable every time keyboard handler is used and it also refreshes when enter is pressed.
