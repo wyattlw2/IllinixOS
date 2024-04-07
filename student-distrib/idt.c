@@ -176,6 +176,7 @@ void kb_handler() {
         update_cursor(0, 0);
         // user_y = 0;
         send_eoi(1);
+        CLEAR_SCREEN_FLAG = 1;
         // uint8_t string[1];
         // string[0] = '\n';
         // t_write(1, string, 1);
@@ -271,7 +272,7 @@ void exec_handler0() {
     //asm volatile("popfl") ;
     //asm volatile("popal") ;
     //asm volatile("iret") ;
-    asm volatile("movl $256, %eax");
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
     // asm volatile ("iret \n\  ");
 }
@@ -282,6 +283,7 @@ void exec_handler1() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler2() {
@@ -291,6 +293,7 @@ void exec_handler2() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler3() {
@@ -300,6 +303,7 @@ void exec_handler3() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler4() {
@@ -309,6 +313,7 @@ void exec_handler4() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler5() {
@@ -318,6 +323,7 @@ void exec_handler5() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler6() {
@@ -327,6 +333,7 @@ void exec_handler6() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler7() {
@@ -336,6 +343,7 @@ void exec_handler7() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler8() {
@@ -345,6 +353,7 @@ void exec_handler8() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler9() {
@@ -354,6 +363,7 @@ void exec_handler9() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler10() {
@@ -363,6 +373,7 @@ void exec_handler10() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler11() {
@@ -372,6 +383,7 @@ void exec_handler11() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler12() {
@@ -381,6 +393,7 @@ void exec_handler12() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler13() {
@@ -390,6 +403,7 @@ void exec_handler13() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler14() {
@@ -406,6 +420,7 @@ void exec_handler15() {
     // asm("pushal") ;
     // asm("pushfl");
     printf("\n EXCEPTION 15: Reserved EXCEPTION HAS OCCURED \n");
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler16() {
@@ -415,6 +430,7 @@ void exec_handler16() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler17() {
@@ -424,6 +440,7 @@ void exec_handler17() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler18() {
@@ -433,6 +450,7 @@ void exec_handler18() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 void exec_handler19() {
@@ -442,6 +460,7 @@ void exec_handler19() {
     // asm("popfl") ;
     // asm("popal") ;
     //asm("iret") ;
+    EXCEPTION_FLAG = 1;
     sys_halt(0);
 }
 

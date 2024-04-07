@@ -6,6 +6,7 @@
 #include "i8259.h"
 #include "asm_macro.h"
 int EXCEPTION_FLAG;
+int CLEAR_SCREEN_FLAG;
 extern void initialize_idt();
 void set_exception_params(idt_desc_t * idt_array_index, int vec);
 extern void exec_handler();
