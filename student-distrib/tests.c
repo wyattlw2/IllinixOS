@@ -203,7 +203,7 @@ void read_data_test(){
 // 	// uint8_t filename[32] = {"created.txt"};
 // 	uint8_t filename[32] = {"frame0.txt"};
 // 	// uint8_t filename[32] = {"shell"};
-// 	// uint8_t filename[32] = {"verylargetextwithverylongname.tx"};
+// 	// uint8_t filename[32] = {"verylargetextwithverylongname.txt"};
 // 	printf("\n \n \n \n \n Starting File Read Test, Attempting to Read File: \n ");
 // 	puts((int8_t*)filename);
 // 	dentry_struct_t dentry_to_read;
@@ -455,10 +455,10 @@ void launch_tests(){
 	// terminal_test();
 
 	//CHECKPOINT 3:
-	// system_call_test_basic();
+	//system_call_test_basic();
 	execute_test_file_load();
-	// function_pointers_test();
-	// file_open_test_cp3();
+	//function_pointers_test();
+	//file_open_test_cp3();
 	//vrtc_test();  // REMEMBER TO UNCOMMENT THE PUTC IN THE RTC HANDLER
 }
 
