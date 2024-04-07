@@ -6,7 +6,10 @@
 #define     REGB                0x8B
 
 
-int rtc_int;
+int rtc_int; //global rtc interrupt flag
+int vrtc_int; //global virtualization interrupt flag
+
+
 /*
 * Description: This function initializes the RTC.
 * Inputs: NONE
@@ -26,6 +29,7 @@ int rtc_int;
     outb(prev | 0x40, CMOS); //write the previous value ORed with 0x40. This turns on bit 6 of register B
 
     rtc_int = 0; //Initialize RTC interrupt flag
+    vrtc_int = 0; //Initialize virtualization interrupt flag
  }
 
 /*
@@ -43,8 +47,6 @@ void rtc_handler(){
     inb(CMOS); //just throw away contents
     //clear();
     send_eoi(8);
-
-    //AADHESH -- DO WE NEED TO RE ENABLE INTERRUPTS AFTER THIS FUNCTION??
 }
 
 /* Description: This is a helper function created to set the rtc to a given frequency. It was created to handle RTC Open and RTC Write
@@ -96,7 +98,7 @@ int32_t rtc_read (int32_t fd, void* buf, int32_t nbytes){ //Aadhesh
 * Side Effects: None
 */
 int32_t rtc_write (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
-    int32_t* buffer = (int32_t *) buf;
+    int32_t* buffer = (int32_t *) buf; //added for pingpong RTC
     if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
     return rtc_set_frequency(*buffer); //change frequency based on buf value 
 }
@@ -117,5 +119,22 @@ int32_t rtc_open (const uint8_t* filename){ //Aadhesh
 * Side Effects: None
 */
 int32_t rtc_close (int32_t fd){ //Aadhesh
+    return 0;
+}
+
+
+/* Description: Process for virtualization of the RTC
+* Inputs: File Descriptor, buffer, and number of bytes
+* Outputs: Returns 0 for success and -1 for failure
+* Side Effects: None
+*/
+int32_t vrtc_process (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
+    if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
+    rtc_set_frequency(1024); //Set to max frequency
+    while(vrtc_int < (int32_t *) buf){ // x virtual interrupts for 1 1024-Hz interrupt
+        rtc_read(fd,buf,nbytes);
+        vrtc_int++;
+    }
+    vrtc_int = 0; //virtual interrupt reset
     return 0;
 }
