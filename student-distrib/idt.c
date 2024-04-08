@@ -176,6 +176,7 @@ void kb_handler() {
         update_cursor(0, 0);
         // user_y = 0;
         send_eoi(1);
+        setup = 1;
         CLEAR_SCREEN_FLAG = 1;
         // uint8_t string[1];
         // string[0] = '\n';
