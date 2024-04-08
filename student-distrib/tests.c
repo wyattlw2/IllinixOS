@@ -342,7 +342,7 @@ void system_call_test_basic(){
 	asm volatile("int $0x80");
 }
 
-void execute_test_file_load() {
+void execute_shell() {
     int8_t var[32] = {"shell"};
     
     asm volatile (
@@ -456,7 +456,7 @@ void launch_tests(){
 
 	//CHECKPOINT 3:
 	//system_call_test_basic();
-	execute_test_file_load();
+	execute_shell();
 	//function_pointers_test();
 	//file_open_test_cp3();
 	//vrtc_test();  // REMEMBER TO UNCOMMENT THE PUTC IN THE RTC HANDLER

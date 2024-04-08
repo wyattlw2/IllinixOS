@@ -128,7 +128,8 @@ int32_t rtc_close (int32_t fd){ //Aadhesh
 * Outputs: Returns 0 for success and -1 for failure
 * Side Effects: None
 */
-int32_t vrtc_process (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
+//DAVID TOOK OUT THE CONST FROM THE BUF 04/08/2024
+int32_t vrtc_process (int32_t fd, void * buf, int32_t nbytes){ //Aadhesh
     if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
     rtc_set_frequency(1024); //Set to max frequency
     while(vrtc_int < *(int32_t *) buf){ // x virtual interrupts for 1 1024-Hz interrupt (x = buf)

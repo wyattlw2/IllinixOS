@@ -58,7 +58,9 @@ static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, 
 
 
 
-
+/* The Halt System Call effectively ends a user program and passes the return value through to tell the shell
+* how the user program terminated
+*/
 
 void sys_halt(uint8_t status) {
 
@@ -141,6 +143,10 @@ void sys_halt(uint8_t status) {
 
 //TA (Jeremy I think) specified that for CP3, we do not need to worry about having multiple shells running at once - a shell can open a
 //shell, but for now we do not need to worry about more than one program executing at a time. --W
+
+/* The Execute System Call effectively starts a user program and passes the return value through to tell the shell
+* how the user program terminated
+*/
 int32_t sys_execute(uint8_t * command) {
     register uint32_t ebp asm("ebp");
     register uint32_t esp asm("esp");
@@ -265,23 +271,31 @@ int32_t sys_execute(uint8_t * command) {
     return retval;
 }
 
-
+/* The Read System Call effectively takes an input fd, buffer, and nbytes and trascribes number of bytes from the given file, directory, or RTC file
+// into the buffer. returns the number of bytes transfered or -1 if it fails
+*/
 int32_t sys_read(int32_t fd, void * buf, int32_t nbytes) {
 
     return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
 }
 
+
+/* The Write System Call effectively takes an input fd, buffer, and nbytes and trascribes number of bytes to the given file, directory, or RTC file
+// from the buffer. returns the number of bytes transfered or -1 if it fails
+*/
 int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
 
-    int32_t retval = (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
-    if(retval == -1){
-        return -1;
-    }
-    return 0;
+    return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
+    // if(retval == -1){
+    //     return -1;
+    // }
+    // return 0;
 }
 
 
-
+/* The Open System Call effectively takes an input filename and puts the file information into the pCB
+*   returns -1 if it fails, and 0 if it was successful
+*/
 int32_t sys_open(int8_t * filename) {
     // printf("\n made it to sys open \n ");
 
@@ -292,6 +306,9 @@ int32_t sys_open(int8_t * filename) {
             fd_index_to_open = i;
             break;
         }
+    }
+    if(i == FD_END){ // if we don't find an fd index return failure
+        return FAILURE;
     }
 
     PCB_array[current_process_idx]->fdesc_array.fd_entry[fd_index_to_open].file_position = 0;
@@ -345,6 +362,9 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the pCB
+*   returns -1 if it fails, and 0 if it was successful
+*/
 int32_t sys_close(int32_t fd) {
     if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
         printf("\n Attempted to Close Something that was not open in the first place \n");
@@ -363,30 +383,34 @@ int32_t sys_close(int32_t fd) {
     PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags = 0;
     
 
-    printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
+    // printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
     return 0;
 }
 
+//not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
     printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
     return 0;
 }
 
+//not done
 int32_t sys_vidmap(uint8_t ** screen_start) {
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
     return 0;
 }
 
+//not done
 int32_t sys_set_handler(int32_t signum, void * handler_address) {
     printf("SYSCALL *SET_HANDLER* CALLED (SHOULD CORRESPOND TO SYSCALL 9)\n\n");
     return 0;
 }
-
+//not done
 int32_t sys_sigreturn() {
     //no args i think? --dvt
     printf("SYSCALL *SIGRETURN* CALLED (SHOULD CORRESPOND TO SYSCALL 10)\n\n");
     return 0;
 }
+//error call, function is simply a handler to indicate something went wrong with the system call
 int32_t sys_error(){
     printf("\n Something went wrong, It is possible, the wrong system call index was provided. \n");
     return -1;
