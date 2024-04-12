@@ -444,14 +444,15 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 //not done
 int32_t sys_vidmap(uint8_t ** screen_start) {
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
-    if(screen_start == NULL)    {
+    if(screen_start == NULL || screen_start <= 0x08000000 || screen_start >= 0x08400000) { //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
         printf("sys_vidmap: Input address is null.\n");
         return -1;
     }
-    if(screen_start >= 0x1000)    { //i'm like 99.9% sure this number is wrong but just gonna add it here for now
-        printf("sys_vidmap: Input address is null.\n");
-        return -1;
-    }
+
+    // if(screen_start > 0x08048000)
+    //     printf("found "); // screen_start is within the Program Image
+
+    printf("sys_vidmap: Input address is NOT null.\n");
     return 0;
 }
 
