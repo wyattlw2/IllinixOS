@@ -87,7 +87,8 @@ int32_t file_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { //print data 
         return -1;
     }
 
-    return 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position +=retval;
+    return retval;
 }
 
 
@@ -374,7 +375,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         buf[i- offset] = datablock_addr->data[i % FOUR_KB];
         
     }
-    return 0;
+    return upperbound-offset;
 
 }
 void see_all_files_helper(){

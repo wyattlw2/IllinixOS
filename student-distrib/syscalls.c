@@ -56,6 +56,31 @@ static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, 
 // some of these handlers via interrupt 0x80    -- Wyatt
 
 
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the pCB
+*   returns -1 if it fails, and 0 if it was successful
+*/
+int32_t sys_close(int32_t fd) {
+    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
+        // printf("\n Attempted to Close Something that was not open in the first place \n");
+        return FAILURE;
+    } 
+    int32_t retval = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
+    if(retval == FAILURE){
+        return FAILURE;
+    }
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.open = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].inode = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags = 0;
+    
+
+    // printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
+    return 0;
+}
+
 
 
 /* The Halt System Call effectively ends a user program and passes the return value through to tell the shell
@@ -91,6 +116,17 @@ void sys_halt(uint8_t status) {
     }
 
     processes_active[current_process_idx] = 0;  //signify that the currently executing program needs to be re-executed in the same spot!
+    int i;
+    for(i = 2; i < 8; i++){
+        // PCB_array[current_process_idx]->fdesc_array.fd_entry[i].file_operations_table_pointer = NULL;
+        // PCB_array[current_process_idx]->fdesc_array.fd_entry[i].file_position = 0;
+        // PCB_array[current_process_idx]->fdesc_array.fd_entry[i].inode = 0;
+        // PCB_array[current_process_idx]->fdesc_array.fd_entry[i].flags = 0;
+        if(PCB_array[current_process_idx]->fdesc_array.fd_entry[i].flags == 1){
+            sys_close(i);
+        }
+        
+    }
 
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
     
@@ -156,6 +192,10 @@ int32_t sys_execute(uint8_t * command) {
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     dentry_struct_t exec_dentry;  
     int32_t found_file = read_dentry_by_name(command, &exec_dentry);
+    while(*command != '\0'){
+        *command = '\0';
+        command++;
+    }
     // uint8_t buffer[60000];
     
     
@@ -275,7 +315,9 @@ int32_t sys_execute(uint8_t * command) {
 // into the buffer. returns the number of bytes transfered or -1 if it fails
 */
 int32_t sys_read(int32_t fd, void * buf, int32_t nbytes) {
-
+    if(fd == 1){ // if we try to do a read on fd == 1, which is terminal write, make sure it fails
+        return -1;
+    }
     return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
 }
 
@@ -285,6 +327,9 @@ int32_t sys_read(int32_t fd, void * buf, int32_t nbytes) {
 */
 int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
 
+    if(fd == 0){ // if we try to do a read on fd == 1, which is terminal write, make sure it fails
+        return -1;
+    }
     return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
     // if(retval == -1){
     //     return -1;
@@ -362,34 +407,39 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
-/* The Close System Call effectively takes an input filename and gets rid of the file information in the pCB
-*   returns -1 if it fails, and 0 if it was successful
-*/
-int32_t sys_close(int32_t fd) {
-    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
-        printf("\n Attempted to Close Something that was not open in the first place \n");
-        return FAILURE;
-    } 
-    int32_t retval = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
-    if(retval == FAILURE){
-        return FAILURE;
-    }
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.open = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position = 0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].inode = 0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags = 0;
-    
-
-    // printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
-    return 0;
-}
 
 //not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
-    printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
+    
+    int i = 0;
+    while(*(buf + i) != '\0'){
+        buf[i] = '\0';
+        i++;
+    }
+    int start_of_args = 0;
+    if(nbytes > 128){
+        nbytes = 128; // this should be the maximum valuse for the arguments
+    }
+    for(i=0; i< nbytes; i++){
+        if(get_args_buf[i] == ' ' || get_args_buf[i] == '\0'){
+            start_of_args = i+1;
+            break;
+        }
+    }
+    for(i=start_of_args; i < nbytes; i++){
+        // if(i >= 128){
+        //     return -1;
+        // }
+        if(get_args_buf[i] == '\0' || get_args_buf[i] == '\n'){ // break out of it
+            break;
+        }
+        buf[i-start_of_args] = get_args_buf[i];
+        
+    }
+    for(i=0; i < 128; i++){
+        get_args_buf[i] = '\0';
+    }
+    // printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
     return 0;
 }
 
