@@ -91,6 +91,7 @@ int32_t sys_close(int32_t fd) {
 
 
 
+
 /* The Halt System Call effectively ends a user program and passes the return value through to tell the shell
 * how the user program terminated
 */
@@ -455,25 +456,46 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
+<<<<<<< HEAD
+=======
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
+*   returns -1 if it fails, and 0 if it was successful
+*/
+
+
+>>>>>>> 7eabf5a07bb441fe0bd62ec3ef85c9a4748c03fc
 //not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
     if (buf == NULL) {
         return -1;
     }
     int i = 0;
+<<<<<<< HEAD
     while(buf[i] != '\0'){
+=======
+    // while(*(buf + i) != '\0'){
+    //     buf[i] = '\0';
+    //     i++;
+    // }
+    for(i=0; i< nbytes; i++){
+>>>>>>> 7eabf5a07bb441fe0bd62ec3ef85c9a4748c03fc
         buf[i] = '\0';
-        i++;
     }
     int start_of_args = 0;
     if(nbytes > 128){
         nbytes = 128; // this should be the maximum valuse for the arguments
     }
     for(i=0; i< nbytes; i++){
+        if(get_args_buf[i] == '\n'){
+            return -1; // there must be no args
+        }
         if(get_args_buf[i] == ' ' || get_args_buf[i] == '\0'){
             start_of_args = i+1;
             break;
         }
+    }
+    if(get_args_buf[start_of_args] == '\0'){ // there are no arguments to see
+        return -1;
     }
     for(i=start_of_args; i < nbytes; i++){
         // if(i >= 128){
@@ -495,14 +517,15 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 //not done
 int32_t sys_vidmap(uint8_t ** screen_start) {
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
-    if(screen_start == NULL)    {
+    if(screen_start == NULL || screen_start <= 0x08000000 || screen_start >= 0x08400000){ //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
         printf("sys_vidmap: Input address is null.\n");
         return -1;
     }
-    if(screen_start >= 0x1000)    { //i'm like 99.9% sure this number is wrong but just gonna add it here for now
-        printf("sys_vidmap: Input address is null.\n");
-        return -1;
-    }
+
+    // if(screen_start > 0x08048000)
+    //     printf("found "); // screen_start is within the Program Image
+
+    printf("sys_vidmap: Input address is NOT null.\n");
     return 0;
 }
 
