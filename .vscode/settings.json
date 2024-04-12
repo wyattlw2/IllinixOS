@@ -4,6 +4,7 @@
         "lib.h": "c",
         "x86_desc.h": "c",
         "multiboot.h": "c",
-        "keyboard.h": "c"
+        "keyboard.h": "c",
+        "types.h": "c"
     }
 }

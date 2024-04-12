@@ -22,4 +22,7 @@ extern int kb_idx;
 // buf copies from kb_buff and is used to write to the screen
 extern char buf[128];
 
+extern char get_args_buf[128]; //reflective  of the size
+
+
 #endif
