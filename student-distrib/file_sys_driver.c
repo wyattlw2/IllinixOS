@@ -253,7 +253,11 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_struct_t* dentry) {
     //do strlen bullshit here
     uint32_t string_length = strlen((int8_t*) fname); // Doesn't allow standard libraries -- ask about later
     if(string_length > NUMBER_OF_FILE_CHARACTERS){
-        printf("STRING TOO BIG");
+        printf("read_dentry_by_name: STRING TOO BIG\n");
+        return -1;
+    }
+    else if (string_length == 0)    {
+        printf("read_dentry_by_name: STRING IS EMPTY\n");
         return -1;
     }
 

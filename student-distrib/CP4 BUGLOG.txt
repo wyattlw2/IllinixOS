@@ -1,0 +1,5 @@
+CP4 BUGLOG.txt
+
+1. ls can only be called about 6 times before getting "directory open failed"
+
+Solution: 

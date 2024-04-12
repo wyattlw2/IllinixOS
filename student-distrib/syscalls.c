@@ -294,7 +294,9 @@ int32_t sys_execute(uint8_t * command) {
         prev_PID = PID;     //Have to save the current PID as the last PID
         current_process_idx = PID;
         PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read; //setting std in
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[0].flags = 1;
         PCB->fdesc_array.fd_entry[1].file_operations_table_pointer.write = t_write; // setting std out
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[1].flags = 1;
 
         tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4; // updating the esp0
 
@@ -317,7 +319,20 @@ int32_t sys_execute(uint8_t * command) {
 int32_t sys_read(int32_t fd, void * buf, int32_t nbytes) {
     if(fd == 1){ // if we try to do a read on fd == 1, which is terminal write, make sure it fails
         return -1;
+    }    //printf("sys_read called \n \n");
+    if(fd < 0 || fd > 7)  {
+        printf("sys_read: File descriptor invalid. \n");
+        return -1;
     }
+    if(fd == 1) {
+        printf("sys_read: Cannot read from stdout. \n");
+        return -1;
+    }
+    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){        
+        printf("\n Attempted to read Something that was not open in the first place \n");                       
+        return FAILURE;
+    } 
+
     return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read)(fd, buf, nbytes);
 }
 
@@ -326,6 +341,19 @@ int32_t sys_read(int32_t fd, void * buf, int32_t nbytes) {
 // from the buffer. returns the number of bytes transfered or -1 if it fails
 */
 int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
+    //printf("sys_write called \n \n");
+    if(fd < 0 || fd > 7)  {
+        printf("sys_write: File descriptor invalid. \n");
+        return -1;
+    }
+    if(fd == 0) {
+        printf("sys_write: Cannot write to stdin. \n");
+        return -1;
+    }
+    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){       //have to check if num_active_processes is greater than 0
+        printf("\n Attempted to write Something that was not open in the first place \n");                      //if you don't check then for some reason shell is never able to be ran in the first place
+        return FAILURE;
+    } 
 
     if(fd == 0){ // if we try to do a read on fd == 1, which is terminal write, make sure it fails
         return -1;
@@ -342,17 +370,28 @@ int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
 *   returns -1 if it fails, and 0 if it was successful
 */
 int32_t sys_open(int8_t * filename) {
-    // printf("\n made it to sys open \n ");
+
+    uint32_t string_length = strlen((int8_t*) filename); // We still have to check for invalid file names here. The error checking implemented in read_dentry_by_name was not good enough
+    if(string_length > 32){
+        printf("sys_open: STRING TOO BIG.\n");
+        return -1;
+    }
+    else if (string_length == 0)    {
+        printf("sys_open: STRING IS EMPTY.\n");
+        return -1;
+    }
 
     int i;
+    int free_flag = 0;
     int fd_index_to_open;
     for(i = FD_START; i < FD_END; i++){ // find an open fd
         if(PCB_array[current_process_idx]->fdesc_array.fd_entry[i].flags == 0){ // if it's not occupied, set the file index we are going to use
             fd_index_to_open = i;
+            free_flag = 1;
             break;
         }
     }
-    if(i == FD_END){ // if we don't find an fd index return failure
+    if(free_flag == 0){ // if we don't find an fd index return failure
         return FAILURE;
     }
 
@@ -363,7 +402,8 @@ int32_t sys_open(int8_t * filename) {
     dentry_struct_t file_to_open;
     int32_t retval = read_dentry_by_name((uint8_t *)filename, &file_to_open);
     if(retval == FAILURE){
-        printf("\n Sys Open Failed \n");
+        printf("sys_open: Sys Open Failed.\n"); //if the filename was invalid: we must close the file descriptor inside this statement --W
+        PCB_array[current_process_idx]->fdesc_array.fd_entry[i].flags = 0;  //closes fd entry
         return FAILURE;
     }
     if(file_to_open.file_type == RTC_FILE){
@@ -407,6 +447,38 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
+*   returns -1 if it fails, and 0 if it was successful
+*/
+int32_t sys_close(int32_t fd) {
+    if((fd == 0 || fd == 1))    {
+        printf("Can't close stdin or stdout\n");
+        return FAILURE;
+    }
+    if(fd < 0 || fd > 7)  {
+        printf("sys_close: File descriptor invalid. \n");
+        return -1;
+    }
+    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
+        printf("\n Attempted to Close Something that was not open in the first place \n");
+        return FAILURE;
+    } 
+    int32_t retval = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
+    if(retval == FAILURE){
+        return FAILURE;
+    }
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.open = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write = (void *)0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].inode = 0;
+    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags = 0;
+    
+
+    // printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
+    return 0;
+}
 
 //not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
@@ -446,6 +518,14 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 //not done
 int32_t sys_vidmap(uint8_t ** screen_start) {
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
+    if(screen_start == NULL)    {
+        printf("sys_vidmap: Input address is null.\n");
+        return -1;
+    }
+    if(screen_start >= 0x1000)    { //i'm like 99.9% sure this number is wrong but just gonna add it here for now
+        printf("sys_vidmap: Input address is null.\n");
+        return -1;
+    }
     return 0;
 }
 
