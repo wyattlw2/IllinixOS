@@ -56,12 +56,20 @@ static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, 
 // some of these handlers via interrupt 0x80    -- Wyatt
 
 
-/* The Close System Call effectively takes an input filename and gets rid of the file information in the pCB
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
 *   returns -1 if it fails, and 0 if it was successful
 */
 int32_t sys_close(int32_t fd) {
+    if((fd == 0 || fd == 1))    {
+        printf("Can't close stdin or stdout\n");
+        return FAILURE;
+    }
+    if(fd < 0 || fd > 7)  {
+        printf("sys_close: File descriptor invalid. \n");
+        return -1;
+    }
     if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
-        // printf("\n Attempted to Close Something that was not open in the first place \n");
+        printf("\n Attempted to Close Something that was not open in the first place \n");
         return FAILURE;
     } 
     int32_t retval = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
@@ -447,39 +455,6 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
-/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
-*   returns -1 if it fails, and 0 if it was successful
-*/
-int32_t sys_close(int32_t fd) {
-    if((fd == 0 || fd == 1))    {
-        printf("Can't close stdin or stdout\n");
-        return FAILURE;
-    }
-    if(fd < 0 || fd > 7)  {
-        printf("sys_close: File descriptor invalid. \n");
-        return -1;
-    }
-    if(PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags == 0){
-        printf("\n Attempted to Close Something that was not open in the first place \n");
-        return FAILURE;
-    } 
-    int32_t retval = (*PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close)(fd);
-    if(retval == FAILURE){
-        return FAILURE;
-    }
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.open = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.close = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.read = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write = (void *)0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_position = 0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].inode = 0;
-    PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].flags = 0;
-    
-
-    // printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
-    return 0;
-}
-
 //not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
     
@@ -518,7 +493,7 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 //not done
 int32_t sys_vidmap(uint8_t ** screen_start) {
     printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
-    if(screen_start == NULL || screen_start <= 0x08000000 || screen_start >= 0x08400000) { //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
+    if(screen_start == NULL || screen_start <= 0x08000000 || screen_start >= 0x08400000){ //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
         printf("sys_vidmap: Input address is null.\n");
         return -1;
     }
