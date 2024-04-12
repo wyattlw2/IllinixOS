@@ -470,15 +470,11 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
         return -1;
     }
     int i = 0;
-<<<<<<< HEAD
-    while(buf[i] != '\0'){
-=======
     // while(*(buf + i) != '\0'){
     //     buf[i] = '\0';
     //     i++;
     // }
     for(i=0; i< nbytes; i++){
->>>>>>> 7eabf5a07bb441fe0bd62ec3ef85c9a4748c03fc
         buf[i] = '\0';
     }
     int start_of_args = 0;
