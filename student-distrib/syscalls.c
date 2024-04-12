@@ -56,7 +56,7 @@ static int32_t *file_functions[4] = {(int32_t*)file_open, (int32_t*)file_close, 
 // some of these handlers via interrupt 0x80    -- Wyatt
 
 
-/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the pCB
 *   returns -1 if it fails, and 0 if it was successful
 */
 int32_t sys_close(int32_t fd) {
@@ -88,6 +88,7 @@ int32_t sys_close(int32_t fd) {
     // printf("SYSCALL *CLOSE* CALLED (SHOULD CORRESPOND TO SYSCALL 6)\n\n");
     return 0;
 }
+
 
 
 
@@ -455,23 +456,37 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
+/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
+*   returns -1 if it fails, and 0 if it was successful
+*/
+
+
 //not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
     
     int i = 0;
-    while(*(buf + i) != '\0'){
+    // while(*(buf + i) != '\0'){
+    //     buf[i] = '\0';
+    //     i++;
+    // }
+    for(i=0; i< nbytes; i++){
         buf[i] = '\0';
-        i++;
     }
     int start_of_args = 0;
     if(nbytes > 128){
         nbytes = 128; // this should be the maximum valuse for the arguments
     }
     for(i=0; i< nbytes; i++){
+        if(get_args_buf[i] == '\n'){
+            return -1; // there must be no args
+        }
         if(get_args_buf[i] == ' ' || get_args_buf[i] == '\0'){
             start_of_args = i+1;
             break;
         }
+    }
+    if(get_args_buf[start_of_args] == '\0'){ // there are no arguments to see
+        return -1;
     }
     for(i=start_of_args; i < nbytes; i++){
         // if(i >= 128){
