@@ -202,7 +202,7 @@ void putc(uint8_t c) {
     }  else if ((screen_x == NUM_COLS - 1 && screen_y== NUM_ROWS - 1) || (c == '\n' && screen_y == NUM_ROWS - 1)) { // want to move current row to last row
         int i;
         int j;
-
+        og_x = 7;
         // if we need a new line due to character overflow, we also need to write that character in the new line
         if (c != '\n') {
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;

@@ -11,5 +11,9 @@ extern void initialize_idt();
 void set_exception_params(idt_desc_t * idt_array_index, int vec);
 extern void exec_handler();
 extern void sys_handler();
+extern uint16_t og_x;
+extern uint16_t og_y;
+
+extern int setup;
 
 
