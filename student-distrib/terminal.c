@@ -156,7 +156,9 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     }
 
     for (i = 0; i < nbytes; i++) { // print every character
-        putc(((char*)buf)[i]);
+        if(((char*)buf)[i] != NULL) {
+            putc(((char*)buf)[i]);
+        }
     }
     // for (i = 0; i < nbytes; i++) {
     //     ((char*)buf)[i] = '\0';
