@@ -7,6 +7,9 @@
 #define VIDEO               0xB8000
 #define KERNEL_START        0x01
 
+#define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
+#define     EIGHT_KB                            (1 << 13)
+
 
 
 /*  This function initializes paging. It initializes the kernel memory and video memory
@@ -53,6 +56,18 @@ void paging_init()  {
     page_directory[32].page_4mb.p = 1;
     page_directory[32].page_4mb.ps = 1; // size is 1 for 4MB
     // page_directory[32].page_4mb.page_base_addr = SHELL_START;
+
+    page_directory[33].page_4kb.pt_base_addr = ((uint32_t)vmem_page_table) >> 12; // Might need to bit shift this or something
+    page_directory[33].page_4kb.ps = 0; //First page directory -- first page table is vmem  //declares page size as 4 KB
+    page_directory[33].page_4kb.us = 1; // first page directory should be supervisor
+    page_directory[33].page_4kb.p = 1;
+
+    for(i = 0; i < 1024; i++){
+        vmem_page_table[i].p = 0;  //MARK ALL OTHER PAGES AS NONPRESENT
+        vmem_page_table[i].rw = 1;
+    }
+    vmem_page_table[0].us = 1;
+    vmem_page_table[0].p = 1;
 
     loadPageDirectory((unsigned int *)page_directory);
     enableExtendedPageSize();

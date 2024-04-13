@@ -77,3 +77,4 @@ void enablePaging();
 // extern void enablePagingOsdev();
 paging_dir_entry_t page_directory[1024] __attribute__((aligned(4096)));
 paging_table_t first_page_table[1024] __attribute__((aligned(4096)));
+paging_table_t vmem_page_table[1024] __attribute__((aligned(4096)));

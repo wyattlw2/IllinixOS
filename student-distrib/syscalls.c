@@ -35,6 +35,7 @@
 
 #define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
 #define     EIGHT_KB                            (1 << 13)
+#define     MEGABYTE_32_PHYSICAL                0x02000
 #define     PID_OFFSET_TO_GET_PHYSICAL_ADDRESS      2
 
 #define     FAILURE         -1
@@ -138,6 +139,7 @@ void sys_halt(uint8_t status) {
     }
 
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
+    vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
     
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
     asm volatile("movl %ebx, %cr3");
@@ -231,25 +233,31 @@ int32_t sys_execute(uint8_t * command) {
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
                 // printf("(Inside Exec) Prev PID: %d\n\n", prev_PID);
-
+                vmem_page_table[0].p_base_addr = 0xB8;
                 switch(PID){
                     case(0):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_0;
+                        // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + 0;
                         break;
                     case(1):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_1;
+                        // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + 1;
                         break;
                     case(2):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_2;
+                        // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + 2;
                         break;
                     case(3):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_3;
+                        // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + 3;
                         break;
                     case(4):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_4;
+                        // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + 4;
                         break;
                     case(5):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_5;
+                        // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + 5;
                         break;
                 }
                 
@@ -462,10 +470,6 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
         return -1;
     }
     int i = 0;
-    // while(*(buf + i) != '\0'){
-    //     buf[i] = '\0';
-    //     i++;
-    // }
     for(i=0; i< nbytes; i++){
         buf[i] = '\0';
     }
@@ -504,17 +508,20 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 
 //not done
 int32_t sys_vidmap(uint8_t ** screen_start) {
-    printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
-    if(screen_start == NULL || screen_start <= 0x08000000 || screen_start >= 0x08400000){ //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
+    // printf("\n This is the address of screen_start: ");
+    // printf("%x \n", (int)(screen_start));
+    // printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
+    if(screen_start == NULL || (int) screen_start <= 0x08000000 || (int) screen_start >= 0x08400000){ //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
         printf("sys_vidmap: Input address is null.\n");
         return -1;
     }
 
-    // if(screen_start > 0x08048000)
-    //     printf("found "); // screen_start is within the Program Image
-
-    printf("sys_vidmap: Input address is NOT null.\n");
-    return 0;
+    if((int)screen_start > 0x08048000)
+        // printf("found "); // screen_start is within the Program Image
+    *screen_start = (uint8_t *)0x08400000; // PUT THIS AT 132MB VIRTUAL WHERE WE ALLOCATED THE PAGE
+    // **screen_start = (uint8_t) 0xB8;
+    // printf("sys_vidmap: Input address is NOT null.\n");
+    return (int32_t)*screen_start;
 }
 
 //not done
