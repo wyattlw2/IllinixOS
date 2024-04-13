@@ -12,3 +12,10 @@ Solution:  not clearing the buffer properly
 
 Solution: clear the buffer at the start of getArgs. Also make sure that file read returns the number of bytes read.
 
+4. Multiple failed testcases in syserr
+
+Solution: syscalls were not checking for invalid arguments. We added parameter checks in all of our system calls, ex: checking the file descriptor number, checking vidmap address, etc.
+
+5. Keyboard deletes everything at the last line after calling Grep
+
+Solution: not correctly handling character deletion at the end of terminal

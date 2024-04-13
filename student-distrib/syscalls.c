@@ -233,6 +233,7 @@ int32_t sys_execute(uint8_t * command) {
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
                 // printf("(Inside Exec) Prev PID: %d\n\n", prev_PID);
+                //map this address to video memory that the user can access
                 vmem_page_table[0].p_base_addr = 0xB8;
                 switch(PID){
                     case(0):
@@ -376,10 +377,6 @@ int32_t sys_write(int32_t fd, void * buf, int32_t nbytes) {
         return -1;
     }
     return (* PCB_array[current_process_idx]->fdesc_array.fd_entry[fd].file_operations_table_pointer.write)(fd, buf, nbytes);
-    // if(retval == -1){
-    //     return -1;
-    // }
-    // return 0;
 }
 
 
@@ -465,12 +462,16 @@ int32_t sys_open(int8_t * filename) {
 }
 
 
+/* The Get Args System Call effectively takes an input buffer and the nbytes and parses the argument from the keyboard and 
+*   puts the argument into the the buffer
+*/
+
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
-    if (buf == NULL) {
+    if (buf == NULL) {  //MAKING SURE THEY DIDN'T PASS A NULL PTR
         return -1;
     }
     int i = 0;
-    for(i=0; i< nbytes; i++){
+    for(i=0; i< nbytes; i++){ // CLEARING THE BUF THAT THEY PASS IN
         buf[i] = '\0';
     }
     int start_of_args = 0;
@@ -481,7 +482,7 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
         if(get_args_buf[i] == '\n'){
             return -1; // there must be no args
         }
-        if(get_args_buf[i] == ' ' || get_args_buf[i] == '\0'){
+        if(get_args_buf[i] == ' ' || get_args_buf[i] == '\0'){ // PARSING THE GET ARGS BUF
             start_of_args = i+1;
             break;
         }
@@ -499,28 +500,29 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
         buf[i-start_of_args] = get_args_buf[i];
         
     }
-    for(i=0; i < 128; i++){
+    for(i=0; i < 128; i++){ // CLEAR THE GET ARGS BUF WHEN WE ARE DONE
         get_args_buf[i] = '\0';
     }
-    // printf("SYSCALL *GETARGS* CALLED (SHOULD CORRESPOND TO SYSCALL 7)\n\n");
     return 0;
 }
 
-//not done
+#define     MEGABYTE_128        0x08000000
+#define     MEGABYTE_132        0x08400000
+#define     USER_PROG_START     0x08048000
+/* Takes the user double pointer at maps it to the virtual address that maps to the physical address that corresponds to the video memory
+*   It then returns that address to the user
+*/
 int32_t sys_vidmap(uint8_t ** screen_start) {
-    // printf("\n This is the address of screen_start: ");
-    // printf("%x \n", (int)(screen_start));
-    // printf("SYSCALL *VIDMAP* CALLED (SHOULD CORRESPOND TO SYSCALL 8)\n\n");
-    if(screen_start == NULL || (int) screen_start <= 0x08000000 || (int) screen_start >= 0x08400000){ //0x08000000 is 128 MB & 0x08400000 is 132 MB, 0x400000 is 4 MB
+    
+    if(screen_start == NULL || (int) screen_start <= MEGABYTE_128 || (int) screen_start >= MEGABYTE_132){ // ERRROR CHECKING
         printf("sys_vidmap: Input address is null.\n");
         return -1;
     }
 
-    if((int)screen_start > 0x08048000)
-        // printf("found "); // screen_start is within the Program Image
-    *screen_start = (uint8_t *)0x08400000; // PUT THIS AT 132MB VIRTUAL WHERE WE ALLOCATED THE PAGE
-    // **screen_start = (uint8_t) 0xB8;
-    // printf("sys_vidmap: Input address is NOT null.\n");
+    if((int)screen_start > USER_PROG_START){
+        *screen_start = (uint8_t *)MEGABYTE_132; // PUT THIS AT 132MB VIRTUAL WHERE WE ALLOCATED THE PAGE
+    }
+
     return (int32_t)*screen_start;
 }
 
