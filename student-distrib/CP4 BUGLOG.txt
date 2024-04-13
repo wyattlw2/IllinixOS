@@ -2,4 +2,13 @@ CP4 BUGLOG.txt
 
 1. ls can only be called about 6 times before getting "directory open failed"
 
-Solution: 
+Solution: Close all the files when we are halting.
+
+2. Grep Not working , not printing when it should be -- can't find the file
+
+Solution:  not clearing the buffer properly
+
+3. Similar issues for Cat -- not printing the file
+
+Solution: clear the buffer at the start of getArgs. Also make sure that file read returns the number of bytes read.
+

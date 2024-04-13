@@ -456,15 +456,7 @@ int32_t sys_open(int8_t * filename) {
     return fd_index_to_open;
 }
 
-<<<<<<< HEAD
-=======
-/* The Close System Call effectively takes an input filename and gets rid of the file information in the PCB
-*   returns -1 if it fails, and 0 if it was successful
-*/
 
-
->>>>>>> 7eabf5a07bb441fe0bd62ec3ef85c9a4748c03fc
-//not done
 int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
     if (buf == NULL) {
         return -1;
