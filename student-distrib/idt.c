@@ -184,6 +184,17 @@ void kb_handler() {
         return;
     }
 
+    // ctrl + c pressed, does the same thing as ctrl + l for now
+    if(ctrl && key == 0x2E) {
+        // clear();
+        // update_xy(0, 0);
+        // update_cursor(0, 0);
+        // send_eoi(1);
+        // setup = 1;
+        // CLEAR_SCREEN_FLAG = 1;
+        // return;
+    }
+
     // caps open and pressing shift
     if (cap && shift) {
         if (key <= 0x37) { // if it's within our non special character bound
