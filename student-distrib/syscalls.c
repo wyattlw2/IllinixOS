@@ -207,6 +207,21 @@ int32_t sys_execute(uint8_t * command) {
         *command = '\0';
         command++;
     }
+
+    //Before loading file data into virtual address space, we need to check the first four bytes of the file
+    //The first four bytes must correspond to ELF
+    //W -- have to check this before allocating a page for the user program. 
+    uint8_t mag_num_buf[30]; // header is actually 40 bytes
+    int32_t mag_num_check = read_data((&exec_dentry)->inode_number, 0, mag_num_buf , 30);
+
+    if(mag_num_check == -1){
+        printf(" \n Something screwed up inside the excecutable file, you should really check that out \n");
+        return -1;
+    }
+    if((mag_num_buf[0] != MAGIC_NUMBER_BYTE0 )||( mag_num_buf[1] != MAGIC_NUMBER_BYTE1 )||( mag_num_buf[2] != MAGIC_NUMBER_BYTE2 )||( mag_num_buf[3] != MAGIC_NUMBER_BYTE3)){
+        printf(" \n Not an ELF file -- Magic Number Test Failed. \n");
+        return -1;
+    }
     // uint8_t buffer[60000];
     
     
@@ -232,7 +247,6 @@ int32_t sys_execute(uint8_t * command) {
                                             // if it is, set it equal to the PID of the parent process.
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
-                // printf("(Inside Exec) Prev PID: %d\n\n", prev_PID);
                 //map this address to video memory that the user can access
                 vmem_page_table[0].p_base_addr = 0xB8;
                 switch(PID){
@@ -265,7 +279,6 @@ int32_t sys_execute(uint8_t * command) {
                 //FLUSH TLB
                 asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
                 asm volatile("movl %ebx, %cr3");
-
                 break;
             } 
 
@@ -277,26 +290,8 @@ int32_t sys_execute(uint8_t * command) {
 
         //TIME TO LOAD THE USER LEVEL PROGRAM
         
-        //Before loading file data into virtual address space, we need to check the first four bytes of the file
-        //The first four bytes must correspond to ELF
-        uint8_t mag_num_buf[30]; // header is actually 40 bytes
-        int32_t mag_num_check = read_data((&exec_dentry)->inode_number, 0, mag_num_buf , 30);
-        
-
         int32_t EIP_save = ((uint32_t*)mag_num_buf)[6]; // Extracting the EIP from the string
-        // printf("\n EIP TRY 2: %d", EIP_try2);
-        
-        // int32_t EIP_save = eip_ll << 24 | eip_l << 16 | eip_r << 8 | eip_rr;
-        if(mag_num_check == -1){
-            printf(" \n Something screwed up inside the excecutable file, you should really check that out \n");
-            return -1;
-        }
-        if((mag_num_buf[0] != MAGIC_NUMBER_BYTE0 )||( mag_num_buf[1] != MAGIC_NUMBER_BYTE1 )||( mag_num_buf[2] != MAGIC_NUMBER_BYTE2 )||( mag_num_buf[3] != MAGIC_NUMBER_BYTE3)){
-            printf(" \n Something messed up inside the excecutable file, you should really check that out -- Magic Number Test Failed \n");
-            return -1;
-        }
-
-
+       
         uint8_t * user_start = (uint8_t *)VIRTUAL_USER_ADDR_WITH_OFFSET;
         int32_t status = read_data((&exec_dentry)->inode_number, 0, user_start, 0x400000);
         if(status == -1){
@@ -514,7 +509,7 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 */
 int32_t sys_vidmap(uint8_t ** screen_start) {
     
-    if(screen_start == NULL || (int) screen_start <= MEGABYTE_128 || (int) screen_start >= MEGABYTE_132){ // ERRROR CHECKING
+    if(screen_start == NULL || (int) screen_start < MEGABYTE_128 || (int) screen_start >= MEGABYTE_132){ // ERRROR CHECKING
         printf("sys_vidmap: Input address is null.\n");
         return -1;
     }
