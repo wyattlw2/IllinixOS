@@ -271,7 +271,7 @@ void kb_handler() {
             return;
         }
 
-    }
+    // }
 
     //ALT and F3 is Pressed
     else if(alt && key == 0x3D){
