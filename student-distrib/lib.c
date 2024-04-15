@@ -227,6 +227,7 @@ void putc(uint8_t c) {
             }
         }
         // clear the very last line to make space for new characters
+        next_row_flag = 1;
         screen_x = 0; // first character space in a line
         screen_y = NUM_ROWS - 1;
         for (j = 0; j < NUM_COLS; j++) {
@@ -237,6 +238,8 @@ void putc(uint8_t c) {
             screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
         }
     } else if (screen_x == NUM_COLS - 1) { // move to next row
+
+        // next_row_flag = 1;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;

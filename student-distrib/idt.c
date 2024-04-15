@@ -56,8 +56,9 @@ uint16_t y;
 uint16_t og_x;
 uint16_t og_y;
 
+int next_row_flag;
 int setup = 1;
-
+// int enter_flag=0;
 void kb_handler() {
 
     unsigned char key = inb(KEYBOARD_PORT);
@@ -66,8 +67,16 @@ void kb_handler() {
         og_x = p % NUM_COLS;
         og_y = p / NUM_COLS;
         setup = 0;
+        next_row_flag = 0;
     }
-
+    SHELLPROMPT_DELETE_FLAG = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
+    if(y > og_y)    {
+        SHELLPROMPT_DELETE_FLAG = 1;    //This means -- we are on a new line without a shell prompt, you can delete in the x-coordinates corresponding to shell prompt location
+    }
+    if(y == NUM_ROWS - 1 && og_y == NUM_ROWS - 1 && next_row_flag == 1)   {
+        og_y = NUM_ROWS - 2;    //fucking keyboard man
+    }   
+    
     // if tab is pressed
     if (key == 0x0F) {
         int i;
@@ -95,7 +104,7 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-        if ((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
+        if (((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) || SHELLPROMPT_DELETE_FLAG == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
             if (x == 0 && y != 0) { // any other row
                 update_xy(NUM_COLS - 1, y-1);
                 putc(' ');
@@ -120,6 +129,7 @@ void kb_handler() {
 
     // if enter is pressed
     if (key == 0x1C) {
+        // enter_flag = 1;
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;

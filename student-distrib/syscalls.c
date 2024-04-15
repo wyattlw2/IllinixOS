@@ -139,8 +139,11 @@ void sys_halt(uint8_t status) {
     }
 
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
-    vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
-    
+    // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
+    kb_idx = 0;
+    setup = 1;
+
+
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
     asm volatile("movl %ebx, %cr3");
     
@@ -203,6 +206,11 @@ int32_t sys_execute(uint8_t * command) {
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     dentry_struct_t exec_dentry;  
     int32_t found_file = read_dentry_by_name(command, &exec_dentry);
+    if(found_file == -1){
+        // printf("\n Could not find the file");
+        return -1;
+    }
+
     while(*command != '\0'){
         *command = '\0';
         command++;
