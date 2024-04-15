@@ -196,43 +196,43 @@ void kb_handler() {
 
 
 //Maybe just a redraw screen function
-    if(alt && key == 0x3B){
-        first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
-        // reset where the cursor index is for each term
-    }
+    // if(alt && key == 0x3B){
+    //     first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
+    //     // reset where the cursor index is for each term
+    // }
 
-    if(alt && key == 0x3C){
+    // if(alt && key == 0x3C){
         
-        first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
-        // printf("\n alt and F2 are pressed");
-        if(terminal_processes[1] == -1){
-            uint8_t shell_var[5] = "shell";
-            // sys_execute(shell_var);
-            terminal_processes[1] = 1; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
-            clear(); 
-            // reset where the cursor index is for each term
-            //INITIATE START SHELL SEQUENCE
-            //give it a process for shell, unless we are using the max amount of processes
-        }
+    //     first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
+    //     // printf("\n alt and F2 are pressed");
+    //     if(terminal_processes[1] == -1){
+    //         uint8_t shell_var[5] = "shell";
+    //         // sys_execute(shell_var);
+    //         terminal_processes[1] = 1; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
+    //         clear(); 
+    //         // reset where the cursor index is for each term
+    //         //INITIATE START SHELL SEQUENCE
+    //         //give it a process for shell, unless we are using the max amount of processes
+    //     }
 
-    }
+    // }
 
-    if(alt && key == 0x3D){
+    // if(alt && key == 0x3D){
         
-        first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
-        // printf("\n alt and F3 are pressed");
-        if(terminal_processes[2] == -1){
+    //     first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
+    //     // printf("\n alt and F3 are pressed");
+    //     if(terminal_processes[2] == -1){
 
-            uint8_t shell_var[5] = "shell";
-            sys_execute(shell_var);
-            //INITIATE START SHELL SEQUENCE
-            //give it a process for shell, unless we are using the max amount of processes
-            terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
-            clear();
-            // reset where the cursor index is for each term
+    //         uint8_t shell_var[5] = "shell";
+    //         sys_execute(shell_var);
+    //         //INITIATE START SHELL SEQUENCE
+    //         //give it a process for shell, unless we are using the max amount of processes
+    //         terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
+    //         clear();
+    //         // reset where the cursor index is for each term
             
-        }
-    }
+    //     }
+    // }
 
 
 
