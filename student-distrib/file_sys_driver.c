@@ -404,7 +404,18 @@ void see_all_files_helper(){
 }
 
 void terminal_init(){
+    active_terminal = 0;
     terminal_processes[0] = 0;
     terminal_processes[1] = -1;
     terminal_processes[2] = -1;
+    int i;
+    uint8_t * t1 = (uint8_t *)0xBA000;
+    uint8_t * t2 = (uint8_t *)0xBB000;
+    uint8_t * t3 = (uint8_t *)0xBC000;
+    for(i=0; i<4096; i++){
+        *(t1+i) = (uint8_t) 0x31;
+        *(t2+i) = (uint8_t) 0x32;
+        *(t3+i) = (uint8_t) 0x33;
+        
+    }
 }

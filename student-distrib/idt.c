@@ -9,7 +9,7 @@
 #define     NUM_ROWS            25
 #define     MAX_BUFF_SIZE       128
 #define     SPEC_CHAR_OFFSET    54
-
+#define     MAX_NUM_PROCESSES                   6
 
 #define KERNEL_CS   0x0010
 #define KERNEL_DS   0x0018
@@ -24,6 +24,12 @@
 #define         NUMBER_OF_EXCEPTIONS_DEFINING        20      //based on what the CA said, it seems like we only need these 20 exceptions 
 #define         NUMBER_OF_SYS_CALLS         10 // for letter check points, for now we just have a simply handle for sys calls -- James
 
+#define     VIDEO                               0xB8000
+#define     TERMINAL1_MEM                       0xBA000
+#define     TERMINAL2_MEM                       0xBB000
+#define     TERMINAL3_MEM                       0xBC000
+
+#define FOUR_KB                         4096
 
 //TABLE for the keyboard handler
 const char table_kb[] = {'\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
@@ -60,6 +66,7 @@ uint16_t og_y;
 
 int next_row_flag;
 int setup = 1;
+int send_eoi_kb_flag=0;
 // int enter_flag=0;
 void kb_handler() {
 
@@ -184,54 +191,124 @@ void kb_handler() {
         return;
     }
 
-
-    #define TERMINAL1_PHYSICAL  0xB8
-    #define TERMINAL2_PHYSICAL  0xB9
-    #define TERMINAL3_PHYSICAL  0xBA
-    //alt and F1 has been pressed
+    
+    
 
 
 
-// JUST SWITCHING THE MAPPING DOESNT REDRAW THE SCREEN
 
 
-//Maybe just a redraw screen function
+
+    //ALT and F1 is Pressed
     if(alt && key == 0x3B){
-        first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
+        
+                move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+                active_terminal = 0;
+                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                send_eoi(1);
+                return;
+        // first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
+        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        // asm volatile("movl %ebx, %cr3");
         // reset where the cursor index is for each term
     }
 
-    if(alt && key == 0x3C){
-        
-        first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
-        // printf("\n alt and F2 are pressed");
-        if(terminal_processes[1] == -1){
-            uint8_t shell_var[5] = "shell";
-            // sys_execute(shell_var);
-            terminal_processes[1] = 1; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
-            clear(); 
-            // reset where the cursor index is for each term
-            //INITIATE START SHELL SEQUENCE
-            //give it a process for shell, unless we are using the max amount of processes
-        }
+    //ALT and F2 is Pressed
+    else if(alt && key == 0x3C){
+                move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+                active_terminal = 1;
+                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                send_eoi(1);
+                return;
+        // // printf("\n alt and F2 are pressed");
+        // if(terminal_processes[1] == -1){
+        //     uint8_t shell_var[6] = "shell";
+        //     // terminal_processes[1] = 1;
+        //     int i;
+        //     int process_to_be_set = -1;
+        //     for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
+        //         if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
+        //             process_to_be_set = i;
+        //             break;
+        //         }
+        //     }
+        //     if(process_to_be_set == -1){
+        //         printf("\n All Processes are full");
+        //         send_eoi(1);
+        //         return;
+        //     }else{
+        //         active_terminal = 1;
+        //         terminal_processes[1] = process_to_be_set;
+                
+        //         // active_terminal = 1;
+        //         //NEED TO SET NEW SHELL FLAG AS WELL
+        //         move_four_kb((uint8_t *) 0xBA000 + active_terminal*FOUR_KB, (uint8_t *) 0xB8000);
+        //         // setup = 1;
+        //         // clear(); 
+        //         // first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
+        //         // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        //         // asm volatile("movl %ebx, %cr3");
+        //         // update_cursor(0, 0);
+        //         // clear();
+        //         // send_eoi_kb_flag = 1;
+        //         send_eoi(1);
+        //         // asm volatile (
+        //         //     "movl %0, %%ebx;"   // Move the address of var into register ebx
+        //         //     :                   // Output operand list is empty
+        //         //     : "r" (shell_var)         // Input operand list, specifying that var is an input
+        //         // );
+
+        //         // asm volatile (
+        //         //     "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
+        //         // );
+
+        //         // // For demonstration purposes only, as usage of int $0x80 is system-dependent
+        //         // asm volatile (
+        //         //     "int $0x80"         // Execute syscall
+        //         // );
+        //         // sys_execute(shell_var);
+        //         return;
+        //     }
+            
+        // }else{
+        //     //TERMINAL IS ALREADY DECLARED
+        //     active_terminal = 1;
+        //     move_four_kb((uint8_t *) 0xBA000 + active_terminal*FOUR_KB, (uint8_t *) 0xB8000);
+        //     send_eoi(1);
+        //     return;
+        //     // first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
+        //     // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        //     // asm volatile("movl %ebx, %cr3");
+        //     //SWOTCH THE ACTIVE PROCESS
+        // }
 
     }
 
-    if(alt && key == 0x3D){
-        
-        first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
-        // printf("\n alt and F3 are pressed");
-        if(terminal_processes[2] == -1){
+    //ALT and F3 is Pressed
+    else if(alt && key == 0x3D){
+                move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+                active_terminal = 2;
+                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                send_eoi(1);
+                return;
 
-            uint8_t shell_var[5] = "shell";
-            sys_execute(shell_var);
-            //INITIATE START SHELL SEQUENCE
-            //give it a process for shell, unless we are using the max amount of processes
-            terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
-            clear();
-            // reset where the cursor index is for each term
+
+    // move_four_kb((uint8_t *) 0xB8000, (uint8_t *) 0xBA000 + active_terminal*FOUR_KB); // saving the current vmem
+        // first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
+        // printf("\n alt and F3 are pressed");
+        // if(terminal_processes[2] == -1){
+
+        //     uint8_t shell_var[5] = "shell";
+        //     sys_execute(shell_var);
+        //     //INITIATE START SHELL SEQUENCE
+        //     //give it a process for shell, unless we are using the max amount of processes
+        //     terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
+        //     clear();
+        //     send_eoi(1);
+        //     return;
+        //     // reset where the cursor index is for each term
             
-        }
+        // }
     }
 
 
@@ -718,5 +795,18 @@ void set_exception_params(idt_desc_t * idt_array_index, int vec){
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
     
 }
+
+/*  This function moves four kilobytes of data -- used for vmem from one location to another. It returns nothing and is simply used as a helper function
+*   for terminal switching. Inputs are the source pointer and destination pointer.
+*/
+void move_four_kb (uint8_t * src, uint8_t * dst){
+    int i;
+    for(i=0;i< FOUR_KB; i++){
+        *dst = *src;
+        dst++;
+        src++;
+    }
+}
+
 
 

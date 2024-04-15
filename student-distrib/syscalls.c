@@ -38,6 +38,12 @@
 #define     MEGABYTE_32_PHYSICAL                0x02000
 #define     PID_OFFSET_TO_GET_PHYSICAL_ADDRESS      2
 
+
+
+#define     TERMINAL1_MEM                       0xBA
+#define     TERMINAL2_MEM                       0xBB
+#define     TERMINAL3_MEM                       0xBC
+
 #define     FAILURE         -1
 
 int32_t num_active_processes = 0;   // cannot be decremented below 1 once it reaches that value. used in sys_halt() to determine
@@ -203,6 +209,11 @@ int32_t sys_execute(uint8_t * command) {
     uint32_t ebp_save = ebp;
     uint32_t esp_save = esp;
 
+    // if(send_eoi_kb_flag){
+    //     send_eoi_kb_flag = 0;
+    //     send_eoi(1);
+    // }
+
     int32_t retval = 256;      // sys_execute needs to return 256 in the case of an exception
     dentry_struct_t exec_dentry;  
     int32_t found_file = read_dentry_by_name(command, &exec_dentry);
@@ -233,10 +244,10 @@ int32_t sys_execute(uint8_t * command) {
     // uint8_t buffer[60000];
     
     
-    if(found_file == -1){
-        // printf("\n The inputted file was invalid. \n");
-        return -1; // might need more checks for this lmao
-    }
+    // if(found_file == -1){
+    //     // printf("\n The inputted file was invalid. \n");
+    //     return -1; // might need more checks for this lmao
+    // }
     int i;
 
     //process_activating is going to be the process ID NUMBER
@@ -244,7 +255,7 @@ int32_t sys_execute(uint8_t * command) {
 
     process_control_block_t * PCB;
     int PID = 500; // ridiculous value, if it is still 500, we didn't find a process and we return out
-        for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
+        for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process -- THIS IS ALSO dependant on kb_handler for switching terminals
             if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
                 num_active_processes++;
                 processes_active[i] = 1;
@@ -321,6 +332,8 @@ int32_t sys_execute(uint8_t * command) {
 
         tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4; // updating the esp0
 
+
+        sti();   // SUPER SUSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
         asm volatile("pushl $0x002B"); // pushing User DS
         asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
         asm volatile("pushfl"); // this could be off -- pushing flags

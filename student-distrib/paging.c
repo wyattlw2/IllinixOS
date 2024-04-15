@@ -10,7 +10,9 @@
 
 #define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
 #define     EIGHT_KB                            (1 << 13)
-
+#define     TERMINAL1_MEM                       0xBA
+#define     TERMINAL2_MEM                       0xBB
+#define     TERMINAL3_MEM                       0xBC
 
 
 /*  This function initializes paging. It initializes the kernel memory and video memory
@@ -47,17 +49,17 @@ void paging_init()  {
 
 
 
-    // first_page_table[0xB5].us = 0; //supervisor privilege
-    // first_page_table[0xB5].p = 1;  // present
-    // first_page_table[0xB5].p_base_addr = TERMINAL1_PHYSICAL;
+    first_page_table[0xBA].us = 0; //supervisor privilege
+    first_page_table[0xBA].p = 1;  // present
+    first_page_table[0xBA].p_base_addr = TERMINAL1_MEM;
 
-    // first_page_table[0xB6].us = 0; //supervisor privilege
-    // first_page_table[0xB6].p = 1;  // present
-    // first_page_table[0xB6].p_base_addr = TERMINAL2_PHYSICAL;
+    first_page_table[0xBB].us = 0; //supervisor privilege
+    first_page_table[0xBB].p = 1;  // present
+    first_page_table[0xBB].p_base_addr = TERMINAL2_MEM;
 
-    // first_page_table[0xB7].us = 0; //supervisor privilege
-    // first_page_table[0xB7].p = 1;  // present
-    // first_page_table[0xB7].p_base_addr = TERMINAL3_PHYSICAL;
+    first_page_table[0xBC].us = 0; //supervisor privilege
+    first_page_table[0xBC].p = 1;  // present
+    first_page_table[0xBC].p_base_addr = TERMINAL3_MEM;
 
 
     //KERNEL DIRECTORY SETUP

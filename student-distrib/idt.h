@@ -17,5 +17,7 @@ extern uint16_t og_y;
 
 extern int setup;
 extern int next_row_flag;
+extern int send_eoi_kb_flag;
+void move_four_kb (uint8_t * src, uint8_t * dst);
 
 
