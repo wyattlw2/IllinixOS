@@ -75,6 +75,7 @@ process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now
 int32_t current_process_idx;
 int32_t terminal_processes[3];
 int32_t active_terminal;
+int32_t terminal_screen_virtual_address[3];
 
 void terminal_init();
 void file_system_init();

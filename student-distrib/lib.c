@@ -2,7 +2,9 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "file_sys_driver.h"
 
+// #define VIDEO       0xB8000
 #define VIDEO       0xB8000
 #define NUM_COLS    80
 #define NUM_ROWS    25
@@ -183,12 +185,13 @@ void update_xy(uint16_t x, uint16_t y) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
-
     // first time writing
     if (first) {
         // user_y = screen_y;
         first = 0;
     }
+
+    *video_mem = terminal_screen_virtual_address[active_terminal] << 12;    //THIS LINE IS IMPORTANT FOR CP5. IT INDICATES WHERE THE ACTIVE PROCESS MUST WRITE TO.
 
     if (c == '\t') { // our symbol for not printing anything
         return;
