@@ -3,6 +3,9 @@
 #include "syscalls.h"
 #include "paging.h"
 #include "file_sys_driver.h"
+#include "lib.h"
+
+
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     NUM_COLS            80
@@ -203,84 +206,70 @@ void kb_handler() {
     if(alt && key == 0x3B){
         
                 move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+                terminal_processes[active_terminal].cursor_x = screen_x;
+                terminal_processes[active_terminal].cursor_y = screen_y;
+
                 active_terminal = 0;
                 move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+                update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
                 send_eoi(1);
+
+
+                //CONTEXT SWITCHING BETWEEN PROCESSES
+
                 return;
-        // first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
-        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        // asm volatile("movl %ebx, %cr3");
-        // reset where the cursor index is for each term
     }
 
     //ALT and F2 is Pressed
     else if(alt && key == 0x3C){
                 move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-                active_terminal = 1;
-                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                terminal_processes[active_terminal].cursor_x = screen_x;
+                terminal_processes[active_terminal].cursor_y = screen_y;
+                // return;
+        // // printf("\n alt and F2 are pressed");
+        if(terminal_processes[1].active_process_PID == -1){ // IF THIS IS THE FIRST TIME THE TERMINAL HAS BEEN OPENED
+            uint8_t shell_var[6] = "shell";
+            // terminal_processes[1] = 1;
+            int i;
+            int process_to_be_set = -1;
+            for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
+                if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
+                    process_to_be_set = i;
+                    break;
+                }
+            }
+            if(process_to_be_set == -1){ // check if there is an open process to make a shell
+                printf("\n All Processes are full");
                 send_eoi(1);
                 return;
-        // // printf("\n alt and F2 are pressed");
-        // if(terminal_processes[1] == -1){
-        //     uint8_t shell_var[6] = "shell";
-        //     // terminal_processes[1] = 1;
-        //     int i;
-        //     int process_to_be_set = -1;
-        //     for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
-        //         if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
-        //             process_to_be_set = i;
-        //             break;
-        //         }
-        //     }
-        //     if(process_to_be_set == -1){
-        //         printf("\n All Processes are full");
-        //         send_eoi(1);
-        //         return;
-        //     }else{
-        //         active_terminal = 1;
-        //         terminal_processes[1] = process_to_be_set;
-                
-        //         // active_terminal = 1;
-        //         //NEED TO SET NEW SHELL FLAG AS WELL
-        //         move_four_kb((uint8_t *) 0xBA000 + active_terminal*FOUR_KB, (uint8_t *) 0xB8000);
-        //         // setup = 1;
-        //         // clear(); 
-        //         // first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
-        //         // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        //         // asm volatile("movl %ebx, %cr3");
-        //         // update_cursor(0, 0);
-        //         // clear();
-        //         // send_eoi_kb_flag = 1;
-        //         send_eoi(1);
-        //         // asm volatile (
-        //         //     "movl %0, %%ebx;"   // Move the address of var into register ebx
-        //         //     :                   // Output operand list is empty
-        //         //     : "r" (shell_var)         // Input operand list, specifying that var is an input
-        //         // );
-
-        //         // asm volatile (
-        //         //     "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
-        //         // );
-
-        //         // // For demonstration purposes only, as usage of int $0x80 is system-dependent
-        //         // asm volatile (
-        //         //     "int $0x80"         // Execute syscall
-        //         // );
-        //         // sys_execute(shell_var);
-        //         return;
-        //     }
+            }else{
+                active_terminal = 1;
+                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                update_xy(0, 0);
+                update_cursor(0, 0);
+                send_eoi(1);
+                terminal_processes[1].active_process_PID = process_to_be_set;
+                sys_execute(shell_var);
+                return;
+            }
             
-        // }else{
-        //     //TERMINAL IS ALREADY DECLARED
-        //     active_terminal = 1;
-        //     move_four_kb((uint8_t *) 0xBA000 + active_terminal*FOUR_KB, (uint8_t *) 0xB8000);
-        //     send_eoi(1);
-        //     return;
-        //     // first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
-        //     // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        //     // asm volatile("movl %ebx, %cr3");
-        //     //SWOTCH THE ACTIVE PROCESS
-        // }
+        }else{
+            //TERMINAL IS ALREADY DECLARED
+            active_terminal = 1;
+            move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+            update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+            update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+            send_eoi(1);
+            
+            
+            
+            //CONTEXT SWITCHING BETWEEN PROCESSES
+
+
+
+            return;
+        }
 
     }
 

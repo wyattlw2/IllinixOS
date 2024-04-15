@@ -10,8 +10,8 @@
                                         //TA on piazza told me that base mp3 doesn't support VGA Mode X. said that adding Mode X is something that students have done for extra credit.
                                         //look up https://wiki.osdev.org/Text_UI for more information about how the mp3 OS displays characters on-screen
 
-static int screen_x;
-static int screen_y;
+int screen_x;
+int screen_y;
 static char* video_mem = (char *)VIDEO;
 
 int user_y; // user_y keeps track of user typed space

@@ -70,10 +70,17 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
     //stack pointer for a given process
 } process_control_block_t;
 
+typedef struct terminal_info_t {
+    int32_t active_process_PID; // PID
+    int32_t cursor_x;
+    int32_t cursor_y;
+}terminal_info_t;
+
+
 int32_t processes_active[6]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
 process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now --W
 int32_t current_process_idx;
-int32_t terminal_processes[3];
+terminal_info_t terminal_processes[3];
 int32_t active_terminal;
 
 void terminal_init();

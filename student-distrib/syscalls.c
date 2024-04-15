@@ -320,6 +320,8 @@ int32_t sys_execute(uint8_t * command) {
                                                                                                 //TSS Has information about how to get back to kernel, ie HALT?
                                                                                                 //when we hit up checkpoint 5 is this messed up because 
         
+        
+        terminal_processes[active_terminal].active_process_PID = PID;
         PCB->PID = PID;
         PCB->EBP = ebp_save;
         PCB->ESP = esp_save;
