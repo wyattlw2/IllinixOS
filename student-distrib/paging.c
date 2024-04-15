@@ -43,30 +43,22 @@ void paging_init()  {
     first_page_table[0xB8].us = 0; //Supervisor privilege
     first_page_table[0xB8].p = 1; // present
     first_page_table[0xB8].p_base_addr = VIDEO >> 12; // mem addr
-    //The video memory address MUST be mapped to physical 0xB8. We tried to get multiple terminals working
-    //by changing the physical address of the virtual address, but the screen simply will not display anything unless
-    //the address is mapped to 0xB8. sadness
 
 
-    #define TERMINAL1_PHYSICAL  0xBA
-    #define TERMINAL2_PHYSICAL  0xBB
-    #define TERMINAL3_PHYSICAL  0xBC
 
-    first_page_table[0xBA].us = 0; //supervisor privilege
-    first_page_table[0xBA].p = 1;  // present
-    first_page_table[0xBA].p_base_addr = TERMINAL1_PHYSICAL;
 
-    first_page_table[0xBB].us = 0; //supervisor privilege
-    first_page_table[0xBB].p = 1;  // present
-    first_page_table[0xBB].p_base_addr = TERMINAL2_PHYSICAL;
+    // first_page_table[0xB5].us = 0; //supervisor privilege
+    // first_page_table[0xB5].p = 1;  // present
+    // first_page_table[0xB5].p_base_addr = TERMINAL1_PHYSICAL;
 
-    first_page_table[0xBC].us = 0; //supervisor privilege
-    first_page_table[0xBC].p = 1;  // present
-    first_page_table[0xBC].p_base_addr = TERMINAL3_PHYSICAL;
+    // first_page_table[0xB6].us = 0; //supervisor privilege
+    // first_page_table[0xB6].p = 1;  // present
+    // first_page_table[0xB6].p_base_addr = TERMINAL2_PHYSICAL;
 
-    //the active process will know (in putc) which of these virtual addresses to write to.
-    //pressing alt + F1-F3 will switch the active terminal, which will indicate to putc that
-    //the virtual video memory we are writing to needs to be switched to the correct location
+    // first_page_table[0xB7].us = 0; //supervisor privilege
+    // first_page_table[0xB7].p = 1;  // present
+    // first_page_table[0xB7].p_base_addr = TERMINAL3_PHYSICAL;
+
 
     //KERNEL DIRECTORY SETUP
     page_directory[1].page_4mb.rw = 1;

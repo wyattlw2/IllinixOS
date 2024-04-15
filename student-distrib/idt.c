@@ -185,6 +185,9 @@ void kb_handler() {
     }
 
 
+    #define TERMINAL1_PHYSICAL  0xB8
+    #define TERMINAL2_PHYSICAL  0xB9
+    #define TERMINAL3_PHYSICAL  0xBA
     //alt and F1 has been pressed
 
 
@@ -194,62 +197,19 @@ void kb_handler() {
 
 //Maybe just a redraw screen function
     if(alt && key == 0x3B){
-        first_page_table[0xBA].p_base_addr = 0xB8;
-        first_page_table[0xBB].p_base_addr = 0xBB;
-        first_page_table[0xBC].p_base_addr = 0xBC;  
-        // terminal_screen_virtual_address[0] = 0xB8; // the first terminal must write to actual video memory now
-        // terminal_screen_virtual_address[1] = 0xBB; // mem addr
-        // terminal_screen_virtual_address[2] = 0xBC; // mem addr
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
-        active_terminal = 0;
+        first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
         // reset where the cursor index is for each term
-        send_eoi(1);
     }
 
     if(alt && key == 0x3C){
-        first_page_table[0xBA].p_base_addr = 0xBA;
-        first_page_table[0xBB].p_base_addr = 0xB8;
-        first_page_table[0xBC].p_base_addr = 0xBC;  
-        // terminal_screen_virtual_address[0] = 0xBA; // mem addr
-        // terminal_screen_virtual_address[1] = 0xB8; // the second terminal must write to actual video memory now
-        // terminal_screen_virtual_address[2] = 0xBC; // mem addr
-        page_directory[32].page_4mb.page_base_addr = 0x03;
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
+        
+        first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
         // printf("\n alt and F2 are pressed");
-        if(terminal_processes[1] != 1){
-            prev
-            int i;
-            for (i = 0; i < 6; i++) {
-                if(processes_active[i] != 1)    {
-                    terminal_processes[1] = i;      //should be fine. execute will go to the exact same spot as i
-                    break;
-                }
-            }
-
-            send_eoi(1);
-            int8_t var[32] = {"shell"};
-            sti();
-            asm volatile (
-                "movl %0, %%ebx;"   // Move the address of var into register ebx
-                :                   // Output operand list is empty
-                : "r" (var)         // Input operand list, specifying that var is an input
-            );
-
-            asm volatile (
-                "movl $2, %eax"     // Set syscall number to 2 (sys_exec)
-            );
-
-            // For demonstration purposes only, as usage of int $0x80 is system-dependent
-            asm volatile (
-                "int $0x80"         // Execute syscall
-            );
-            active_terminal = 1;
-            og_y = 1;
-            update_xy(7, 1);
-            update_cursor(7, 1);
-            clear();
+        if(terminal_processes[1] == -1){
+            uint8_t shell_var[5] = "shell";
+            // sys_execute(shell_var);
+            terminal_processes[1] = 1; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
+            clear(); 
             // reset where the cursor index is for each term
             //INITIATE START SHELL SEQUENCE
             //give it a process for shell, unless we are using the max amount of processes
@@ -259,31 +219,18 @@ void kb_handler() {
 
     if(alt && key == 0x3D){
         
-        first_page_table[0xBA].p_base_addr = 0xBA;
-        first_page_table[0xBB].p_base_addr = 0xBB;
-        first_page_table[0xBC].p_base_addr = 0xB8;  // the third terminal must write to actual video memory now (the process will write to virtual memory 0xBC which is mapped to physical address 0xB8)
-        // terminal_screen_virtual_address[0] = 0xBA; // mem addr
-        // terminal_screen_virtual_address[1] = 0xBB; // mem addr
-        // terminal_screen_virtual_address[2] = 0xB8; // the third terminal must write to actual video memory now. (the process will write to virtual memory 0xB8)
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
+        first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
         // printf("\n alt and F3 are pressed");
-        if(terminal_processes[2] != 1){
-            int i;
-            for (i = 0; i < 6; i++) {
-                if(processes_active[i] != 1)    {
-                    terminal_processes[2] = i;      //should be fine. execute will go to the exact same spot as i
-                    break;
-                }
-            }
-            uint8_t shell_var[6] = "shell";
-            send_eoi(1);
-            sti();
+        if(terminal_processes[2] == -1){
+
+            uint8_t shell_var[5] = "shell";
             sys_execute(shell_var);
             //INITIATE START SHELL SEQUENCE
             //give it a process for shell, unless we are using the max amount of processes
+            terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
             clear();
             // reset where the cursor index is for each term
+            
         }
     }
 

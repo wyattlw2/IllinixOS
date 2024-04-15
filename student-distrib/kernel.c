@@ -162,15 +162,7 @@ void entry(unsigned long magic, unsigned long addr) {
     terminal_init();
     
     sti();
-
-    terminal_screen_virtual_address[0] = 0xBA;  //the first shell will always write to virtual address 0xBA.
-                                                //however, the physical mapping of virtual address 0xBA (as well as all other terminal virtual addresses)
-                                                //will change as soon as alt + F1-F3 is pressed.
-    terminal_screen_virtual_address[1] = 0xBB;
-    terminal_screen_virtual_address[2] = 0xBC;
-
-    active_terminal = 0;
-
+    
     launch_tests();
     //print_number_of_inodes();
 
