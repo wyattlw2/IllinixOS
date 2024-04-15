@@ -204,6 +204,7 @@ void sys_halt(uint8_t status) {
 * how the user program terminated
 */
 int32_t sys_execute(uint8_t * command) {
+    cli();                                                                          //ADDED THIS TO FIX THE KB BUG WHEN SWITCHING TERMINALS on 4/15
     register uint32_t ebp asm("ebp");
     register uint32_t esp asm("esp");
     uint32_t ebp_save = ebp;
@@ -335,7 +336,7 @@ int32_t sys_execute(uint8_t * command) {
         tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4; // updating the esp0
 
 
-        sti();   // SUPER SUSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+        sti();                                                                          //ADDED THIS TO FIX THE KB BUG WHEN SWITCHING TERMINALS on 4/15
         asm volatile("pushl $0x002B"); // pushing User DS
         asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
         asm volatile("pushfl"); // this could be off -- pushing flags

@@ -402,20 +402,43 @@ void see_all_files_helper(){
         }
     }
 }
+#define NUM_ROWS    25
+#define NUM_COLS    80
+#define ATTRIB      0xA
 
+static char * video_mem1 = (char *) 0xBA000;
+static char * video_mem2 = (char *) 0xBB000;
+static char * video_mem3 = (char *) 0xBC000;
 void terminal_init(){
     active_terminal = 0;
     terminal_processes[0].active_process_PID = 0;
     terminal_processes[1].active_process_PID = -1;
     terminal_processes[2].active_process_PID = -1;
-    // int i;
+    int i;
+    int j;
     // uint8_t * t1 = (uint8_t *)0xBA000;
     // uint8_t * t2 = (uint8_t *)0xBB000;
     // uint8_t * t3 = (uint8_t *)0xBC000;
     // for(i=0; i<4096; i++){
-    //     *(t1+i) = (uint8_t) 0x31;
-    //     *(t2+i) = (uint8_t) 0x32;
-    //     *(t3+i) = (uint8_t) 0x33;
+    //     *(uint8_t *)(t1+(i << 1) + 1) = ATTRIB;
+    //     *(uint8_t *)(t2+(i << 1) + 1) = ATTRIB;
+    //     *(uint8_t *)(t3+(i << 1) + 1) = ATTRIB;
         
     // }
+
+    for (i = 0; i < NUM_ROWS - 1; i++) {
+            int screen_x = 0;
+            int screen_y = i;
+            for (j = 0; j < NUM_COLS; j++) {
+
+                *(uint8_t *)(video_mem1 + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1) = ATTRIB;
+
+
+                *(uint8_t *)(video_mem2 + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1) = ATTRIB;
+
+                *(uint8_t *)(video_mem3 + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1) = ATTRIB;
+                screen_x++;
+                screen_x %= NUM_COLS;
+            }
+        }
 }
