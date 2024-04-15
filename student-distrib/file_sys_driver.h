@@ -61,6 +61,7 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
     uint32_t EBP;
     uint32_t ESP;
     int32_t EIP;
+    int32_t terminal_idx;
     file_descriptor_array_t fdesc_array; // probably will also need some mechanism to see if stack overflow occurs
     
     //signal information
@@ -72,9 +73,10 @@ typedef struct process_control_block_t { // THE PCB IS GOING TO BE STORED AT THE
 int32_t processes_active[6]; // need to figure out more about initializing this POSSIBLY SET IT ALL TO ZERO
 process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now --W
 int32_t current_process_idx;
+int32_t terminal_processes[3];
+int32_t active_terminal;
 
-
-
+void terminal_init();
 void file_system_init();
 
 int32_t file_open(const uint8_t* filename); // populates a dentry

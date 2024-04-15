@@ -402,3 +402,9 @@ void see_all_files_helper(){
         }
     }
 }
+
+void terminal_init(){
+    terminal_processes[0] = 0;
+    terminal_processes[1] = -1;
+    terminal_processes[2] = -1;
+}

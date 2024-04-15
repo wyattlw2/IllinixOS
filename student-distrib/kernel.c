@@ -158,6 +158,8 @@ void entry(unsigned long magic, unsigned long addr) {
     init_rtc(); // INIT RTC
 
     paging_init(); // INIT Paging
+
+    terminal_init();
     
     sti();
     

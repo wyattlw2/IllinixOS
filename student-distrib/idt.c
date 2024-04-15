@@ -1,7 +1,8 @@
 #include "idt.h"
 #include "x86_desc.h"   //need to include so we can modify ESP0 field of TSS -- wyatt
 #include "syscalls.h"
-
+#include "paging.h"
+#include "file_sys_driver.h"
 #define     VIDEO               0xB8000
 #define     KEYBOARD_PORT       0x60       //WYATT ADDED
 #define     NUM_COLS            80
@@ -50,6 +51,7 @@ Side effects: Handles the exception/interrupt raised by the keyboard. Upon the p
 int shift = 0;
 int cap = 0;
 int ctrl = 0;
+int alt = 0;
 // variables that keep track of the x and y position of the cursor
 uint16_t x;
 uint16_t y;
@@ -171,6 +173,69 @@ void kb_handler() {
         send_eoi(1);
         return;
     }
+
+    if(key == 0x38){
+        alt = 1;
+        send_eoi(1);
+        return;
+    }else if(key == 0xB8){
+        alt = 0;
+        send_eoi(1);
+        return;
+    }
+
+
+    #define TERMINAL1_PHYSICAL  0xB8
+    #define TERMINAL2_PHYSICAL  0xB9
+    #define TERMINAL3_PHYSICAL  0xBA
+    //alt and F1 has been pressed
+
+
+
+// JUST SWITCHING THE MAPPING DOESNT REDRAW THE SCREEN
+
+
+//Maybe just a redraw screen function
+    if(alt && key == 0x3B){
+        first_page_table[0xB8].p_base_addr = TERMINAL1_PHYSICAL; // mem addr
+        // reset where the cursor index is for each term
+    }
+
+    if(alt && key == 0x3C){
+        
+        first_page_table[0xB8].p_base_addr = TERMINAL2_PHYSICAL;
+        // printf("\n alt and F2 are pressed");
+        if(terminal_processes[1] == -1){
+            uint8_t shell_var[5] = "shell";
+            // sys_execute(shell_var);
+            terminal_processes[1] = 1; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
+            clear(); 
+            // reset where the cursor index is for each term
+            //INITIATE START SHELL SEQUENCE
+            //give it a process for shell, unless we are using the max amount of processes
+        }
+
+    }
+
+    if(alt && key == 0x3D){
+        
+        first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
+        // printf("\n alt and F3 are pressed");
+        if(terminal_processes[2] == -1){
+
+            uint8_t shell_var[5] = "shell";
+            sys_execute(shell_var);
+            //INITIATE START SHELL SEQUENCE
+            //give it a process for shell, unless we are using the max amount of processes
+            terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
+            clear();
+            // reset where the cursor index is for each term
+            
+        }
+    }
+
+
+
     // pressing caps lock
     if (key == 0x3A) {
         cap = !cap;

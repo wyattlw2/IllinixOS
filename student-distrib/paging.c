@@ -5,6 +5,7 @@
 
 
 #define VIDEO               0xB8000
+
 #define KERNEL_START        0x01
 
 #define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
@@ -38,9 +39,25 @@ void paging_init()  {
         first_page_table[i].p = 0;  //MARK ALL OTHER PAGES AS NONPRESENT
         first_page_table[i].rw = 1;
     }
-    first_page_table[0xB8].us = 0; //NNEEEDS TO BE THE B8 INDEX
-    first_page_table[0xB8].p = 1;
-    first_page_table[0xB8].p_base_addr = VIDEO >> 12;
+    //VIDEO MEMORY -- MAIN
+    first_page_table[0xB8].us = 0; //Supervisor privilege
+    first_page_table[0xB8].p = 1; // present
+    first_page_table[0xB8].p_base_addr = VIDEO >> 12; // mem addr
+
+
+
+
+    // first_page_table[0xB5].us = 0; //supervisor privilege
+    // first_page_table[0xB5].p = 1;  // present
+    // first_page_table[0xB5].p_base_addr = TERMINAL1_PHYSICAL;
+
+    // first_page_table[0xB6].us = 0; //supervisor privilege
+    // first_page_table[0xB6].p = 1;  // present
+    // first_page_table[0xB6].p_base_addr = TERMINAL2_PHYSICAL;
+
+    // first_page_table[0xB7].us = 0; //supervisor privilege
+    // first_page_table[0xB7].p = 1;  // present
+    // first_page_table[0xB7].p_base_addr = TERMINAL3_PHYSICAL;
 
 
     //KERNEL DIRECTORY SETUP
