@@ -350,7 +350,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 return;
             }else{
 
-                 terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
+                terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
                 terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
                 terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
                 terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
