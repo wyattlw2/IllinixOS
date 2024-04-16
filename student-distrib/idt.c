@@ -234,6 +234,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
                 asm volatile("movl %ebx, %cr3");
                 tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
+                // tss.ss = terminal_processes[active_terminal].SS_SAVE;
                 asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
                 asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].SS_SAVE) : "memory");  // push SS that was stored in the executable file
                 asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].ESP_SAVE) : "memory");  // push ESP that was stored in the executable file
@@ -311,6 +312,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
             asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
             asm volatile("movl %ebx, %cr3");
             tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4;
+            // tss.ss = terminal_processes[active_terminal].SS_SAVE;
             asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
             asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].SS_SAVE) : "memory");  //setup the iret
             asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].ESP_SAVE) : "memory");  
@@ -387,7 +389,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
             asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
             asm volatile("movl %ebx, %cr3");
             tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
-            
+            // tss.ss = terminal_processes[active_terminal].SS_SAVE;
             
             //CONTEXT SWITCHING BETWEEN PROCESSES
             asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));

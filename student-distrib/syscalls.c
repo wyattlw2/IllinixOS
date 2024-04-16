@@ -147,6 +147,7 @@ void sys_halt(uint8_t status) {
     }
 
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
+    
     // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
     kb_idx[active_terminal] = 0;
     setup = 1;
@@ -163,6 +164,7 @@ void sys_halt(uint8_t status) {
 
     int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
     current_process_idx = PCB_array[current_process_idx]->parent_PID;
+    terminal_processes[active_terminal].active_process_PID = current_process_idx;
     // printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
     
     if(EXCEPTION_FLAG == 1)  {
