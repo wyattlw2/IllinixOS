@@ -148,7 +148,7 @@ void sys_halt(uint8_t status) {
 
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
     // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
-    kb_idx = 0;
+    kb_idx[active_terminal] = 0;
     setup = 1;
 
 

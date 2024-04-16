@@ -1,10 +1,11 @@
 #include "terminal.h"
+#include "file_sys_driver.h"
 
 #define     MAX_BUFF_SIZE       128
 #define     NUM_COLS      80
 // buffers for collecting keyboard data and to print it
-char kb_buff[128];
-int kb_idx = 0;
+char kb_buff[3][128];
+int kb_idx[3] = {0,0,0};
 char buf[128];
 char get_args_buf[128];
 // keeps track of whether enter is pressed to print buf
@@ -92,14 +93,14 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     while (1) {
         count = 0;
         for (i = 0; i < upper_bound; i++) { // copy every character
-            ((char*)buf)[i] = kb_buff[i];
+            ((char*)buf)[i] = kb_buff[active_terminal][i];
             // (get_args_buf)[i] = kb_buff[i];
             count++;
-            if (kb_buff[i] == '\n') {
+            if (kb_buff[active_terminal][i] == '\n') {
                 b = 1;
                 break;
             }
-             if (kb_buff[i] == ' ') { // might want to set a flag such that for the rest of this string will be null characters or something -DVT
+             if (kb_buff[active_terminal][i] == ' ') { // might want to set a flag such that for the rest of this string will be null characters or something -DVT
                     // arg_start = i + 1;
                     ((char*)buf)[i] = '\0';
                 }
@@ -114,7 +115,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
             
            
             for (i = 0; i < 128; i++) { // clear every character in the kb buff
-                kb_buff[i] = '\t';
+                kb_buff[active_terminal][i] = '\t';
             }
             break;
         }

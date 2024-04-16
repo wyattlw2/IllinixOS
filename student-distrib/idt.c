@@ -94,10 +94,10 @@ void kb_handler() {
     if (key == 0x0F) {
         int i;
         for (i = 0; i < 4; i++) { // i < 4 because tab prints 4 spaces
-            if (kb_idx != MAX_BUFF_SIZE - 1) {
+            if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) {
                 putc(' ');
-                kb_buff[kb_idx] = ' ';
-                kb_idx++;
+                kb_buff[active_terminal][kb_idx[active_terminal]] = ' ';
+                kb_idx[active_terminal]++;
             }
         }
         send_eoi(1);
@@ -105,9 +105,9 @@ void kb_handler() {
     }
     // if space is pressed
     if (key == 0x39) {
-        if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-            kb_buff[kb_idx] = ' ';
-            kb_idx++;
+        if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+            kb_buff[active_terminal][kb_idx[active_terminal]] = ' ';
+            kb_idx[active_terminal]++;
             putc(' ');
         }
     }
@@ -131,9 +131,9 @@ void kb_handler() {
                 update_xy(x-1, y);
                 update_cursor(x-1, y);
             }
-            if (kb_idx != 0) { // if buffer isn't empty already
-                kb_idx -= 1;
-                kb_buff[kb_idx] = '\t'; // code for not print anything
+            if (kb_idx[active_terminal] != 0) { // if buffer isn't empty already
+                kb_idx[active_terminal] -= 1;
+                kb_buff[active_terminal][kb_idx[active_terminal]] = '\t'; // code for not print anything
             }
         }
         send_eoi(1);
@@ -152,10 +152,10 @@ void kb_handler() {
         if (y == 0 && x != 0) {
             putc('\n');
         }
-        kb_buff[kb_idx] = '\n';
+        kb_buff[active_terminal][kb_idx[active_terminal]] = '\n';
         // user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
-        kb_idx = 0;
+        kb_idx[active_terminal] = 0;
         setup = 1;
         send_eoi(1);
         return;
@@ -376,9 +376,9 @@ void kb_handler() {
                     p = table_kb[key + SPEC_CHAR_OFFSET];
                 }
 
-                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[kb_idx] = p;
-                    kb_idx++;
+                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
+                    kb_idx[active_terminal]++;
                     putc(p);
                 }
             }
@@ -396,9 +396,9 @@ void kb_handler() {
                     p = table_kb[key + SPEC_CHAR_OFFSET];
                 }
 
-                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[kb_idx] = p;
-                    kb_idx++;
+                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
+                    kb_idx[active_terminal]++;
                     putc(p);
                 }
             }
@@ -408,9 +408,9 @@ void kb_handler() {
         if (key <= 0x37) { // if it's within our non special character bound
             char p = table_kb[key + SPEC_CHAR_OFFSET];
             if (p != '\0') { // check it's printable character 
-                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[kb_idx] = p;
-                    kb_idx++;
+                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
+                    kb_idx[active_terminal]++;
                     putc(p);
                 }
             }
@@ -420,9 +420,9 @@ void kb_handler() {
         if (key <= 0x37) { // if it's within our non special character bound
             char p = table_kb[key];
             if (p != '\0') { // check it's printable character
-                if (kb_idx != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[kb_idx] = p;
-                    kb_idx++;
+                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
+                    kb_idx[active_terminal]++;
                     putc(p);
                 }
             }

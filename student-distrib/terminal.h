@@ -15,9 +15,9 @@ int32_t t_write(int32_t fd, const void* buf, int32_t nbytes);
 
 
 // Takes in characters as they're written to the screen
-extern char kb_buff[128];
+extern char kb_buff[3][128];
 // a helper variable that keeps track of available space in the kb_buff
-extern int kb_idx;
+extern int kb_idx[3];
 
 // buf copies from kb_buff and is used to write to the screen
 extern char buf[128];

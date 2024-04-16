@@ -21,6 +21,6 @@ rtc.o: rtc.c rtc.h types.h lib.h idt.h x86_desc.h keyboard.h terminal.h \
 syscalls.o: syscalls.c idt.h types.h x86_desc.h lib.h keyboard.h \
   terminal.h i8259.h asm_macro.h file_sys_driver.h paging.h rtc.h
 terminal.o: terminal.c terminal.h types.h lib.h idt.h x86_desc.h \
-  keyboard.h i8259.h asm_macro.h
+  keyboard.h i8259.h asm_macro.h file_sys_driver.h
 tests.o: tests.c tests.h x86_desc.h types.h terminal.h lib.h idt.h \
   keyboard.h i8259.h asm_macro.h rtc.h file_sys_driver.h
