@@ -1,8 +1,10 @@
 //#include "asm_macro.h"
 //#include "idt.h"
-
 // sets up the necessary infrastructure for exception handling
 // our actual handler contains the logic for handling different exceptions -- James
+
+
+
 #define MY_ASM_MACRO(function_name, handler, vector) \
     .global function_name ;\
     function_name: ;\
@@ -14,6 +16,39 @@
         popfl ;\
         popal ;\
         iret ;\
+
+#define MY_ASM_MACRO_KEYBOARD(function_name, handler, vector) \
+        .global function_name ;\
+        function_name: ;\
+        movl (%esp), %eax ;\
+        movl %eax, EIP_SAVE ;\
+        movl 4(%esp), %eax ;\
+        movl %eax, CS_SAVE ;\
+        movl 8(%esp), %eax ;\
+        movl %eax, EFLAGS_SAVE ;\
+        movl 12(%esp), %eax ;\
+        movl %eax, ESP_SAVE ;\
+        movl 16(%esp), %eax ;\
+        movl %eax, SS_SAVE ;\
+        pushal ;\
+        pushfl ;\
+        pushl %ebp ;\
+        movl SS_SAVE, %eax ;\
+        push %eax ;\
+        movl ESP_SAVE, %eax ;\
+        push %eax ;\
+        movl EFLAGS_SAVE, %eax ;\
+        push %eax ;\
+        movl CS_SAVE, %eax ;\
+        push %eax ;\
+        movl EIP_SAVE, %eax ;\
+        pushl %eax ;\
+        call handler ;\
+        addl $24, %esp ;\
+        popfl ;\
+        popal ;\
+        iret ;\
+        
 // same macro as above but for interrupts with error code -- James
 #define MY_ASM_MACRO_ERR_CODE(function_name, handler, vector) \
     .global function_name ;\
@@ -62,7 +97,7 @@ MY_ASM_MACRO(mc, exec_handler18, 18);
 MY_ASM_MACRO(xf, exec_handler19, 19);
 // 20 is reserved
 MY_ASM_MACRO_SYS_CALL(sys_call);
-MY_ASM_MACRO(keyboard_call, kb_handler, 0x21);  //handles keyboard interrupts
+MY_ASM_MACRO_KEYBOARD(keyboard_call, kb_handler, 0x21);  //handles keyboard interrupts
 MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
 
 
@@ -72,8 +107,21 @@ MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
 
 # Wyatt -- added Addendum B system call labels below this point. i think this will work.
 
+
+EIP_SAVE:
+    .long 0
+CS_SAVE:
+    .long 0
+EFLAGS_SAVE:
+    .long 0
+ESP_SAVE:
+    .long 0
+SS_SAVE:
+    .long 0
+
 storage:
     .long 0
+
 
 jumptable:
     .long ERROR

@@ -74,6 +74,14 @@ typedef struct terminal_info_t {
     int32_t active_process_PID; // PID
     int32_t cursor_x;
     int32_t cursor_y;
+
+    //values below must be saved for the purpose of context switches
+    uint32_t EIP_SAVE;
+    uint32_t CS_SAVE;
+    uint32_t EFLAGS_SAVE;
+    uint32_t ESP_SAVE;
+    uint32_t SS_SAVE;
+    uint32_t EBP_SAVE;
 }terminal_info_t;
 
 
