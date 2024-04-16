@@ -410,6 +410,7 @@ static char * video_mem1 = (char *) 0xBA000;
 static char * video_mem2 = (char *) 0xBB000;
 static char * video_mem3 = (char *) 0xBC000;
 void terminal_init(){
+    no_parent_shell_flag = 1; // WE DO THIS BECAUSE WE EXPECT THE FIRST PROCESS TO BE CREATED TO BE A NO-PARENT SHELL
     active_terminal = 0;
     terminal_processes[0].active_process_PID = 0;
     terminal_processes[1].active_process_PID = -1;
@@ -426,7 +427,7 @@ void terminal_init(){
         
     // }
 
-    for (i = 0; i < NUM_ROWS - 1; i++) {
+    for (i = 0; i < NUM_ROWS; i++) {
             int screen_x = 0;
             int screen_y = i;
             for (j = 0; j < NUM_COLS; j++) {

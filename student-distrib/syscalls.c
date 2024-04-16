@@ -49,7 +49,7 @@
 int32_t num_active_processes = 0;   // cannot be decremented below 1 once it reaches that value. used in sys_halt() to determine
                                     // if halting the process will result in 0 running programs.
 
-int32_t prev_PID = 70;  //initialized to 70 because we need to signify that the first process has no valid parent PID
+// int32_t prev_PID[3] = {-1,-1,-1};  //initialized to 70 because we need to signify that the first process has no valid parent PID
 
 
 static int32_t *rtc_functions[4] = {(int32_t*)rtc_open, (int32_t*)rtc_close, (int32_t*)rtc_read, (int32_t*)rtc_write};
@@ -105,17 +105,19 @@ int32_t sys_close(int32_t fd) {
 
 void sys_halt(uint8_t status) {
 
-    if(num_active_processes == 1)   {
+    if(PCB_array[current_process_idx]->parent_PID == -1)   {
         // printf("\n Can't Close Shell!! \n");
         int8_t var[32] = {"shell"};
         //restarting shell sequence
             
-        prev_PID = 70;                  //signify that the process has no parent process
+        // prev_PID = -1;                  //signify that the process has no parent process
+        // might not matter but be careful
 
         num_active_processes--;         //must do this here because we increment this value in execute
 
         processes_active[current_process_idx] = 0;  //signify that the currently executing program needs to be re-executed in the same spot!
                                                     //this is hardcoded to call shell.exe for now, but why would you want to call anything else?
+        no_parent_shell_flag = 1;
         asm volatile (
             "movl %0, %%ebx;"   // Move the address of var into register ebx
             :                   // Output operand list is empty
@@ -156,7 +158,7 @@ void sys_halt(uint8_t status) {
     tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->parent_PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
 
      //updating current process index to be the parent's PID
-    prev_PID = PCB_array[current_process_idx]->parent_PID;  //update previous process index to be the parent's parent_PID
+    // prev_PID[active_terminal] = PCB_array[current_process_idx]->parent_PID;  //update previous process index to be the parent's parent_PID
     num_active_processes--;
 
     int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
@@ -263,7 +265,13 @@ int32_t sys_execute(uint8_t * command) {
                 PID = i; // ASSIGNING PROCESS ID NUMBER
                 PCB = (process_control_block_t *) (EIGHT_MB - (PID+1)*EIGHT_KB); // ASSIGNS THE ADDRESS OF THE PCB based on what process it is
                 PCB_array[i] = PCB;
-                PCB->parent_PID = prev_PID; // specifies if the current process is a child of another process.
+                if(no_parent_shell_flag){
+                    PCB->parent_PID = -1; // THERE is no parent process
+                    no_parent_shell_flag = 0;
+                }else{
+                    PCB->parent_PID = current_process_idx;  //should be equal to PID of previous process
+                }
+                 // specifies if the current process is a child of another process.
                                             // if it is, set it equal to the PID of the parent process.
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
@@ -326,7 +334,7 @@ int32_t sys_execute(uint8_t * command) {
         PCB->PID = PID;
         PCB->EBP = ebp_save;
         PCB->ESP = esp_save;
-        prev_PID = PID;     //Have to save the current PID as the last PID
+        // prev_PID[active_terminal] = PID;     //Have to save the current PID as the last PID
         current_process_idx = PID;
         PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read; //setting std in
         PCB_array[current_process_idx]->fdesc_array.fd_entry[0].flags = 1;

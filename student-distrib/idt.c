@@ -69,7 +69,8 @@ uint16_t og_y;
 
 int next_row_flag;
 int setup = 1;
-int send_eoi_kb_flag=0;
+int no_parent_shell_flag=0;
+// int send_eoi_kb_flag=0;
 // int enter_flag=0;
 void kb_handler() {
 
@@ -248,8 +249,9 @@ void kb_handler() {
                 move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
                 update_xy(0, 0);
                 update_cursor(0, 0);
-                send_eoi(1);
                 terminal_processes[1].active_process_PID = process_to_be_set;
+                no_parent_shell_flag = 1;
+                send_eoi(1);
                 sys_execute(shell_var);
                 return;
             }
@@ -271,33 +273,58 @@ void kb_handler() {
             return;
         }
 
-    // }
+    }
 
     //ALT and F3 is Pressed
     else if(alt && key == 0x3D){
                 move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-                active_terminal = 2;
-                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                terminal_processes[active_terminal].cursor_x = screen_x;
+                terminal_processes[active_terminal].cursor_y = screen_y;
+                // return;
+        // // printf("\n alt and F2 are pressed");
+        if(terminal_processes[2].active_process_PID == -1){ // IF THIS IS THE FIRST TIME THE TERMINAL HAS BEEN OPENED
+            uint8_t shell_var[6] = "shell";
+            // terminal_processes[1] = 1;
+            int i;
+            int process_to_be_set = -1;
+            for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
+                if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
+                    process_to_be_set = i;
+                    break;
+                }
+            }
+            if(process_to_be_set == -1){ // check if there is an open process to make a shell
+                printf("\n All Processes are full");
                 send_eoi(1);
                 return;
-
-
-    // move_four_kb((uint8_t *) 0xB8000, (uint8_t *) 0xBA000 + active_terminal*FOUR_KB); // saving the current vmem
-        // first_page_table[0xB8].p_base_addr = TERMINAL3_PHYSICAL;
-        // printf("\n alt and F3 are pressed");
-        // if(terminal_processes[2] == -1){
-
-        //     uint8_t shell_var[5] = "shell";
-        //     sys_execute(shell_var);
-        //     //INITIATE START SHELL SEQUENCE
-        //     //give it a process for shell, unless we are using the max amount of processes
-        //     terminal_processes[2] = 2; // CHANGE THIS TOMORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROW
-        //     clear();
-        //     send_eoi(1);
-        //     return;
-        //     // reset where the cursor index is for each term
+            }else{
+                active_terminal = 2;
+                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+                update_xy(0, 0);
+                update_cursor(0, 0);
+                no_parent_shell_flag = 1;
+                terminal_processes[2].active_process_PID = process_to_be_set;
+                send_eoi(1);
+                sys_execute(shell_var);
+                return;
+            }
             
-        // }
+        }else{
+            //TERMINAL IS ALREADY DECLARED
+            active_terminal = 2;
+            move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+            update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+            update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+            send_eoi(1);
+            
+            
+            
+            //CONTEXT SWITCHING BETWEEN PROCESSES
+
+
+
+            return;
+        }
     }
 
 
