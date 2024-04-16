@@ -213,6 +213,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 terminal_processes[active_terminal].cursor_x = screen_x;
                 terminal_processes[active_terminal].cursor_y = screen_y;
                 if(active_terminal == 0){ // if we don't have to context switch, just don't
+                send_eoi(1);
                     return;
                 }
                 terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
@@ -251,6 +252,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 terminal_processes[active_terminal].cursor_x = screen_x;
                 terminal_processes[active_terminal].cursor_y = screen_y;
                 if(active_terminal == 1){ // if we don't have to context switch, just don't
+                send_eoi(1);
                     return;
                 }
                 // return;
@@ -331,6 +333,7 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 terminal_processes[active_terminal].cursor_x = screen_x;
                 terminal_processes[active_terminal].cursor_y = screen_y;
                 if(active_terminal == 2){ // if we don't have to context switch, just don't
+                send_eoi(1);
                     return;
                 }
                 // return;
