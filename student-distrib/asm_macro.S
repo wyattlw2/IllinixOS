@@ -52,6 +52,7 @@
         jmp *jumptable(,%eax,4) ;\
 
 
+// don't need to make a macro for PIT. we can reuse the macro we made for cp1!
 
 MY_ASM_MACRO(de, exec_handler0, 0); // THIS MIGHT NEED TO BE FIXED LATER
 MY_ASM_MACRO(db, exec_handler1, 1);
@@ -78,6 +79,7 @@ MY_ASM_MACRO_SYS_CALL(sys_call);
 MY_ASM_MACRO_KEYBOARD(keyboard_call, kb_handler, 0x21);  //handles keyboard interrupts
 MY_ASM_MACRO(rtc_call, rtc_handler, 0x28);      //handles rtc interrupts
 
+MY_ASM_MACRO(pit_call, pit_handler, 0x20);      //handles PIT interrupts -- CP5
 
 
 

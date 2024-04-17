@@ -427,6 +427,8 @@ void terminal_init(){
         
     // }
 
+
+    //the stuff below here initializes the video memory for each terminal
     for (i = 0; i < NUM_ROWS; i++) {
             int screen_x = 0;
             int screen_y = i;

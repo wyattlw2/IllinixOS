@@ -1,0 +1,11 @@
+CP5 BUGLOG.txt
+
+
+1. Terminal context switch was working for every program except for counter. Our method of context switching was putting values on the stack and calling iret. We assumed the stack would provide the necessary values for a context switch in the same order every time
+
+Solution: Somehow, pushing values on the stack did not work. We changed our context switch method for the terminals -- we saved ESP and EBP via a struct member and restored those values whenever we wanted to do a context switch between terminals
+
+
+
+
+2. 

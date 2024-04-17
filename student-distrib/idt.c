@@ -774,6 +774,7 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     idt_array_index->dpl = 3; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
     SET_IDT_ENTRY((*idt_array_index), keyboard_call);
+
     //SETTING UP THE RTC FOR THE HANDLER
     idt_array_index = &(idt[0x28]);
     idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
@@ -787,6 +788,23 @@ void initialize_idt(){ // need to set all 256 to something, zero everything out 
     idt_array_index->dpl = 0; // this one is also going to depend on syscall vs trap/interrupt
     idt_array_index->present = 1; // 90% sure this bit needs to be 1 or else it won't like the address
     SET_IDT_ENTRY((*idt_array_index), rtc_call);
+
+
+    //set up the PIT for scheduling -- CP5
+    //based on OSDev, looks like we can just map it straight to 0x20.
+    //also based on OSDev, looks like the PIT should be mapped to IRQ0 on the master PIC
+    idt_array_index = &(idt[0x20]);
+    idt_array_index->seg_selector = KERNEL_CS; //This represents the kernel CS <- i think this is defined in x86_desc?
+    idt_array_index->reserved4 = 0;
+    idt_array_index->reserved3 = 0; // 0 corresponds to interrupt, 1 is trap
+    idt_array_index->reserved2 = 1; // RESERVED BITS 0-2 are specified on intel's x86 documentation
+    idt_array_index->reserved1 = 1;
+    idt_array_index->size = 1; // Means we are in 32 bit mode
+    idt_array_index->reserved0 = 0;
+    
+    idt_array_index->dpl = 0; // user should not have access to scheduling information...(?)
+    idt_array_index->present = 1; 
+    SET_IDT_ENTRY((*idt_array_index), pit_call);
 }
 
 /*

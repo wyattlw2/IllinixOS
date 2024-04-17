@@ -27,6 +27,8 @@ void keyboard_call();
 void rtc_call();
 void jumptable_dispatcher();
 
+void pit_call();        //used for scheduling in CP5
+
 void RTCJ();
 void FILEJ();
 void DIRJ();

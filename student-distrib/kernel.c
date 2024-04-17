@@ -13,6 +13,7 @@
 #include "rtc.h"
 #include "paging.h"
 #include "file_sys_driver.h"
+#include "scheduling.h"
 
 #define RUN_TESTS   1
 
@@ -159,8 +160,11 @@ void entry(unsigned long magic, unsigned long addr) {
 
     paging_init(); // INIT Paging
 
-    terminal_init();
+    terminal_init();    // init terminal -- CP5
     
+    init_pit();     // init PIT -- CP5
+                    // initializing the PIT enables scheduling
+
     sti();
     
     launch_tests();

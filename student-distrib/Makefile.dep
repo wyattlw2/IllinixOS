@@ -9,7 +9,7 @@ idt.o: idt.c idt.h types.h x86_desc.h lib.h keyboard.h terminal.h i8259.h \
   asm_macro.h syscalls.h paging.h file_sys_driver.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h idt.h keyboard.h \
   terminal.h i8259.h asm_macro.h debug.h tests.h rtc.h paging.h \
-  file_sys_driver.h
+  file_sys_driver.h scheduling.h
 keyboard.o: keyboard.c keyboard.h types.h x86_desc.h lib.h idt.h \
   terminal.h i8259.h asm_macro.h
 lib.o: lib.c lib.h types.h idt.h x86_desc.h keyboard.h terminal.h i8259.h \
@@ -18,6 +18,8 @@ paging.o: paging.c paging.h types.h x86_desc.h lib.h idt.h keyboard.h \
   terminal.h i8259.h asm_macro.h
 rtc.o: rtc.c rtc.h types.h lib.h idt.h x86_desc.h keyboard.h terminal.h \
   i8259.h asm_macro.h
+scheduling.o: scheduling.c scheduling.h types.h lib.h idt.h x86_desc.h \
+  keyboard.h terminal.h i8259.h asm_macro.h
 syscalls.o: syscalls.c idt.h types.h x86_desc.h lib.h keyboard.h \
   terminal.h i8259.h asm_macro.h file_sys_driver.h paging.h rtc.h
 terminal.o: terminal.c terminal.h types.h lib.h idt.h x86_desc.h \
