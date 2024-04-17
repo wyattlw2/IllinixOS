@@ -77,6 +77,10 @@ int next_row_flag[3];
 int setup = 1;
 int no_parent_shell_flag=0;
 void kb_handler() {
+    cli();
+    first_page_table[0xB8].p_base_addr = 0xB8;
+    asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+    asm volatile("movl %ebx, %cr3");
     // register uint32_t ebp asm("ebp");
     // register uint32_t esp asm("esp");
     // uint32_t EBP_SAVE = ebp;
@@ -109,6 +113,7 @@ void kb_handler() {
             }
         }
         send_eoi(1);
+        sti();
         return;
     }
     // if space is pressed
@@ -145,6 +150,7 @@ void kb_handler() {
             }
         }
         send_eoi(1);
+        sti();
         return;
     }
 
@@ -166,6 +172,7 @@ void kb_handler() {
         kb_idx[displayed_terminal] = 0;
         setup = 1;
         send_eoi(1);
+        sti();
         return;
     }
 
@@ -173,11 +180,13 @@ void kb_handler() {
     if (key == 0x1D) {
         ctrl = 1;
         send_eoi(1);
+        sti();
         return;
     // if LEFT or RIGHT ctrl released
     } else if (key == 0x9D) {
         ctrl = 0;
         send_eoi(1);
+        sti();
         return;
     }
 
@@ -185,21 +194,25 @@ void kb_handler() {
     if (key == 0x36 || key == 0x2A) {
         shift = 1;
         send_eoi(1);
+        sti();
         return;
     // right or left shift is released
     } else if (key == 0xAA || key == 0xB6) {  
         shift = 0;
         send_eoi(1);
+        sti();
         return;
     }
 
     if(key == 0x38){
         alt = 1;
         send_eoi(1);
+        sti();
         return;
     }else if(key == 0xB8){
         alt = 0;
         send_eoi(1);
+        sti();
         return;
     }
 
@@ -214,6 +227,9 @@ void kb_handler() {
     //ALT and F1 is Pressed
     if(alt && key == 0x3B){        
         //SAVE RELEVANT INFO
+        first_page_table[0xB8].p_base_addr = 0xB8;
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
         terminal_processes[displayed_terminal].cursor_x = screen_x; //saving screenx/screeny
         terminal_processes[displayed_terminal].cursor_y = screen_y;
@@ -221,6 +237,8 @@ void kb_handler() {
         terminal_processes[displayed_terminal].togy = og_y;
         if (displayed_terminal == 0) { // if we don't have to context switch, just don't
             send_eoi(1);
+            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+            sti();
             return;
         }
         //updating everything for terminal 0
@@ -231,10 +249,15 @@ void kb_handler() {
         og_x = terminal_processes[displayed_terminal].togx;
         og_y = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
+        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+        sti();
         return;
     } 
     
     else if (alt && key == 0x3C) { //ALT and F2 is Pressed
+        first_page_table[0xB8].p_base_addr = 0xB8;
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
         terminal_processes[displayed_terminal].cursor_x = screen_x; //saving screen x/y
         terminal_processes[displayed_terminal].cursor_y = screen_y;
@@ -242,6 +265,8 @@ void kb_handler() {
         terminal_processes[displayed_terminal].togy = og_y;
         if (displayed_terminal == 1) { // if we don't have to context switch, just don't
             send_eoi(1);
+            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+            sti();
             return;
         }
         displayed_terminal = 1;
@@ -251,9 +276,14 @@ void kb_handler() {
         og_x = terminal_processes[displayed_terminal].togx;
         og_y = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
+        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+        sti();
         return;
     //ALT and F3 is Pressed
     }else if(alt && key == 0x3D){
+        first_page_table[0xB8].p_base_addr = 0xB8;
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
         terminal_processes[displayed_terminal].cursor_x = screen_x;
         terminal_processes[displayed_terminal].cursor_y = screen_y;
@@ -261,16 +291,20 @@ void kb_handler() {
         terminal_processes[displayed_terminal].togy = og_y;
         if(displayed_terminal == 2){ // if we don't have to context switch, just don't
             send_eoi(1);
+            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+            sti();
             return;
         }
-            displayed_terminal = 2;
-            move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-            update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-            update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-            send_eoi(1);
-            og_x = terminal_processes[displayed_terminal].togx;
-            og_y = terminal_processes[displayed_terminal].togy;
-            return;
+        displayed_terminal = 2;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        og_x = terminal_processes[displayed_terminal].togx;
+        og_y = terminal_processes[displayed_terminal].togy;
+        send_eoi(1);
+        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+        sti();
+        return;
     }
 
 
@@ -279,6 +313,7 @@ void kb_handler() {
     if (key == 0x3A) {
         cap = !cap;
         send_eoi(1);
+        sti();
         return;
     }
 
@@ -295,6 +330,7 @@ void kb_handler() {
         // uint8_t string[1];
         // string[0] = '\n';
         // t_write(1, string, 1);
+        sti();
         return;
     }
 
@@ -375,6 +411,7 @@ void kb_handler() {
         }
     }
     send_eoi(1);
+    sti();
 }
 
 

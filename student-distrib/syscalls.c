@@ -344,10 +344,10 @@ int32_t sys_execute(uint8_t * command) {
         tss.esp0 = (EIGHT_MB - (PID)*EIGHT_KB) - 4; // updating the esp0
 
 
-        sti();                                                                          //ADDED THIS TO FIX THE KB BUG WHEN SWITCHING TERMINALS on 4/15
+        sti();      // NEED TO GET RID OF THIS
         asm volatile("pushl $0x002B"); // pushing User DS
         asm volatile("pushl $0x083ffffc"); //This Userspace stack pointer always starts here
-        asm volatile("pushfl"); // this could be off -- pushing flags
+        asm volatile("pushfl"); // this could be off -- pushing flags -- NEED TO MODIFY THE FLAGS AND PUSH THEM WITH INTERRUPTS ENABLED
         asm volatile("pushl $0x0023");  //pushing the USER CS
         asm volatile("pushl %0" : : "r" (EIP_save) : "memory");  // push EIP that was stored in the executable file
        
