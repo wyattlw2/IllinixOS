@@ -1,4 +1,6 @@
 #include "scheduling.h"
+#include "syscalls.h"
+#include "paging.h"
 // #include "types.h"
 
 #define PIT_CHANNEL0 0x40
@@ -7,7 +9,9 @@
 
 #define DESIRED_FREQUENCY 100
 
-
+#define     EIGHT_MB                            (1 << 23)// change back to 23// 4096 bytes * 8 bits per byte
+#define     EIGHT_KB                            (1 << 13)
+#define     PID_OFFSET_TO_GET_PHYSICAL_ADDRESS      2
 
 
 #define NUM_ROWS    25
@@ -17,24 +21,16 @@
 static char * video_mem1 = (char *) 0xBA000;
 static char * video_mem2 = (char *) 0xBB000;
 static char * video_mem3 = (char *) 0xBC000;
+
 void terminal_init(){
     no_parent_shell_flag = 1; // WE DO THIS BECAUSE WE EXPECT THE FIRST PROCESS TO BE CREATED TO BE A NO-PARENT SHELL
-    active_terminal = 0;
+    displayed_terminal = 0;
+    scheduled_terminal = 0; // CP5
     terminal_processes[0].active_process_PID = 0;
-    terminal_processes[1].active_process_PID = -1;
-    terminal_processes[2].active_process_PID = -1;
+    terminal_processes[1].active_process_PID = 1;
+    terminal_processes[2].active_process_PID = 2;
     int i;
     int j;
-    // uint8_t * t1 = (uint8_t *)0xBA000;
-    // uint8_t * t2 = (uint8_t *)0xBB000;
-    // uint8_t * t3 = (uint8_t *)0xBC000;
-    // for(i=0; i<4096; i++){
-    //     *(uint8_t *)(t1+(i << 1) + 1) = ATTRIB;
-    //     *(uint8_t *)(t2+(i << 1) + 1) = ATTRIB;
-    //     *(uint8_t *)(t3+(i << 1) + 1) = ATTRIB;
-        
-    // }
-
 
     //the stuff below here initializes the video memory for each terminal
     for (i = 0; i < NUM_ROWS; i++) {
@@ -69,26 +65,51 @@ void init_pit() {
     printf("PIT: Initialized\n");
 }
 
-// void timer_phase(int hz)
-// {
-//     int divisor = 1193180 / hz;       /* Calculate our divisor */
-//     outportb(0x43, 0x36);             /* Set our command byte 0x36 */
-//     outportb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
-//     outportb(0x40, divisor >> 8);     /* Set high byte of divisor */
-// }
 /*  pit_handler()
 
 Description: Handles PIT interrupts. We're able to do scheduling inside of the PIT, or alternatively we can make a separate scheduling function. Would prefer the latter option
 */
+
+int shell_count = 0;
 void pit_handler()  {
-    printf("\n PIT INTERRUPT");
+    register uint32_t ebp asm("ebp");
+    register uint32_t esp asm("esp");
+    uint32_t EBP_SAVE = ebp;
+    uint32_t ESP_SAVE = esp;
+    terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
+    terminal_processes[scheduled_terminal].EBP_SAVE = ESP_SAVE;
+    // terminal_processes[scheduled_terminal].active_process_PID = ; SHOULD BE SAVED IN EXEC/HALT
+    // printf("\n PIT INTERRUPT");
+    if(shell_count < 3){
+        uint8_t shell_var[6] = "shell";
+        shell_count++;
+        no_parent_shell_flag = 1;
+        printf("Shell created.\n");
+        send_eoi(0);
+        sys_execute(shell_var);
+    }
     send_eoi(0);
+    schedule();
     // sti();
-    return;
+    return; // hypotheticallu should never get here
 }
 
 void schedule() {
-    // int temp = active_terminal;
+    //these cover whenever a few terminals haven't been activated yet
+
+    //all is saved, time to change context!
+    scheduled_terminal = (scheduled_terminal +1)% 3;
+    current_process_idx = terminal_processes[scheduled_terminal].active_process_PID;
+    page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
+    asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+    asm volatile("movl %ebx, %cr3");
+    tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itsel
+    asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[scheduled_terminal].EBP_SAVE));
+    asm volatile ("movl %ebp, %esp");
+    asm volatile ("pop %ebp");
+    asm volatile("ret");
+
+
     return;
 }
 

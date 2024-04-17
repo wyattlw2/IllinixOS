@@ -8,6 +8,7 @@
 void terminal_init();
 void init_pit();
 void pit_handler();
+void schedule();
 
 typedef struct function_pointers_t {
     int32_t (*open)(uint8_t * filename);
@@ -49,7 +50,9 @@ int32_t processes_active[6]; // need to figure out more about initializing this 
 process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now --W
 int32_t current_process_idx;
 
-int32_t active_terminal;
+int32_t displayed_terminal;
+
+int32_t scheduled_terminal;
 
 typedef struct terminal_info_t {
     int32_t active_process_PID; // PID

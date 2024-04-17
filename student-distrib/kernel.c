@@ -162,12 +162,12 @@ void entry(unsigned long magic, unsigned long addr) {
 
     terminal_init();    // init terminal -- CP5
     
-    // init_pit();     // init PIT -- CP5
+    init_pit();     // init PIT -- CP5
                     // initializing the PIT enables scheduling
 
     sti();
     
-    launch_tests();
+    //launch_tests();
     //print_number_of_inodes();
 
     asm volatile (".1: hlt; jmp .1;");

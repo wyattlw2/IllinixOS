@@ -93,14 +93,14 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     while (1) {
         count = 0;
         for (i = 0; i < upper_bound; i++) { // copy every character
-            ((char*)buf)[i] = kb_buff[active_terminal][i];
+            ((char*)buf)[i] = kb_buff[displayed_terminal][i];
             // (get_args_buf)[i] = kb_buff[i];
             count++;
-            if (kb_buff[active_terminal][i] == '\n') {
+            if (kb_buff[displayed_terminal][i] == '\n') {
                 b = 1;
                 break;
             }
-             if (kb_buff[active_terminal][i] == ' ') { // might want to set a flag such that for the rest of this string will be null characters or something -DVT
+             if (kb_buff[displayed_terminal][i] == ' ') { // might want to set a flag such that for the rest of this string will be null characters or something -DVT
                     // arg_start = i + 1;
                     ((char*)buf)[i] = '\0';
                 }
@@ -115,7 +115,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
             
            
             for (i = 0; i < 128; i++) { // clear every character in the kb buff
-                kb_buff[active_terminal][i] = '\t';
+                kb_buff[displayed_terminal][i] = '\t';
             }
             break;
         }

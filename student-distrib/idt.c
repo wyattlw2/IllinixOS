@@ -77,10 +77,10 @@ int next_row_flag[3];
 int setup = 1;
 int no_parent_shell_flag=0;
 void kb_handler() {
-    register uint32_t ebp asm("ebp");
-    register uint32_t esp asm("esp");
-    uint32_t EBP_SAVE = ebp;
-    uint32_t ESP_SAVE = esp;
+    // register uint32_t ebp asm("ebp");
+    // register uint32_t esp asm("esp");
+    // uint32_t EBP_SAVE = ebp;
+    // uint32_t ESP_SAVE = esp;
     //IF we are gonna have a context switch, we save that EIP where we came from
     unsigned char key = inb(KEYBOARD_PORT);
     if (setup) {
@@ -88,13 +88,13 @@ void kb_handler() {
         og_x = p % NUM_COLS;
         og_y = p / NUM_COLS;
         setup = 0;
-        next_row_flag[active_terminal] = 0;
+        next_row_flag[displayed_terminal] = 0;
     }
-    SHELLPROMPT_DELETE_FLAG[active_terminal] = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
+    SHELLPROMPT_DELETE_FLAG[displayed_terminal] = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
     if(y > og_y)    {
-        SHELLPROMPT_DELETE_FLAG[active_terminal] = 1;    //This means -- we are on a new line without a shell prompt, you can delete in the x-coordinates corresponding to shell prompt location
+        SHELLPROMPT_DELETE_FLAG[displayed_terminal] = 1;    //This means -- we are on a new line without a shell prompt, you can delete in the x-coordinates corresponding to shell prompt location
     }
-    if(y == NUM_ROWS - 1 && og_y == NUM_ROWS - 1 && next_row_flag[active_terminal] == 1)   {
+    if(y == NUM_ROWS - 1 && og_y == NUM_ROWS - 1 && next_row_flag[displayed_terminal] == 1)   {
         og_y = NUM_ROWS - 2;    //fucking keyboard man
     }   
     
@@ -102,10 +102,10 @@ void kb_handler() {
     if (key == 0x0F) {
         int i;
         for (i = 0; i < 4; i++) { // i < 4 because tab prints 4 spaces
-            if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) {
+            if (kb_idx[displayed_terminal] != MAX_BUFF_SIZE - 1) {
                 putc(' ');
-                kb_buff[active_terminal][kb_idx[active_terminal]] = ' ';
-                kb_idx[active_terminal]++;
+                kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = ' ';
+                kb_idx[displayed_terminal]++;
             }
         }
         send_eoi(1);
@@ -113,9 +113,9 @@ void kb_handler() {
     }
     // if space is pressed
     if (key == 0x39) {
-        if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-            kb_buff[active_terminal][kb_idx[active_terminal]] = ' ';
-            kb_idx[active_terminal]++;
+        if (kb_idx[displayed_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+            kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = ' ';
+            kb_idx[displayed_terminal]++;
             putc(' ');
         }
     }
@@ -125,7 +125,7 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-        if (((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) || SHELLPROMPT_DELETE_FLAG[active_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
+        if (((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
             if (x == 0 && y != 0) { // any other row
                 update_xy(NUM_COLS - 1, y-1);
                 putc(' ');
@@ -139,9 +139,9 @@ void kb_handler() {
                 update_xy(x-1, y);
                 update_cursor(x-1, y);
             }
-            if (kb_idx[active_terminal] != 0) { // if buffer isn't empty already
-                kb_idx[active_terminal] -= 1;
-                kb_buff[active_terminal][kb_idx[active_terminal]] = '\t'; // code for not print anything
+            if (kb_idx[displayed_terminal] != 0) { // if buffer isn't empty already
+                kb_idx[displayed_terminal] -= 1;
+                kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\t'; // code for not print anything
             }
         }
         send_eoi(1);
@@ -160,10 +160,10 @@ void kb_handler() {
         if (y == 0 && x != 0) {
             putc('\n');
         }
-        kb_buff[active_terminal][kb_idx[active_terminal]] = '\n';
+        kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\n';
         // user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
-        kb_idx[active_terminal] = 0;
+        kb_idx[displayed_terminal] = 0;
         setup = 1;
         send_eoi(1);
         return;
@@ -213,185 +213,64 @@ void kb_handler() {
 
     //ALT and F1 is Pressed
     if(alt && key == 0x3B){        
-        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-        terminal_processes[active_terminal].cursor_x = screen_x;
-        terminal_processes[active_terminal].cursor_y = screen_y;
-        if (active_terminal == 0) { // if we don't have to context switch, just don't
+        //SAVE RELEVANT INFO
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[displayed_terminal].cursor_x = screen_x; //saving screenx/screeny
+        terminal_processes[displayed_terminal].cursor_y = screen_y;
+        terminal_processes[displayed_terminal].togx = og_x; //saving ogx/y
+        terminal_processes[displayed_terminal].togy = og_y;
+        if (displayed_terminal == 0) { // if we don't have to context switch, just don't
             send_eoi(1);
             return;
         }
-        terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-        terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-        terminal_processes[active_terminal].togx = og_x;
-        terminal_processes[active_terminal].togy = og_y;
-        active_terminal = 0;
-        move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-        update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+        //updating everything for terminal 0
+        displayed_terminal = 0;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        og_x = terminal_processes[displayed_terminal].togx;
+        og_y = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
-
-
-        //CONTEXT SWITCHING BETWEEN PROCESSES
-        current_process_idx = terminal_processes[active_terminal].active_process_PID;
-        og_x = terminal_processes[active_terminal].togx;
-        og_y = terminal_processes[active_terminal].togy;
-        page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
-        tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itsel
-        asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
-        asm volatile ("movl %ebp, %esp");
-        asm volatile ("pop %ebp");
-        asm volatile("ret");
         return;
     } 
     
     else if (alt && key == 0x3C) { //ALT and F2 is Pressed
-        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-        terminal_processes[active_terminal].cursor_x = screen_x;
-        terminal_processes[active_terminal].cursor_y = screen_y;
-        terminal_processes[active_terminal].togx = og_x;
-        terminal_processes[active_terminal].togy = og_y;
-        if (active_terminal == 1) { // if we don't have to context switch, just don't
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[displayed_terminal].cursor_x = screen_x; //saving screen x/y
+        terminal_processes[displayed_terminal].cursor_y = screen_y;
+        terminal_processes[displayed_terminal].togx = og_x; // 
+        terminal_processes[displayed_terminal].togy = og_y;
+        if (displayed_terminal == 1) { // if we don't have to context switch, just don't
             send_eoi(1);
             return;
         }
-                // return;
-        // // printf("\n alt and F2 are pressed");
-        if(terminal_processes[1].active_process_PID == -1){ // IF THIS IS THE FIRST TIME THE TERMINAL HAS BEEN OPENED
-            uint8_t shell_var[6] = "shell";
-            // terminal_processes[1] = 1;
-            int i;
-            int process_to_be_set = -1;
-            for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
-                if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
-                    process_to_be_set = i;
-                    break;
-                }
-            }
-            if(process_to_be_set == -1){ // check if there is an open process to make a shell
-                printf("\n All Processes are full");
-                send_eoi(1);
-                return;  
-            }else{
-                terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-                terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-                active_terminal = 1;
-                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-                update_xy(0, 0);
-                update_cursor(0, 0);
-                terminal_processes[1].active_process_PID = process_to_be_set;
-                no_parent_shell_flag = 1;
-                send_eoi(1);
-                sys_execute(shell_var);
-                return;
-            }
-        }else{
-            //TERMINAL IS ALREADY DECLARED
-            terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-            terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-            active_terminal = 1;
-            move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-            update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-            update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-            send_eoi(1);
-            //DEFINITELY SAVE ALL THE BS
-            
-            
-            //CONTEXT SWITCHING BETWEEN PROCESSES
-            current_process_idx = terminal_processes[active_terminal].active_process_PID;
-            og_x = terminal_processes[active_terminal].togx;
-            og_y = terminal_processes[active_terminal].togy;
-            page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
-            asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-            asm volatile("movl %ebx, %cr3");
-            tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4;
-            asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
-            asm volatile ("movl %ebp, %esp");
-            asm volatile ("pop %ebp");
-            asm volatile("ret");
-            return; // it's not gonna get here
-
-        }
-
-
+        displayed_terminal = 1;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        og_x = terminal_processes[displayed_terminal].togx;
+        og_y = terminal_processes[displayed_terminal].togy;
+        send_eoi(1);
+        return;
     //ALT and F3 is Pressed
     }else if(alt && key == 0x3D){
-        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-        terminal_processes[active_terminal].cursor_x = screen_x;
-        terminal_processes[active_terminal].cursor_y = screen_y;
-        terminal_processes[active_terminal].togx = og_x;
-        terminal_processes[active_terminal].togy = og_y;
-        if(active_terminal == 2){ // if we don't have to context switch, just don't
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[displayed_terminal].cursor_x = screen_x;
+        terminal_processes[displayed_terminal].cursor_y = screen_y;
+        terminal_processes[displayed_terminal].togx = og_x;
+        terminal_processes[displayed_terminal].togy = og_y;
+        if(displayed_terminal == 2){ // if we don't have to context switch, just don't
             send_eoi(1);
             return;
         }
-                // return;
-        // // printf("\n alt and F2 are pressed");
-        if(terminal_processes[2].active_process_PID == -1){ // IF THIS IS THE FIRST TIME THE TERMINAL HAS BEEN OPENED
-            uint8_t shell_var[6] = "shell";
-            // terminal_processes[1] = 1;
-            int i;
-            int process_to_be_set = -1;
-            for(i = 0; i< MAX_NUM_PROCESSES; i++){ // start at process 
-                if(processes_active[i] == 0){ // this process is empty and thus we assign the virtual addr
-                    process_to_be_set = i;
-                    break;
-                }
-            }
-            if(process_to_be_set == -1){ // check if there is an open process to make a shell
-                printf("\n All Processes are full");
-                send_eoi(1);
-                return;
-            }else{
-
-                // terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
-                // terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
-                // terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
-                terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-                // terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
-                terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-                active_terminal = 2;
-                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-                update_xy(0, 0);
-                update_cursor(0, 0);
-                no_parent_shell_flag = 1;
-                terminal_processes[2].active_process_PID = process_to_be_set;
-                send_eoi(1);
-                //POSSIBLY SAVE ALL THE BS
-                terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-                // terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
-                terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-                sys_execute(shell_var);
-                return;
-            }
-            
-        }else{
-            //TERMINAL IS ALREADY DECLARED
-            terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-            terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-            active_terminal = 2;
-            move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-            update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-            update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-            //DEFINITELY SAVE ALL THE BS
+            displayed_terminal = 2;
+            move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+            update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
             send_eoi(1);
-            current_process_idx = terminal_processes[active_terminal].active_process_PID;
-            og_x = terminal_processes[active_terminal].togx;
-            og_y = terminal_processes[active_terminal].togy;
-            page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
-            asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-            asm volatile("movl %ebx, %cr3");
-            tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
-            // tss.ss = terminal_processes[active_terminal].SS_SAVE;
-            
-            //CONTEXT SWITCHING BETWEEN PROCESSES
-            asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
-            asm volatile ("movl %ebp, %esp");
-            asm volatile ("pop %ebp");
-            asm volatile ("ret");
+            og_x = terminal_processes[displayed_terminal].togx;
+            og_y = terminal_processes[displayed_terminal].togy;
             return;
-        }
     }
 
 
@@ -443,9 +322,9 @@ void kb_handler() {
                     p = table_kb[key + SPEC_CHAR_OFFSET];
                 }
 
-                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
-                    kb_idx[active_terminal]++;
+                if (kb_idx[displayed_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = p;
+                    kb_idx[displayed_terminal]++;
                     putc(p);
                 }
             }
@@ -463,9 +342,9 @@ void kb_handler() {
                     p = table_kb[key + SPEC_CHAR_OFFSET];
                 }
 
-                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
-                    kb_idx[active_terminal]++;
+                if (kb_idx[displayed_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = p;
+                    kb_idx[displayed_terminal]++;
                     putc(p);
                 }
             }
@@ -475,9 +354,9 @@ void kb_handler() {
         if (key <= 0x37) { // if it's within our non special character bound
             char p = table_kb[key + SPEC_CHAR_OFFSET];
             if (p != '\0') { // check it's printable character 
-                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
-                    kb_idx[active_terminal]++;
+                if (kb_idx[displayed_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = p;
+                    kb_idx[displayed_terminal]++;
                     putc(p);
                 }
             }
@@ -487,9 +366,9 @@ void kb_handler() {
         if (key <= 0x37) { // if it's within our non special character bound
             char p = table_kb[key];
             if (p != '\0') { // check it's printable character
-                if (kb_idx[active_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
-                    kb_buff[active_terminal][kb_idx[active_terminal]] = p;
-                    kb_idx[active_terminal]++;
+                if (kb_idx[displayed_terminal] != MAX_BUFF_SIZE - 1) { // if buffer isn't full
+                    kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = p;
+                    kb_idx[displayed_terminal]++;
                     putc(p);
                 }
             }

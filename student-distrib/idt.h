@@ -22,7 +22,5 @@ extern int next_row_flag[3];
 extern int no_parent_shell_flag;
 void move_four_kb (uint8_t * src, uint8_t * dst);
 
-// int32_t active_terminal;
-
 
 

@@ -149,7 +149,7 @@ void sys_halt(uint8_t status) {
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
     
     // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
-    kb_idx[active_terminal] = 0;
+    kb_idx[displayed_terminal] = 0;
     setup = 1;
 
 
@@ -159,13 +159,12 @@ void sys_halt(uint8_t status) {
     tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->parent_PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
 
      //updating current process index to be the parent's PID
-    // prev_PID[active_terminal] = PCB_array[current_process_idx]->parent_PID;  //update previous process index to be the parent's parent_PID
     num_active_processes--;
 
     int32_t treg = PCB_array[current_process_idx]->EBP;    //old value of ebp that we saved during sys_execute()
     current_process_idx = PCB_array[current_process_idx]->parent_PID;
-    terminal_processes[active_terminal].active_process_PID = current_process_idx;
-    // printf("\n EBP we are restoring INSIDE HALT IS: %d", treg);
+    terminal_processes[scheduled_terminal].active_process_PID = current_process_idx;
+    // this might be pretty sus ngl -- check this line out later if something breaks
     
     if(EXCEPTION_FLAG == 1)  {
         //if exception has occurred: put 256 in eax and return immediately 
@@ -332,11 +331,10 @@ int32_t sys_execute(uint8_t * command) {
                                                                                                 //when we hit up checkpoint 5 is this messed up because 
         
         
-        terminal_processes[active_terminal].active_process_PID = PID;
+        terminal_processes[scheduled_terminal].active_process_PID = PID;
         PCB->PID = PID;
         PCB->EBP = ebp_save;
         PCB->ESP = esp_save;
-        // prev_PID[active_terminal] = PID;     //Have to save the current PID as the last PID
         current_process_idx = PID;
         PCB->fdesc_array.fd_entry[0].file_operations_table_pointer.read = t_read; //setting std in
         PCB_array[current_process_idx]->fdesc_array.fd_entry[0].flags = 1;
