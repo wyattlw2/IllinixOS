@@ -74,6 +74,8 @@ typedef struct terminal_info_t {
     int32_t active_process_PID; // PID
     int32_t cursor_x;
     int32_t cursor_y;
+    int16_t togx;
+    int16_t togy;
 
     //values below must be saved for the purpose of context switches
     uint32_t EIP_SAVE;
@@ -89,7 +91,7 @@ int32_t processes_active[6]; // need to figure out more about initializing this 
 process_control_block_t* PCB_array[6];  //MUST be an array of pointers right now --W
 int32_t current_process_idx;
 terminal_info_t terminal_processes[3];
-int32_t active_terminal;
+// int32_t active_terminal;
 
 void terminal_init();
 void file_system_init();

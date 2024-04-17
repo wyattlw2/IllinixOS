@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+// #include "file_sys_driver.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -227,7 +228,7 @@ void putc(uint8_t c) {
             }
         }
         // clear the very last line to make space for new characters
-        next_row_flag = 1;
+        next_row_flag[active_terminal] = 1;
         screen_x = 0; // first character space in a line
         screen_y = NUM_ROWS - 1;
         for (j = 0; j < NUM_COLS; j++) {

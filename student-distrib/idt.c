@@ -72,7 +72,7 @@ uint16_t y;
 uint16_t og_x;
 uint16_t og_y;
 
-int next_row_flag;
+int next_row_flag[3];
 int setup = 1;
 int no_parent_shell_flag=0;
 void kb_handler() {
@@ -87,13 +87,13 @@ void kb_handler() {
         og_x = p % NUM_COLS;
         og_y = p / NUM_COLS;
         setup = 0;
-        next_row_flag = 0;
+        next_row_flag[active_terminal] = 0;
     }
-    SHELLPROMPT_DELETE_FLAG = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
+    SHELLPROMPT_DELETE_FLAG[active_terminal] = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
     if(y > og_y)    {
-        SHELLPROMPT_DELETE_FLAG = 1;    //This means -- we are on a new line without a shell prompt, you can delete in the x-coordinates corresponding to shell prompt location
+        SHELLPROMPT_DELETE_FLAG[active_terminal] = 1;    //This means -- we are on a new line without a shell prompt, you can delete in the x-coordinates corresponding to shell prompt location
     }
-    if(y == NUM_ROWS - 1 && og_y == NUM_ROWS - 1 && next_row_flag == 1)   {
+    if(y == NUM_ROWS - 1 && og_y == NUM_ROWS - 1 && next_row_flag[active_terminal] == 1)   {
         og_y = NUM_ROWS - 2;    //fucking keyboard man
     }   
     
@@ -124,7 +124,7 @@ void kb_handler() {
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
-        if (((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) || SHELLPROMPT_DELETE_FLAG == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
+        if (((x-1 >= og_x) && (y >= og_y || y-1 >= og_y)) || SHELLPROMPT_DELETE_FLAG[active_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
             if (x == 0 && y != 0) { // any other row
                 update_xy(NUM_COLS - 1, y-1);
                 putc(' ');
@@ -221,6 +221,8 @@ void kb_handler() {
         }
         terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
         terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
+        terminal_processes[active_terminal].togx = og_x;
+        terminal_processes[active_terminal].togy = og_y;
         active_terminal = 0;
         move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
         update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
@@ -230,6 +232,8 @@ void kb_handler() {
 
         //CONTEXT SWITCHING BETWEEN PROCESSES
         current_process_idx = terminal_processes[active_terminal].active_process_PID;
+        og_x = terminal_processes[active_terminal].togx;
+        og_y = terminal_processes[active_terminal].togy;
         page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
         asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
         asm volatile("movl %ebx, %cr3");
@@ -239,10 +243,14 @@ void kb_handler() {
         asm volatile ("pop %ebp");
         asm volatile("ret");
         return;
-    } else if (alt && key == 0x3C) { //ALT and F2 is Pressed
+    } 
+    
+    else if (alt && key == 0x3C) { //ALT and F2 is Pressed
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
         terminal_processes[active_terminal].cursor_x = screen_x;
         terminal_processes[active_terminal].cursor_y = screen_y;
+        terminal_processes[active_terminal].togx = og_x;
+        terminal_processes[active_terminal].togy = og_y;
         if (active_terminal == 1) { // if we don't have to context switch, just don't
             send_eoi(1);
             return;
@@ -291,6 +299,8 @@ void kb_handler() {
             
             //CONTEXT SWITCHING BETWEEN PROCESSES
             current_process_idx = terminal_processes[active_terminal].active_process_PID;
+            og_x = terminal_processes[active_terminal].togx;
+            og_y = terminal_processes[active_terminal].togy;
             page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
             asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
             asm volatile("movl %ebx, %cr3");
@@ -309,6 +319,8 @@ void kb_handler() {
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
         terminal_processes[active_terminal].cursor_x = screen_x;
         terminal_processes[active_terminal].cursor_y = screen_y;
+        terminal_processes[active_terminal].togx = og_x;
+        terminal_processes[active_terminal].togy = og_y;
         if(active_terminal == 2){ // if we don't have to context switch, just don't
             send_eoi(1);
             return;
@@ -364,6 +376,8 @@ void kb_handler() {
             //DEFINITELY SAVE ALL THE BS
             send_eoi(1);
             current_process_idx = terminal_processes[active_terminal].active_process_PID;
+            og_x = terminal_processes[active_terminal].togx;
+            og_y = terminal_processes[active_terminal].togy;
             page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
             asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
             asm volatile("movl %ebx, %cr3");

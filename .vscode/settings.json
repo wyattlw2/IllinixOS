@@ -5,6 +5,8 @@
         "x86_desc.h": "c",
         "multiboot.h": "c",
         "keyboard.h": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "file_sys_driver.h": "c",
+        "idt.h": "c"
     }
 }
