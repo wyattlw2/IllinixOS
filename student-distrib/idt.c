@@ -4,6 +4,7 @@
 #include "paging.h"
 #include "file_sys_driver.h"
 #include "lib.h"
+#include "scheduling.h"
 
 
 #define     VIDEO               0xB8000

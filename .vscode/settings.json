@@ -7,6 +7,8 @@
         "keyboard.h": "c",
         "types.h": "c",
         "file_sys_driver.h": "c",
-        "idt.h": "c"
+        "idt.h": "c",
+        "i8259.h": "c",
+        "terminal.h": "c"
     }
 }

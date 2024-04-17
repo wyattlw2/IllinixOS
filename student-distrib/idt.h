@@ -5,6 +5,7 @@
 #include "terminal.h"
 #include "i8259.h"
 #include "asm_macro.h"
+#include "scheduling.h"
 int EXCEPTION_FLAG;
 int CLEAR_SCREEN_FLAG;
 int SHELLPROMPT_DELETE_FLAG[3];
@@ -20,6 +21,8 @@ extern int next_row_flag[3];
 // extern int send_eoi_kb_flag;
 extern int no_parent_shell_flag;
 void move_four_kb (uint8_t * src, uint8_t * dst);
-int32_t active_terminal;
+
+// int32_t active_terminal;
+
 
 
