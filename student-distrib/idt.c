@@ -234,7 +234,8 @@ void kb_handler() {
         return;
     } 
     
-    else if (alt && key == 0x3C) { //ALT and F2 is Pressed
+    //ALT and F2 is Pressed
+    else if (alt && key == 0x3C) { 
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
         terminal_processes[displayed_terminal].cursor_x = screen_x; //saving screen x/y
         terminal_processes[displayed_terminal].cursor_y = screen_y;
@@ -252,6 +253,7 @@ void kb_handler() {
         og_y = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
         return;
+        
     //ALT and F3 is Pressed
     }else if(alt && key == 0x3D){
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem

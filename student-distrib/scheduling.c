@@ -76,18 +76,25 @@ void pit_handler()  {
     register uint32_t esp asm("esp");
     uint32_t EBP_SAVE = ebp;
     uint32_t ESP_SAVE = esp;
-    terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
-    terminal_processes[scheduled_terminal].EBP_SAVE = ESP_SAVE;
+    
     // terminal_processes[scheduled_terminal].active_process_PID = ; SHOULD BE SAVED IN EXEC/HALT
     // printf("\n PIT INTERRUPT");
     if(shell_count < 3){
+        terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
+        
         uint8_t shell_var[6] = "shell";
         shell_count++;
         no_parent_shell_flag = 1;
         printf("Shell created.\n");
+        // if(
+
+        // )
+        scheduled_terminal++;
+        scheduled_terminal %= 3;
         send_eoi(0);
         sys_execute(shell_var);
     }
+    terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
     send_eoi(0);
     schedule();
     // sti();
