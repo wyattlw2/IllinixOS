@@ -166,8 +166,9 @@ void entry(unsigned long magic, unsigned long addr) {
                     // initializing the PIT enables scheduling
 
     sti();
-    
-    launch_tests();
+    // asm volatile("int $0x20");
+    // while(1){};
+    // launch_tests();
     //print_number_of_inodes();
 
     asm volatile (".1: hlt; jmp .1;");
