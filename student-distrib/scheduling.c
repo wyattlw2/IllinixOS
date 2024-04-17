@@ -1,6 +1,7 @@
 #include "scheduling.h"
 #include "syscalls.h"
 #include "paging.h"
+#include "terminal.h"
 // #include "types.h"
 
 #define PIT_CHANNEL0 0x40
@@ -73,9 +74,7 @@ Description: Handles PIT interrupts. We're able to do scheduling inside of the P
 int shell_count = 0;
 void pit_handler()  {
     register uint32_t ebp asm("ebp");
-    register uint32_t esp asm("esp");
     uint32_t EBP_SAVE = ebp;
-    uint32_t ESP_SAVE = esp;
     
     // terminal_processes[scheduled_terminal].active_process_PID = ; SHOULD BE SAVED IN EXEC/HALT
     // printf("\n PIT INTERRUPT");

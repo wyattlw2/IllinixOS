@@ -5,6 +5,7 @@
 #include "file_sys_driver.h"
 #include "lib.h"
 #include "scheduling.h"
+#include "terminal.h"
 
 
 #define     VIDEO               0xB8000
@@ -253,7 +254,7 @@ void kb_handler() {
         og_y = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
         return;
-        
+
     //ALT and F3 is Pressed
     }else if(alt && key == 0x3D){
         move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem

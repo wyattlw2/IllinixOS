@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "file_sys_driver.h"
+#include "scheduling.h"
 
 #define     MAX_BUFF_SIZE       128
 #define     NUM_COLS      80
@@ -91,16 +92,19 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
         upper_bound = nbytes;
     }
     while (1) {
+        while(displayed_terminal != scheduled_terminal) {       //i have no idea why this shit works for scheduling but Stephen said it was cool so lets fuckin go
+            continue;                                           //before this line, there was a 1/3 chance during "hello" that the entered command would be read
+        }
         count = 0;
         for (i = 0; i < upper_bound; i++) { // copy every character
-            ((char*)buf)[i] = kb_buff[displayed_terminal][i];
+            ((char*)buf)[i] = kb_buff[scheduled_terminal][i];
             // (get_args_buf)[i] = kb_buff[i];
             count++;
-            if (kb_buff[displayed_terminal][i] == '\n') {
+            if (kb_buff[scheduled_terminal][i] == '\n') {
                 b = 1;
                 break;
             }
-             if (kb_buff[displayed_terminal][i] == ' ') { // might want to set a flag such that for the rest of this string will be null characters or something -DVT
+             if (kb_buff[scheduled_terminal][i] == ' ') { // might want to set a flag such that for the rest of this string will be null characters or something -DVT
                     // arg_start = i + 1;
                     ((char*)buf)[i] = '\0';
                 }
@@ -115,7 +119,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
             
            
             for (i = 0; i < 128; i++) { // clear every character in the kb buff
-                kb_buff[displayed_terminal][i] = '\t';
+                kb_buff[scheduled_terminal][i] = '\t';
             }
             break;
         }
