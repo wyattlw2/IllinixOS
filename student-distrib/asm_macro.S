@@ -20,31 +20,9 @@
 #define MY_ASM_MACRO_KEYBOARD(function_name, handler, vector) \
         .global function_name ;\
         function_name: ;\
-        movl (%esp), %eax ;\
-        movl %eax, EIP_SAVE ;\
-        movl 4(%esp), %eax ;\
-        movl %eax, CS_SAVE ;\
-        movl 8(%esp), %eax ;\
-        movl %eax, EFLAGS_SAVE ;\
-        movl 12(%esp), %eax ;\
-        movl %eax, ESP_SAVE ;\
-        movl 16(%esp), %eax ;\
-        movl %eax, SS_SAVE ;\
         pushal ;\
         pushfl ;\
-        pushl %ebp ;\
-        movl SS_SAVE, %eax ;\
-        push %eax ;\
-        movl ESP_SAVE, %eax ;\
-        push %eax ;\
-        movl EFLAGS_SAVE, %eax ;\
-        push %eax ;\
-        movl CS_SAVE, %eax ;\
-        push %eax ;\
-        movl EIP_SAVE, %eax ;\
-        pushl %eax ;\
         call handler ;\
-        addl $24, %esp ;\
         popfl ;\
         popal ;\
         iret ;\

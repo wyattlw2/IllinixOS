@@ -75,7 +75,11 @@ uint16_t og_y;
 int next_row_flag;
 int setup = 1;
 int no_parent_shell_flag=0;
-void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint32_t ESP_SAVE, uint32_t SS_SAVE, uint32_t EBP_SAVE) {
+void kb_handler() {
+    register uint32_t ebp asm("ebp");
+    register uint32_t esp asm("esp");
+    uint32_t EBP_SAVE = ebp;
+    uint32_t ESP_SAVE = esp;
     //IF we are gonna have a context switch, we save that EIP where we came from
     unsigned char key = inb(KEYBOARD_PORT);
     if (setup) {
@@ -207,54 +211,42 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
 
 
     //ALT and F1 is Pressed
-    if(alt && key == 0x3B){
-        
-                move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-                terminal_processes[active_terminal].cursor_x = screen_x;
-                terminal_processes[active_terminal].cursor_y = screen_y;
-                if(active_terminal == 0){ // if we don't have to context switch, just don't
-                send_eoi(1);
-                    return;
-                }
-                terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
-                terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
-                terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
-                terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-                terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
-                terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
-                active_terminal = 0;
-                move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-                update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-                update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
-                send_eoi(1);
+    if(alt && key == 0x3B){        
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[active_terminal].cursor_x = screen_x;
+        terminal_processes[active_terminal].cursor_y = screen_y;
+        if (active_terminal == 0) { // if we don't have to context switch, just don't
+            send_eoi(1);
+            return;
+        }
+        terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
+        terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
+        active_terminal = 0;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+        update_cursor(terminal_processes[active_terminal].cursor_x, terminal_processes[active_terminal].cursor_y);
+        send_eoi(1);
 
 
-                //CONTEXT SWITCHING BETWEEN PROCESSES
-                current_process_idx = terminal_processes[active_terminal].active_process_PID;
-                page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
-                asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-                asm volatile("movl %ebx, %cr3");
-                tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itself
-                // tss.ss = terminal_processes[active_terminal].SS_SAVE;
-                asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
-                asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].SS_SAVE) : "memory");  // push SS that was stored in the executable file
-                asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].ESP_SAVE) : "memory");  // push ESP that was stored in the executable file
-                asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].EFLAGS_SAVE) : "memory");  // push EFLAGS that was stored in the executable file
-                asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].CS_SAVE) : "memory");  // push CS that was stored in the executable file
-                asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].EIP_SAVE) : "memory");  // push EIP that was stored in the executable file
-                asm volatile("iret");
-                return;
-    }
-
-    //ALT and F2 is Pressed
-    else if(alt && key == 0x3C){
-                move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-                terminal_processes[active_terminal].cursor_x = screen_x;
-                terminal_processes[active_terminal].cursor_y = screen_y;
-                if(active_terminal == 1){ // if we don't have to context switch, just don't
-                send_eoi(1);
-                    return;
-                }
+        //CONTEXT SWITCHING BETWEEN PROCESSES
+        current_process_idx = terminal_processes[active_terminal].active_process_PID;
+        page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
+        tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4; // Does this need to point to the start of the stack or the actual stack pointer itsel
+        asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
+        asm volatile ("movl %ebp, %esp");
+        asm volatile ("pop %ebp");
+        asm volatile("ret");
+        return;
+    } else if (alt && key == 0x3C) { //ALT and F2 is Pressed
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[active_terminal].cursor_x = screen_x;
+        terminal_processes[active_terminal].cursor_y = screen_y;
+        if (active_terminal == 1) { // if we don't have to context switch, just don't
+            send_eoi(1);
+            return;
+        }
                 // return;
         // // printf("\n alt and F2 are pressed");
         if(terminal_processes[1].active_process_PID == -1){ // IF THIS IS THE FIRST TIME THE TERMINAL HAS BEEN OPENED
@@ -271,13 +263,9 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
             if(process_to_be_set == -1){ // check if there is an open process to make a shell
                 printf("\n All Processes are full");
                 send_eoi(1);
-                return;
+                return;  
             }else{
-                terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
-                terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
-                terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
                 terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-                terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
                 terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
                 active_terminal = 1;
                 move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
@@ -286,19 +274,12 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 terminal_processes[1].active_process_PID = process_to_be_set;
                 no_parent_shell_flag = 1;
                 send_eoi(1);
-                //POssibly save all the BS
-
                 sys_execute(shell_var);
                 return;
             }
-            
         }else{
             //TERMINAL IS ALREADY DECLARED
-            terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
-            terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
-            terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
             terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-            terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
             terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
             active_terminal = 1;
             move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
@@ -314,28 +295,24 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
             asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
             asm volatile("movl %ebx, %cr3");
             tss.esp0 = (EIGHT_MB - (PCB_array[current_process_idx]->PID)*EIGHT_KB) - 4;
-            // tss.ss = terminal_processes[active_terminal].SS_SAVE;
             asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].SS_SAVE) : "memory");  //setup the iret
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].ESP_SAVE) : "memory");  
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].EFLAGS_SAVE) : "memory");  
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].CS_SAVE) : "memory"); 
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].EIP_SAVE) : "memory");  
-            asm volatile("iret");
+            asm volatile ("movl %ebp, %esp");
+            asm volatile ("pop %ebp");
+            asm volatile("ret");
             return; // it's not gonna get here
+
         }
 
-    }
 
     //ALT and F3 is Pressed
-    else if(alt && key == 0x3D){
-                move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
-                terminal_processes[active_terminal].cursor_x = screen_x;
-                terminal_processes[active_terminal].cursor_y = screen_y;
-                if(active_terminal == 2){ // if we don't have to context switch, just don't
-                send_eoi(1);
-                    return;
-                }
+    }else if(alt && key == 0x3D){
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[active_terminal].cursor_x = screen_x;
+        terminal_processes[active_terminal].cursor_y = screen_y;
+        if(active_terminal == 2){ // if we don't have to context switch, just don't
+            send_eoi(1);
+            return;
+        }
                 // return;
         // // printf("\n alt and F2 are pressed");
         if(terminal_processes[2].active_process_PID == -1){ // IF THIS IS THE FIRST TIME THE TERMINAL HAS BEEN OPENED
@@ -355,11 +332,11 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 return;
             }else{
 
-                terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
-                terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
-                terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
+                // terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
+                // terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
+                // terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
                 terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-                terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
+                // terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
                 terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
                 active_terminal = 2;
                 move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
@@ -369,17 +346,16 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
                 terminal_processes[2].active_process_PID = process_to_be_set;
                 send_eoi(1);
                 //POSSIBLY SAVE ALL THE BS
+                terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
+                // terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
+                terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
                 sys_execute(shell_var);
                 return;
             }
             
         }else{
             //TERMINAL IS ALREADY DECLARED
-            terminal_processes[active_terminal].EIP_SAVE = EIP_SAVE; // save the context switching stuff right before we switch the active terminal
-            terminal_processes[active_terminal].CS_SAVE = CS_SAVE;
-            terminal_processes[active_terminal].EFLAGS_SAVE = EFLAGS_SAVE;
             terminal_processes[active_terminal].ESP_SAVE = ESP_SAVE;
-            terminal_processes[active_terminal].SS_SAVE = SS_SAVE;
             terminal_processes[active_terminal].EBP_SAVE = EBP_SAVE;
             active_terminal = 2;
             move_four_kb((uint8_t *) TERMINAL1_MEM + active_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
@@ -396,14 +372,9 @@ void kb_handler(uint32_t EIP_SAVE, uint32_t CS_SAVE, uint32_t EFLAGS_SAVE, uint3
             
             //CONTEXT SWITCHING BETWEEN PROCESSES
             asm volatile ("movl %0, %%ebp;" : : "r" (terminal_processes[active_terminal].EBP_SAVE));
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].SS_SAVE) : "memory");  //setup the iret
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].ESP_SAVE) : "memory");  
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].EFLAGS_SAVE) : "memory");  
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].CS_SAVE) : "memory"); 
-            asm volatile("pushl %0" : : "r" (terminal_processes[active_terminal].EIP_SAVE) : "memory");  
-            asm volatile("iret");
-
-
+            asm volatile ("movl %ebp, %esp");
+            asm volatile ("pop %ebp");
+            asm volatile ("ret");
             return;
         }
     }
