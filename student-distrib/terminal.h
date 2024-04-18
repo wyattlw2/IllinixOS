@@ -6,6 +6,9 @@
 #include "keyboard.h"
 #include "idt.h"
 
+
+int32_t TERMINAL_READ_FLAG[3];
+
 int t_open();
 int t_close();
 // reads characters and fill into buf from kb_buff

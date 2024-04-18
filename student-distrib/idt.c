@@ -78,6 +78,7 @@ int next_row_flag[3];
 int setup = 1;
 int no_parent_shell_flag=0;
 void kb_handler() {
+    
     cli();
     first_page_table[0xB8].p_base_addr = 0xB8;
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
@@ -88,6 +89,117 @@ void kb_handler() {
     // uint32_t ESP_SAVE = esp;
     //IF we are gonna have a context switch, we save that EIP where we came from
     unsigned char key = inb(KEYBOARD_PORT);
+
+    //ALT and F1 is Pressed
+    if(alt && key == 0x3B){        
+        //SAVE RELEVANT INFO
+        first_page_table[0xB8].p_base_addr = 0xB8;
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screenx/screeny
+        terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+        terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; //saving ogx/y
+        terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+        if (displayed_terminal == 0) { // if we don't have to context switch, just don't
+            send_eoi(1);
+            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+            // sti();
+            return;
+        }
+        //updating everything for terminal 0
+        displayed_terminal = 0;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+        og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+        send_eoi(1);
+        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+        // sti();
+        return;
+    } 
+    
+    //ALT and F2 is Pressed
+    else if (alt && key == 0x3C) { 
+        first_page_table[0xB8].p_base_addr = 0xB8;
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screen x/y
+        terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+        terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
+        terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+        if (displayed_terminal == 1) { // if we don't have to context switch, just don't
+            send_eoi(1);
+            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+            // sti();
+            return;
+        }
+        displayed_terminal = 1;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+        og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+        send_eoi(1);
+        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+        // sti();
+        return;
+
+    //ALT and F3 is Pressed
+    }else if(alt && key == 0x3D){
+        first_page_table[0xB8].p_base_addr = 0xB8;
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
+        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+        terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal];
+        terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+        terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
+        terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+        if(displayed_terminal == 2){ // if we don't have to context switch, just don't
+            send_eoi(1);
+            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+            // sti();
+            return;
+        }
+        displayed_terminal = 2;
+        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+        og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+        send_eoi(1);
+        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+        // sti();
+        return;
+    }
+
+
+    // if alt is pressed
+    if(key == 0x38){
+        alt = 1;
+        send_eoi(1);
+        // sti();
+        return;
+    }else if(key == 0xB8){
+        alt = 0;
+        send_eoi(1);
+        // sti();
+        return;
+    }
+
+
+    //what this line below does:
+    //prevents typing in the displayed terminal if the displayed process is running terminal_read() 
+    //pretty sure this doesn't affect other terminals
+    if(TERMINAL_READ_FLAG[displayed_terminal] == 0 && displayed_terminal == scheduled_terminal) {
+        send_eoi(1);
+        // sti();
+        return;
+    }
+
+
     if (setup) {
         uint16_t p = get_cursor_position();
         og_x[displayed_terminal] = p % NUM_COLS;
@@ -211,17 +323,18 @@ void kb_handler() {
         return;
     }
 
-    if(key == 0x38){
-        alt = 1;
-        send_eoi(1);
-        // sti();
-        return;
-    }else if(key == 0xB8){
-        alt = 0;
-        send_eoi(1);
-        // sti();
-        return;
-    }
+    // // if alt is pressed
+    // if(key == 0x38){
+    //     alt = 1;
+    //     send_eoi(1);
+    //     // sti();
+    //     return;
+    // }else if(key == 0xB8){
+    //     alt = 0;
+    //     send_eoi(1);
+    //     // sti();
+    //     return;
+    // }
 
     
     
@@ -231,90 +344,90 @@ void kb_handler() {
 
 
 
-    //ALT and F1 is Pressed
-    if(alt && key == 0x3B){        
-        //SAVE RELEVANT INFO
-        first_page_table[0xB8].p_base_addr = 0xB8;
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
-        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
-        terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screenx/screeny
-        terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-        terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; //saving ogx/y
-        terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
-        if (displayed_terminal == 0) { // if we don't have to context switch, just don't
-            send_eoi(1);
-            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-            // sti();
-            return;
-        }
-        //updating everything for terminal 0
-        displayed_terminal = 0;
-        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-        og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
-        send_eoi(1);
-        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        // sti();
-        return;
-    } 
+    // //ALT and F1 is Pressed
+    // if(alt && key == 0x3B){        
+    //     //SAVE RELEVANT INFO
+    //     first_page_table[0xB8].p_base_addr = 0xB8;
+    //     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+    //     asm volatile("movl %ebx, %cr3");
+    //     move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+    //     terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screenx/screeny
+    //     terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+    //     terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; //saving ogx/y
+    //     terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+    //     if (displayed_terminal == 0) { // if we don't have to context switch, just don't
+    //         send_eoi(1);
+    //         // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+    //         // sti();
+    //         return;
+    //     }
+    //     //updating everything for terminal 0
+    //     displayed_terminal = 0;
+    //     move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+    //     update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+    //     update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+    //     og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+    //     og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+    //     send_eoi(1);
+    //     // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+    //     // sti();
+    //     return;
+    // } 
     
-    //ALT and F2 is Pressed
-    else if (alt && key == 0x3C) { 
-        first_page_table[0xB8].p_base_addr = 0xB8;
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
-        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
-        terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screen x/y
-        terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-        terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
-        terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
-        if (displayed_terminal == 1) { // if we don't have to context switch, just don't
-            send_eoi(1);
-            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-            // sti();
-            return;
-        }
-        displayed_terminal = 1;
-        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-        og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
-        send_eoi(1);
-        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        // sti();
-        return;
+    // //ALT and F2 is Pressed
+    // else if (alt && key == 0x3C) { 
+    //     first_page_table[0xB8].p_base_addr = 0xB8;
+    //     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+    //     asm volatile("movl %ebx, %cr3");
+    //     move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+    //     terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screen x/y
+    //     terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+    //     terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
+    //     terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+    //     if (displayed_terminal == 1) { // if we don't have to context switch, just don't
+    //         send_eoi(1);
+    //         // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+    //         // sti();
+    //         return;
+    //     }
+    //     displayed_terminal = 1;
+    //     move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+    //     update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+    //     update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+    //     og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+    //     og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+    //     send_eoi(1);
+    //     // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+    //     // sti();
+    //     return;
 
-    //ALT and F3 is Pressed
-    }else if(alt && key == 0x3D){
-        first_page_table[0xB8].p_base_addr = 0xB8;
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3");
-        move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
-        terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal];
-        terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-        terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
-        terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
-        if(displayed_terminal == 2){ // if we don't have to context switch, just don't
-            send_eoi(1);
-            // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-            // sti();
-            return;
-        }
-        displayed_terminal = 2;
-        move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-        og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
-        send_eoi(1);
-        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        // sti();
-        return;
-    }
+    // //ALT and F3 is Pressed
+    // }else if(alt && key == 0x3D){
+    //     first_page_table[0xB8].p_base_addr = 0xB8;
+    //     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+    //     asm volatile("movl %ebx, %cr3");
+    //     move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+    //     terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal];
+    //     terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+    //     terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
+    //     terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+    //     if(displayed_terminal == 2){ // if we don't have to context switch, just don't
+    //         send_eoi(1);
+    //         // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+    //         // sti();
+    //         return;
+    //     }
+    //     displayed_terminal = 2;
+    //     move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+    //     update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+    //     update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+    //     og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+    //     og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+    //     send_eoi(1);
+    //     // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
+    //     // sti();
+    //     return;
+    // }
 
 
 
@@ -328,6 +441,10 @@ void kb_handler() {
 
     // clear screen operation
     if (ctrl && key == 0x26) {
+        if(displayed_terminal != scheduled_terminal)    {
+            send_eoi(1);
+            return;
+        }
         // reset everything to top left of screen
         clear();
         update_xy(0, 0);

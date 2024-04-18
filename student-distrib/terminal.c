@@ -81,6 +81,8 @@ int t_close() {
 //     }
 
 int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
+    TERMINAL_READ_FLAG[displayed_terminal] = 1;
+
     int i; // loop index
     // int j;
     int b = 0;
@@ -139,6 +141,8 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     for(i=0; i<128; i++){
         get_args_buf[i] = ((char*)buf)[i];
     }
+
+    TERMINAL_READ_FLAG[displayed_terminal] = 0;
     return count;
 }
 
