@@ -329,8 +329,8 @@ void putc_kb(uint8_t c) {
             for (j = 0; j < NUM_COLS; j++) {
                 *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]) + screen_x[displayed_terminal]) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]+1) + screen_x[displayed_terminal]) << 1));
                 *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]) + screen_x[displayed_terminal]) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]+1) + screen_x[displayed_terminal]) << 1) + 1);
-                screen_x[scheduled_terminal]++;
-                screen_x[scheduled_terminal] %= NUM_COLS;
+                screen_x[displayed_terminal]++;
+                screen_x[displayed_terminal] %= NUM_COLS;
             }
         }
         // clear the very last line to make space for new characters

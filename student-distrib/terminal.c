@@ -159,9 +159,10 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
  *              -1 - failed print 
  * Function: prints all the characters in buf to the screen */
 int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
-    if(displayed_terminal == scheduled_terminal){
-        TERMINAL_WRITE_FLAG[displayed_terminal] = 1;
-    }
+    cli();
+    // if(displayed_terminal == scheduled_terminal){
+    //     TERMINAL_WRITE_FLAG[displayed_terminal] = 1;
+    // }
     int i; // loop index
     if (buf == NULL) {
         return -1;
@@ -175,6 +176,7 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     // for (i = 0; i < nbytes; i++) {
     //     ((char*)buf)[i] = '\0';
     // }
-    TERMINAL_WRITE_FLAG[displayed_terminal] = 0;
+    // TERMINAL_WRITE_FLAG[displayed_terminal] = 0;
+    sti();
     return nbytes;
 }
