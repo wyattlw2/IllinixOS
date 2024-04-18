@@ -90,6 +90,21 @@ void kb_handler() {
     //IF we are gonna have a context switch, we save that EIP where we came from
     unsigned char key = inb(KEYBOARD_PORT);
 
+
+    /*
+    three main cases for changing video memory:
+
+    1. switching to visible terminal
+    2. switching from visible terminal to non visible terminal
+    3. swapping between two non-visible terminals
+
+
+    this is for if the visible terminal is constant
+    scheduled terminal case is the inverse of the previous three cases
+    
+    */
+
+   
     //ALT and F1 is Pressed
     if(alt && key == 0x3B){        
         //SAVE RELEVANT INFO
