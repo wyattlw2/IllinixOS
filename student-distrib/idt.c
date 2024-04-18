@@ -260,7 +260,6 @@ void kb_handler() {
             uint16_t pos = get_cursor_position();
             x = pos % NUM_COLS;
             y = pos / NUM_COLS;
-<<<<<<< HEAD
             // if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
                 if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
                     if (SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1 && y == 0 && x <= 7)   {
@@ -271,12 +270,6 @@ void kb_handler() {
                         update_xy_display(NUM_COLS - 1, y-1);
                         putc_kb(' ');
                         if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
-=======
-            if(pos != 0){
-                if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
-                    if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
-                        if (x == 0 && y != 0) { // any other row
->>>>>>> b473c0b2a99f5a0c81640819114b6747b5498070
                             update_xy_display(NUM_COLS - 1, y-1);
                             putc_kb(' ');
                             if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
@@ -381,11 +374,8 @@ void kb_handler() {
         // string[0] = '\n';
         // t_write(1, string, 1);
         // sti();
-<<<<<<< HEAD
-        og_x[displayed_terminal] = 7;
-=======
+        //og_x[displayed_terminal] = 7;
         send_eoi(1);
->>>>>>> b473c0b2a99f5a0c81640819114b6747b5498070
         return;
     }
 
