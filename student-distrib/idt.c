@@ -256,27 +256,30 @@ void kb_handler() {
     // if backspace is pressed
     if (key == 0x0E) {
         // if (displayed_terminal == scheduled_terminal) {
+        
             uint16_t pos = get_cursor_position();
             x = pos % NUM_COLS;
             y = pos / NUM_COLS;
-            if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
-                if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
-                    if (x == 0 && y != 0) { // any other row
-                        update_xy_display(NUM_COLS - 1, y-1);
-                        putc_kb(' ');
-                        if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
+            if(pos != 0){
+                if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
+                    if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
+                        if (x == 0 && y != 0) { // any other row
                             update_xy_display(NUM_COLS - 1, y-1);
-                            update_cursor(NUM_COLS - 1, y-1);
+                            putc_kb(' ');
+                            if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
+                                update_xy_display(NUM_COLS - 1, y-1);
+                                update_cursor(NUM_COLS - 1, y-1);
+                            }
+                        } else { // just deleting charcter in a row that doesn't go to other rows
+                            update_xy_display(x-1, y);
+                            putc_kb(' ');
+                            update_xy_display(x-1, y);
+                            update_cursor(x-1, y);
                         }
-                    } else { // just deleting charcter in a row that doesn't go to other rows
-                        update_xy_display(x-1, y);
-                        putc_kb(' ');
-                        update_xy_display(x-1, y);
-                        update_cursor(x-1, y);
-                    }
-                    if (kb_idx[displayed_terminal] != 0) { // if buffer isn't empty already
-                        kb_idx[displayed_terminal] -= 1;
-                        kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\t'; // code for not print anything
+                        if (kb_idx[displayed_terminal] != 0) { // if buffer isn't empty already
+                            kb_idx[displayed_terminal] -= 1;
+                            kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\t'; // code for not print anything
+                        }
                     }
                 }
             }
@@ -349,22 +352,23 @@ void kb_handler() {
 
     // clear screen operation
     if (ctrl && key == 0x26) {
-        if(displayed_terminal != scheduled_terminal)    {
-            send_eoi(1);
-            return;
-        }
+        // if(displayed_terminal != scheduled_terminal)    {
+        //     send_eoi(1);
+        //     return;
+        // }
         // reset everything to top left of screen
         clear();
         update_xy_display(0, 0);
         update_cursor(0, 0);
         // user_y = 0;
-        send_eoi(1);
+        
         setup = 1;
         CLEAR_SCREEN_FLAG = 1;
         // uint8_t string[1];
         // string[0] = '\n';
         // t_write(1, string, 1);
         // sti();
+        send_eoi(1);
         return;
     }
 
