@@ -125,7 +125,7 @@ void kb_handler() {
         //updating everything for terminal 0
         displayed_terminal = 0;
         move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
         update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
         og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
         og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
@@ -153,7 +153,7 @@ void kb_handler() {
         }
         displayed_terminal = 1;
         move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
         update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
         og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
         og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
@@ -180,7 +180,7 @@ void kb_handler() {
         }
         displayed_terminal = 2;
         move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        update_xy(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+        update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
         update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
         og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
         og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
@@ -255,29 +255,29 @@ void kb_handler() {
 
     // if backspace is pressed
     if (key == 0x0E) {
-        if (displayed_terminal == scheduled_terminal) {
+        // if (displayed_terminal == scheduled_terminal) {
             uint16_t pos = get_cursor_position();
             x = pos % NUM_COLS;
             y = pos / NUM_COLS;
             if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
                 if (x == 0 && y != 0) { // any other row
-                    update_xy(NUM_COLS - 1, y-1);
+                    update_xy_display(NUM_COLS - 1, y-1);
                     putc_kb(' ');
                     if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
-                        update_xy(NUM_COLS - 1, y-1);
+                        update_xy_display(NUM_COLS - 1, y-1);
                         update_cursor(NUM_COLS - 1, y-1);
                     }
                 } else { // just deleting charcter in a row that doesn't go to other rows
-                    update_xy(x-1, y);
+                    update_xy_display(x-1, y);
                     putc_kb(' ');
-                    update_xy(x-1, y);
+                    update_xy_display(x-1, y);
                     update_cursor(x-1, y);
                 }
                 if (kb_idx[displayed_terminal] != 0) { // if buffer isn't empty already
                     kb_idx[displayed_terminal] -= 1;
                     kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\t'; // code for not print anything
                 }
-            }
+            // }
         }
         send_eoi(1);
         // sti();
@@ -462,7 +462,7 @@ void kb_handler() {
         }
         // reset everything to top left of screen
         clear();
-        update_xy(0, 0);
+        update_xy_display(0, 0);
         update_cursor(0, 0);
         // user_y = 0;
         send_eoi(1);

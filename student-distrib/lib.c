@@ -179,6 +179,17 @@ void update_xy(uint16_t x, uint16_t y) {
     screen_y[scheduled_terminal] = y;
 }
 
+/* update_xy(uint16_t x, uint16_t y)
+ *   Inputs: uint16_t x - x coordinates in terminal
+ *           uint16_t y - y coordinates in terminal
+ *   Return Value: None
+ *    Function: Updates screen_x[displayed_terminal] and screen_y[displayed_terminal] to its corresponding inputs */
+void update_xy_display(uint16_t x, uint16_t y) {
+    screen_x[displayed_terminal] = x;
+    screen_y[displayed_terminal] = y;
+}
+
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void

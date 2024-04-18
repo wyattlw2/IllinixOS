@@ -39,6 +39,9 @@ int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 // added function that allows us to directly update screen_x and screen_y
 void update_xy(uint16_t x, uint16_t y);
 
+//added function for messing with the x y of the screen specifically
+void update_xy_display(uint16_t x, uint16_t y);
+
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);
 int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
