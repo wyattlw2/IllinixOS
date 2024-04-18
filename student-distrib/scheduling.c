@@ -92,6 +92,8 @@ void pit_handler()  {
         shell_count++;
         scheduled_terminal = shell_count -1;// on 0th will update 
         no_parent_shell_flag = 1;
+        terminal_processes[scheduled_terminal].cursor_x = 7; //saving screenx/screeny
+        terminal_processes[scheduled_terminal].cursor_y = 1;
         // printf("Shell created.\n");
         // terminal_processes[scheduled_terminal].cursor_x = screen_x; //saving screenx/screeny
         // terminal_processes[scheduled_terminal].cursor_y = screen_y;
