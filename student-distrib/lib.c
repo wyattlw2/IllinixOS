@@ -11,8 +11,8 @@
                                         //TA on piazza told me that base mp3 doesn't support VGA Mode X. said that adding Mode X is something that students have done for extra credit.
                                         //look up https://wiki.osdev.org/Text_UI for more information about how the mp3 OS displays characters on-screen
 
-int screen_x;
-int screen_y;
+int screen_x[3];
+int screen_y[3];
 static char* video_mem = (char *)VIDEO;
 
 int user_y; // user_y keeps track of user typed space
@@ -173,21 +173,27 @@ int32_t puts(int8_t* s) {
  *   Inputs: uint16_t x - x coordinates in terminal
  *           uint16_t y - y coordinates in terminal
  *   Return Value: None
- *    Function: Updates screen_x and screen_y to its corresponding inputs */
+ *    Function: Updates screen_x[scheduled_terminal] and screen_y[scheduled_terminal] to its corresponding inputs */
 void update_xy(uint16_t x, uint16_t y) {
-    screen_x = x;
-    screen_y = y;
+    screen_x[scheduled_terminal] = x;
+    screen_y[scheduled_terminal] = y;
 }
 
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
- *  Function: Output a character to the console */
+ *  Function: Output a character to the console * ///WILL PROBABLY HAVE PUTC FOR  
+*/
 void putc(uint8_t c) {
-
+    char *video_mem_cur;
+    if(displayed_terminal == scheduled_terminal){
+        video_mem_cur = (char *)VIDEO;
+    }else{
+        video_mem_cur =(char *) 0xBA000 + scheduled_terminal*4096;
+    }
     // first time writing
     if (first) {
-        // user_y = screen_y;
+        // user_y = screen_y[scheduled_terminal];
         first = 0;
     }
 
@@ -196,21 +202,21 @@ void putc(uint8_t c) {
     }
 
     // handling enter that isn't the last line
-    if ((c == '\n' || c == '\r') && screen_y < NUM_ROWS - 1) {
-        screen_y++;
-        screen_x = 0;
+    if ((c == '\n' || c == '\r') && screen_y[scheduled_terminal] < NUM_ROWS - 1) {
+        screen_y[scheduled_terminal]++;
+        screen_x[scheduled_terminal] = 0;
     // handling entering at the last line and character overflow
-    }  else if ((screen_x == NUM_COLS - 1 && screen_y== NUM_ROWS - 1) || (c == '\n' && screen_y == NUM_ROWS - 1)) { // want to move current row to last row
+    }  else if ((screen_x[scheduled_terminal] == NUM_COLS - 1 && screen_y[scheduled_terminal]== NUM_ROWS - 1) || (c == '\n' && screen_y[scheduled_terminal] == NUM_ROWS - 1)) { // want to move current row to last row
         int i;
         int j;
-        og_x = 7;
+        og_x[scheduled_terminal] = 7;
         // if we need a new line due to character overflow, we also need to write that character in the new line
         if (c != '\n') {
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-            screen_x++;
-            screen_x = 0;
-            screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+            *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = c;
+            *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
+            screen_x[scheduled_terminal]++;
+            screen_x[scheduled_terminal] = 0;
+            screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;
             // overflow, last row is still user typed characters
             // user_y -= 1;
         } else {
@@ -218,51 +224,142 @@ void putc(uint8_t c) {
         }
         // shifting every content by one line up
         for (i = 0; i < NUM_ROWS - 1; i++) {
-            screen_x = 0;
-            screen_y = i;
+            screen_x[scheduled_terminal] = 0;
+            screen_y[scheduled_terminal] = i;
             for (j = 0; j < NUM_COLS; j++) {
-                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1));
-                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y) + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1) + 1);
-                screen_x++;
-                screen_x %= NUM_COLS;
+                *(uint8_t *)(video_mem_cur + ((NUM_COLS * (screen_y[scheduled_terminal]) + screen_x[scheduled_terminal]) << 1)) = *(uint8_t *)(video_mem_cur + ((NUM_COLS * (screen_y[scheduled_terminal]+1) + screen_x[scheduled_terminal]) << 1));
+                *(uint8_t *)(video_mem_cur + ((NUM_COLS * (screen_y[scheduled_terminal]) + screen_x[scheduled_terminal]) << 1) + 1) = *(uint8_t *)(video_mem_cur + ((NUM_COLS * (screen_y[scheduled_terminal]+1) + screen_x[scheduled_terminal]) << 1) + 1);
+                screen_x[scheduled_terminal]++;
+                screen_x[scheduled_terminal] %= NUM_COLS;
             }
         }
         // clear the very last line to make space for new characters
         next_row_flag[displayed_terminal] = 1;
-        screen_x = 0; // first character space in a line
-        screen_y = NUM_ROWS - 1;
+        screen_x[scheduled_terminal] = 0; // first character space in a line
+        screen_y[scheduled_terminal] = NUM_ROWS - 1;
         for (j = 0; j < NUM_COLS; j++) {
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-            screen_x++;
-            screen_x %= NUM_COLS;
-            screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
+            *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = ' ';
+            *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
+            screen_x[scheduled_terminal]++;
+            screen_x[scheduled_terminal] %= NUM_COLS;
+            screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;  
         }
-    } else if (screen_x == NUM_COLS - 1) { // move to next row
+    } else if (screen_x[scheduled_terminal] == NUM_COLS - 1) { // move to next row
 
         // next_row_flag = 1;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
-        screen_y++;
-        screen_x = 0;
+        *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = c;
+        *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
+        screen_x[scheduled_terminal]++;
+        screen_x[scheduled_terminal] %= NUM_COLS;
+        screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;  
+        screen_y[scheduled_terminal]++;
+        screen_x[scheduled_terminal] = 0;
     } else { // normally writing characters
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;  
+        *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = c;
+        *(uint8_t *)(video_mem_cur + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
+        screen_x[scheduled_terminal]++;
+        screen_x[scheduled_terminal] %= NUM_COLS;
+        screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;  
     }
     // always updating cursor so it follows what the user is typing
-    update_cursor(screen_x, screen_y);
+    if(scheduled_terminal == displayed_terminal){
+        update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal]);
+    }
+        // update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal]);
     // if (c == ' ') {
     //     kb_idx--;
     // } else {
     //     kb_idx++;
     // }
 }
+
+/* void putc(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console * ///WILL PROBABLY HAVE PUTC FOR  
+*/
+void putc_kb(uint8_t c) {
+
+    // first time writing
+    if (first) {
+        // user_y = screen_y[scheduled_terminal];
+        first = 0;
+    }
+
+    if (c == '\t') { // our symbol for not printing anything
+        return;
+    }
+
+    // handling enter that isn't the last line
+    if ((c == '\n' || c == '\r') && screen_y[displayed_terminal] < NUM_ROWS - 1) {
+        screen_y[displayed_terminal]++;
+        screen_x[displayed_terminal] = 0;
+    // handling entering at the last line and character overflow
+    }  else if ((screen_x[displayed_terminal] == NUM_COLS - 1 && screen_y[displayed_terminal]== NUM_ROWS - 1) || (c == '\n' && screen_y[displayed_terminal] == NUM_ROWS - 1)) { // want to move current row to last row
+        int i;
+        int j;
+        og_x[displayed_terminal] = 7;
+        // if we need a new line due to character overflow, we also need to write that character in the new line
+        if (c != '\n') {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1) + 1) = ATTRIB;
+            screen_x[displayed_terminal]++;
+            screen_x[displayed_terminal] = 0;
+            screen_y[displayed_terminal] = (screen_y[displayed_terminal] + (screen_x[displayed_terminal] / NUM_COLS)) % NUM_ROWS;
+            // overflow, last row is still user typed characters
+            // user_y -= 1;
+        } else {
+            // user_y = NUM_ROWS - 1; // very last line
+        }
+        // shifting every content by one line up
+        for (i = 0; i < NUM_ROWS - 1; i++) {
+            screen_x[displayed_terminal] = 0;
+            screen_y[displayed_terminal] = i;
+            for (j = 0; j < NUM_COLS; j++) {
+                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]) + screen_x[displayed_terminal]) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]+1) + screen_x[displayed_terminal]) << 1));
+                *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]) + screen_x[displayed_terminal]) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y[displayed_terminal]+1) + screen_x[displayed_terminal]) << 1) + 1);
+                screen_x[scheduled_terminal]++;
+                screen_x[scheduled_terminal] %= NUM_COLS;
+            }
+        }
+        // clear the very last line to make space for new characters
+        next_row_flag[displayed_terminal] = 1;
+        screen_x[displayed_terminal] = 0; // first character space in a line
+        screen_y[displayed_terminal] = NUM_ROWS - 1;
+        for (j = 0; j < NUM_COLS; j++) {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1) + 1) = ATTRIB;
+            screen_x[displayed_terminal]++;
+            screen_x[displayed_terminal] %= NUM_COLS;
+            screen_y[displayed_terminal] = (screen_y[displayed_terminal] + (screen_x[displayed_terminal] / NUM_COLS)) % NUM_ROWS;  
+        }
+    } else if (screen_x[displayed_terminal] == NUM_COLS - 1) { // move to next row
+
+        // next_row_flag = 1;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1) + 1) = ATTRIB;
+        screen_x[displayed_terminal]++;
+        screen_x[displayed_terminal] %= NUM_COLS;
+        screen_y[displayed_terminal] = (screen_y[displayed_terminal] + (screen_x[displayed_terminal] / NUM_COLS)) % NUM_ROWS;  
+        screen_y[displayed_terminal]++;
+        screen_x[displayed_terminal] = 0;
+    } else { // normally writing characters
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[displayed_terminal] + screen_x[displayed_terminal]) << 1) + 1) = ATTRIB;
+        screen_x[displayed_terminal]++;
+        screen_x[displayed_terminal] %= NUM_COLS;
+        screen_y[displayed_terminal] = (screen_y[displayed_terminal] + (screen_x[displayed_terminal] / NUM_COLS)) % NUM_ROWS;  
+    }
+    // always updating cursor so it follows what the user is typing
+    update_cursor(screen_x[displayed_terminal], screen_y[displayed_terminal]);
+    // if (c == ' ') {
+    //     kb_idx--;
+    // } else {
+    //     kb_idx++;
+    // }
+}
+
+
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
  * Inputs: uint32_t value = number to convert

@@ -81,7 +81,6 @@ int shell_count = 0;
 void pit_handler()  {
     register uint32_t ebp asm("ebp");
     uint32_t EBP_SAVE = ebp;
-    uint32_t ESP_SAVE = esp;
     
 
     // terminal_processes[scheduled_terminal].active_process_PID = ; SHOULD BE SAVED IN EXEC/HALT
@@ -89,23 +88,29 @@ void pit_handler()  {
     if(shell_count < 3){
         terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
         
-        // scheduled_terminal = shell_count-1;
-        terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
-        terminal_processes[scheduled_terminal].ESP_SAVE = ESP_SAVE;
         uint8_t shell_var[6] = "shell";
         shell_count++;
         scheduled_terminal = shell_count -1;// on 0th will update 
         no_parent_shell_flag = 1;
         // printf("Shell created.\n");
-        first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
-        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        asm volatile("movl %ebx, %cr3 ");
+        // terminal_processes[scheduled_terminal].cursor_x = screen_x; //saving screenx/screeny
+        // terminal_processes[scheduled_terminal].cursor_y = screen_y;
+        // terminal_processes[scheduled_terminal].togx = og_x; //saving ogx/y
+        // terminal_processes[scheduled_terminal].togy = og_y;
+        // if(scheduled_terminal != 0){
+        //     first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
+        
+        // }else{
+        //     first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
+        // }
+        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        // asm volatile("movl %ebx, %cr3 ");
+        
         send_eoi(0);
         sys_execute(shell_var);
     }
 
     terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
-    terminal_processes[scheduled_terminal].ESP_SAVE = ESP_SAVE;
     // terminal_processes[scheduled_terminal].cursor_x = screen_x; //saving screenx/screeny
     // terminal_processes[scheduled_terminal].cursor_y = screen_y;
     // terminal_processes[scheduled_terminal].togx = og_x; //saving ogx/y
@@ -126,11 +131,11 @@ void schedule() {
     scheduled_terminal = (scheduled_terminal +1)% 3;
     // map the video memory to the background buffer
     //if display_term == sch
-    if(displayed_terminal == scheduled_terminal){
-        first_page_table[0xB8].p_base_addr = 0xB8;
-    }else{
-        first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
-    }
+    // if(displayed_terminal == scheduled_terminal){
+    //     first_page_table[0xB8].p_base_addr = 0xB8;
+    // }else{
+    //     first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
+    // }
     // screen_x = terminal_processes[scheduled_terminal].cursor_x;  
     // screen_y = terminal_processes[scheduled_terminal].cursor_y; 
     // og_x = terminal_processes[scheduled_terminal].togx;  

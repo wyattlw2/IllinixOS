@@ -25,6 +25,7 @@
         call handler ;\
         popfl ;\
         popal ;\
+        orl $0x200, 8(%esp)
         iret ;\
         
 // same macro as above but for interrupts with error code -- James
