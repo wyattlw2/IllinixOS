@@ -75,7 +75,7 @@ uint16_t og_x[3];
 uint16_t og_y[3];
 
 int next_row_flag[3];
-int setup = 1;
+int setup[3] = {1, 1, 1};
 int no_parent_shell_flag=0;
 // int TERMINAL1_SWITCH =
 void kb_handler() {
@@ -108,89 +108,20 @@ void kb_handler() {
    
     //ALT and F1 is Pressed
     if(alt && key == 0x3B){        
-        //SAVE RELEVANT INFO
         TERMINAL1_SWITCH = 1;
-        // first_page_table[0xB8].p_base_addr = 0xB8;
-        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        // asm volatile("movl %ebx, %cr3");
-        // move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
-        // terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screenx/screeny
-        // terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-        // terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; //saving ogx/y
-        // terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
-        // if (displayed_terminal == 0) { // if we don't have to context switch, just don't
-        //     send_eoi(1);
-        //     // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        //     // sti();
-        //     return;
-        // }
-        // //updating everything for terminal 0
-        // displayed_terminal = 0;
-        // move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        // update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        // update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-        // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
-        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        // sti();
         return;
     } 
-    
     //ALT and F2 is Pressed
     else if (alt && key == 0x3C) { 
         TERMINAL2_SWITCH = 1;
-        // first_page_table[0xB8].p_base_addr = 0xB8;
-        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        // asm volatile("movl %ebx, %cr3");
-        // move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
-        // terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screen x/y
-        // terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-        // terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
-        // terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
-        // if (displayed_terminal == 1) { // if we don't have to context switch, just don't
-        //     send_eoi(1);
-        //     // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        //     // sti();
-        //     return;
-        // }
-        // displayed_terminal = 1;
-        // move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        // update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        // update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-        // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
-        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        // sti();
         return;
-
+    }
     //ALT and F3 is Pressed
-    }else if(alt && key == 0x3D){
+    else if(alt && key == 0x3D){
         TERMINAL3_SWITCH = 1;
-        // first_page_table[0xB8].p_base_addr = 0xB8;
-        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        // asm volatile("movl %ebx, %cr3");
-        // move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
-        // terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal];
-        // terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-        // terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
-        // terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
-        // if(displayed_terminal == 2){ // if we don't have to context switch, just don't
-        //     send_eoi(1);
-        //     // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        //     // sti();
-        //     return;
-        // }
-        // displayed_terminal = 2;
-        // move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
-        // update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        // update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-        // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-        // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
         send_eoi(1);
-        // first_page_table[0xB8].p_base_addr = displayed_terminal + 0xBA;
-        // sti();
         return;
     }
 
@@ -199,12 +130,11 @@ void kb_handler() {
     if(key == 0x38){
         alt = 1;
         send_eoi(1);
-        // sti();
         return;
-    }else if(key == 0xB8){
+    }
+    else if(key == 0xB8){
         alt = 0;
         send_eoi(1);
-        // sti();
         return;
     }
 
@@ -219,11 +149,11 @@ void kb_handler() {
     }
 
 
-    if (setup) {
+    if (setup[displayed_terminal]) {
         uint16_t p = get_cursor_position();
         og_x[displayed_terminal] = p % NUM_COLS;
         og_y[displayed_terminal] = p / NUM_COLS;
-        setup = 0;
+        setup[displayed_terminal] = 0;
         next_row_flag[displayed_terminal] = 0;
     }
     SHELLPROMPT_DELETE_FLAG[displayed_terminal] = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
@@ -319,7 +249,7 @@ void kb_handler() {
         // user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
 
         kb_idx[displayed_terminal] = 0;
-        setup = 1;
+        setup[displayed_terminal] = 1;
         // }
         send_eoi(1);
         // sti();
@@ -376,7 +306,7 @@ void kb_handler() {
         update_cursor(0, 0);
         // user_y = 0;
         
-        setup = 1;
+        setup[displayed_terminal] = 1;
         CLEAR_SCREEN_FLAG = 1;
         // uint8_t string[1];
         // string[0] = '\n';

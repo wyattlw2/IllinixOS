@@ -34,11 +34,20 @@ void terminal_init(){
     terminal_processes[0].active_process_PID = 0;
     terminal_processes[1].active_process_PID = 1;
     terminal_processes[2].active_process_PID = 2;
+    // og_x[0] = 1;
+    // og_x[1] = 1;
+    // og_x[2] = 1;
+    // og_y[0] = 1;
+    // og_y[1] = 1;
+    // og_y[2] = 1;
+    SHELLPROMPT_DELETE_FLAG[0] = 0;
+    SHELLPROMPT_DELETE_FLAG[1] = 0;
+    SHELLPROMPT_DELETE_FLAG[2] = 0;
     int i;
     int j;
-    // first_page_table[0xB8].p_base_addr = (uint32_t) 0xBA;
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
     asm volatile("movl %ebx, %cr3");
+
     //the stuff below here initializes the video memory for each terminal
     for (i = 0; i < NUM_ROWS; i++) {
             int screen_x = 0;
@@ -69,7 +78,7 @@ void init_pit() {
     outb((uint8_t)(divisor & 0xFF), PIT_CHANNEL0);
     outb((uint8_t)((divisor >> 8) & 0xFF), PIT_CHANNEL0);
     enable_irq(0);
-    printf("PIT: Initialized\n");
+    return;
 }
 
 /*  pit_handler()
@@ -82,9 +91,6 @@ void pit_handler()  {
     register uint32_t ebp asm("ebp");
     uint32_t EBP_SAVE = ebp;
     
-
-    // terminal_processes[scheduled_terminal].active_process_PID = ; SHOULD BE SAVED IN EXEC/HALT
-    // printf("\n PIT INTERRUPT");
     if(shell_count < 3){
         terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
         
@@ -94,34 +100,15 @@ void pit_handler()  {
         no_parent_shell_flag = 1;
         terminal_processes[scheduled_terminal].cursor_x = 7; //saving screenx/screeny
         terminal_processes[scheduled_terminal].cursor_y = 1;
-        // printf("Shell created.\n");
-        // terminal_processes[scheduled_terminal].cursor_x = screen_x; //saving screenx/screeny
-        // terminal_processes[scheduled_terminal].cursor_y = screen_y;
-        // terminal_processes[scheduled_terminal].togx = og_x; //saving ogx/y
-        // terminal_processes[scheduled_terminal].togy = og_y;
-        // if(scheduled_terminal != 0){
-        //     first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
-        
-        // }else{
-        //     first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
-        // }
-        // asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
-        // asm volatile("movl %ebx, %cr3 ");
         
         send_eoi(0);
         sys_execute(shell_var);
     }
 
     terminal_processes[scheduled_terminal].EBP_SAVE = EBP_SAVE;
-    // terminal_processes[scheduled_terminal].cursor_x = screen_x; //saving screenx/screeny
-    // terminal_processes[scheduled_terminal].cursor_y = screen_y;
-    // terminal_processes[scheduled_terminal].togx = og_x; //saving ogx/y
-    // terminal_processes[scheduled_terminal].togy = og_y;
 
-
-    //move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO);
     schedule();
-    // sti();
+    
     return; // hypotheticallu should never get here
 }
 
@@ -130,9 +117,9 @@ void schedule() {
 
         if(TERMINAL1_SWITCH){
             first_page_table[0xB8].p_base_addr = 0xB8;
-            vmem_page_table[0].p_base_addr = 0xB8; // set the current one to VMEM
-            vmem_page_table[1].p_base_addr = 0xBB; // set the others to the background
-            vmem_page_table[2].p_base_addr = 0xBC; // set the others to the background
+            vmem_page_table[0].p_base_addr = 0xB8; // set the current one to physical VMEM
+            vmem_page_table[1].p_base_addr = 0xBB; // set the others to physical background memory
+            vmem_page_table[2].p_base_addr = 0xBC; // set the others to physical background memory
             asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
             asm volatile("movl %ebx, %cr3");
             move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
@@ -150,7 +137,9 @@ void schedule() {
             TERMINAL1_SWITCH = 0;
             send_eoi(0);
             return;
-        }else if(TERMINAL2_SWITCH){
+        }
+
+        else if(TERMINAL2_SWITCH){
             first_page_table[0xB8].p_base_addr = 0xB8;
             vmem_page_table[0].p_base_addr = 0xBA; // set the others to the background
             vmem_page_table[1].p_base_addr = 0xB8; // set the current one to VMEM
@@ -171,7 +160,9 @@ void schedule() {
             TERMINAL2_SWITCH = 0;
             send_eoi(0);
             return;
-        }else if(TERMINAL3_SWITCH){
+        }
+
+        else if(TERMINAL3_SWITCH){
             first_page_table[0xB8].p_base_addr = 0xB8;
             vmem_page_table[0].p_base_addr = 0xBA; // set the current one to VMEM
             vmem_page_table[1].p_base_addr = 0xBB; // set the others to the background
@@ -195,7 +186,7 @@ void schedule() {
         }
 
 
-    //all is saved, time to change context!
+    //all is saved, time to context switch!
     scheduled_terminal = (scheduled_terminal +1)% 3;
     current_process_idx = terminal_processes[scheduled_terminal].active_process_PID;
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
