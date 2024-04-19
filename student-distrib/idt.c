@@ -84,11 +84,7 @@ void kb_handler() {
     first_page_table[0xB8].p_base_addr = 0xB8;
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
     asm volatile("movl %ebx, %cr3");
-    // register uint32_t ebp asm("ebp");
-    // register uint32_t esp asm("esp");
-    // uint32_t EBP_SAVE = ebp;
-    // uint32_t ESP_SAVE = esp;
-    //IF we are gonna have a context switch, we save that EIP where we came from
+    
     unsigned char key = inb(KEYBOARD_PORT);
 
 
@@ -139,10 +135,7 @@ void kb_handler() {
     }
 
 
-    //what this line below does:
-    //prevents typing in the displayed terminal if the displayed process is running terminal_read() 
-    //pretty sure this doesn't affect other terminals
-    if(TERMINAL_READ_FLAG[displayed_terminal] == 0 && displayed_terminal == scheduled_terminal) {
+    if(TERMINAL_READ_FLAG[displayed_terminal] == 0) {
         send_eoi(1);
         // sti();
         return;
@@ -200,10 +193,10 @@ void kb_handler() {
             }
             // if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
                 if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
-                    if (SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1 && y == 0 && x <= 7)   {
-                        send_eoi(1);
-                        return;
-                    } 
+                    if (kb_idx[displayed_terminal] <= 0)   {    //this is impossibe to be messed up by any race conditions or likewise issues,
+                        send_eoi(1);                            //due to how our keyboard driver was implemented. keyboard stuff is beyond the access
+                        return;                                 //of the scheduler
+                    }           
                     if (x == 0 && y != 0) { // any other row
                         update_xy_display(NUM_COLS - 1, y-1);
                         putc_kb(' ');
@@ -234,8 +227,6 @@ void kb_handler() {
 
     // if enter is pressed
     if (key == 0x1C) {
-        // if(scheduled_terminal == displayed_terminal){
-        // enter_flag = 1;
         uint16_t pos = get_cursor_position();
         x = pos % NUM_COLS;
         y = pos / NUM_COLS;
@@ -246,11 +237,9 @@ void kb_handler() {
             putc_kb('\n');
         }
         kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\n';
-        // user_y += 2; // add 2 because we need to print the buffer value but also move to a new line
-
         kb_idx[displayed_terminal] = 0;
         setup[displayed_terminal] = 1;
-        // }
+        
         send_eoi(1);
         // sti();
 
@@ -301,22 +290,19 @@ void kb_handler() {
         //     return;
         // }
         // reset everything to top left of screen
+        int i;
+        for(i = 0; i < 128; i++)   {
+            kb_buff[displayed_terminal][i] = '\t';
+        }
+        kb_idx[displayed_terminal] = 0; //when we ctrl + l, we also want to reset the keyboard buffer
         clear();
         update_xy_display(0, 0);
         update_cursor(0, 0);
-        // user_y = 0;
-        
         setup[displayed_terminal] = 1;
-        CLEAR_SCREEN_FLAG = 1;
-        // uint8_t string[1];
-        // string[0] = '\n';
-        // t_write(1, string, 1);
-        // sti();
-        // og_x[displayed_terminal] = 7;
+        CLEAR_SCREEN_FLAG[displayed_terminal] = 1;
         send_eoi(1);
         return;
     }
-
     // ctrl + c pressed, does the same thing as ctrl + l for now
     if(ctrl && key == 0x2E) {
         // clear();

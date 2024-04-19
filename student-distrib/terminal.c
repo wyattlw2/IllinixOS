@@ -64,10 +64,10 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
                     // arg_start = i + 1;
                     ((char*)buf)[i] = '\0';
                 }
-            if (CLEAR_SCREEN_FLAG == 1) { // we did this so that whenever we call crtl + l in shell, it is able to break out and we can see the 391OS>
+            if (CLEAR_SCREEN_FLAG[scheduled_terminal] == 1) { // we did this so that whenever we call crtl + l in shell, it is able to break out and we can see the 391OS>
                 ((char* )buf)[0] = '\0'; // set this so that shell doesn't try and execute whatever is in the buf, it recognizes it as empty and continues
                 b = 1;
-                CLEAR_SCREEN_FLAG = 0; // This could cause problems later, but its fine for now
+                CLEAR_SCREEN_FLAG[scheduled_terminal] = 0; // This could cause problems later, but its fine for now
                 break;
             }
         }

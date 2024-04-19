@@ -34,12 +34,6 @@ void terminal_init(){
     terminal_processes[0].active_process_PID = 0;
     terminal_processes[1].active_process_PID = 1;
     terminal_processes[2].active_process_PID = 2;
-    // og_x[0] = 1;
-    // og_x[1] = 1;
-    // og_x[2] = 1;
-    // og_y[0] = 1;
-    // og_y[1] = 1;
-    // og_y[2] = 1;
     SHELLPROMPT_DELETE_FLAG[0] = 0;
     SHELLPROMPT_DELETE_FLAG[1] = 0;
     SHELLPROMPT_DELETE_FLAG[2] = 0;
@@ -125,15 +119,15 @@ void schedule() {
             move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
             terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screenx/screeny
             terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-            terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; //saving ogx/y
-            terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+            // terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; 
+            // terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];  //i don't even think we use any of this lol
             //updating everything for terminal 0
             displayed_terminal = 0;
             move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
             update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
             update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-            og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-            og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+            // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+            // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL1_SWITCH = 0;
             TERMINAL_READ_FLAG[0] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
             terminal_processes[0].togx = 7;
@@ -151,14 +145,14 @@ void schedule() {
             move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
             terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screen x/y
             terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-            terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
-            terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+            // terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
+            // terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
             displayed_terminal = 1;
             move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
             update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
             update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-            og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-            og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+            // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+            // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL2_SWITCH = 0;             
             TERMINAL_READ_FLAG[1] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
             terminal_processes[1].togx = 7;
@@ -176,14 +170,14 @@ void schedule() {
             move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
             terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal];
             terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
-            terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
-            terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+            // terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
+            // terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
             displayed_terminal = 2;
             move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
             update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
             update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
-            og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
-            og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+            // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+            // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL3_SWITCH = 0;
             TERMINAL_READ_FLAG[2] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
             terminal_processes[2].togx = 7;

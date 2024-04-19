@@ -7,7 +7,7 @@
 #include "asm_macro.h"
 #include "scheduling.h"
 int EXCEPTION_FLAG;
-int CLEAR_SCREEN_FLAG;
+int CLEAR_SCREEN_FLAG[3];
 int TERMINAL1_SWITCH;
 int TERMINAL2_SWITCH;
 int TERMINAL3_SWITCH;
