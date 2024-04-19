@@ -277,7 +277,7 @@ int32_t sys_execute(uint8_t * command) {
                                             // otherwise, set the PID to an absolutely crazy value to signify that it
                                             // is not a child process    
                 //map this address to video memory that the user can access
-                vmem_page_table[0].p_base_addr = 0xB8;
+                // vmem_page_table[0].p_base_addr = 0xB8;
                 switch(PID){
                     case(0):
                         page_directory[32].page_4mb.page_base_addr = USER_PROG_0;
@@ -536,6 +536,7 @@ int32_t sys_getargs(uint8_t * buf, int32_t nbytes) {
 #define     MEGABYTE_128        0x08000000
 #define     MEGABYTE_132        0x08400000
 #define     USER_PROG_START     0x08048000
+#define     FOUR_KB             4096
 /* Takes the user double pointer at maps it to the virtual address that maps to the physical address that corresponds to the video memory
 *   It then returns that address to the user
 */
@@ -547,7 +548,31 @@ int32_t sys_vidmap(uint8_t ** screen_start) {
     }
 
     if((int)screen_start > USER_PROG_START){
-        *screen_start = (uint8_t *)MEGABYTE_132; // PUT THIS AT 132MB VIRTUAL WHERE WE ALLOCATED THE PAGE
+        if(scheduled_terminal == 0){
+            *screen_start = (uint8_t *)MEGABYTE_132; // PUT THIS AT 132MB VIRTUAL WHERE WE ALLOCATED THE PAGE
+            if(scheduled_terminal == displayed_terminal){
+                vmem_page_table[0].p_base_addr = 0xB8;
+            }else{
+                vmem_page_table[0].p_base_addr = 0xBA;
+            }
+            
+        }else if(scheduled_terminal == 1){
+            *screen_start = (uint8_t *)MEGABYTE_132 + FOUR_KB; // PUT THIS AT 132MB + 4KB VIRTUAL WHERE WE ALLOCATED THE PAGE
+            if(scheduled_terminal == displayed_terminal){
+                vmem_page_table[1].p_base_addr = 0xB8;
+            }else{
+                vmem_page_table[1].p_base_addr = 0xBB;
+            }
+        }else{ // only terminals 0-2
+            *screen_start = (uint8_t *)MEGABYTE_132 + 2*FOUR_KB; // PUT THIS AT 132MB + 4KB VIRTUAL WHERE WE ALLOCATED THE PAGE
+            if(scheduled_terminal == displayed_terminal){
+                vmem_page_table[2].p_base_addr = 0xB8;
+            }else{
+                vmem_page_table[2].p_base_addr = 0xBC;
+            }
+        }
+        asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+        asm volatile("movl %ebx, %cr3");
     }
 
     return (int32_t)*screen_start;

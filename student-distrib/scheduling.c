@@ -128,20 +128,75 @@ void pit_handler()  {
 void schedule() {
     //these cover whenever a few terminals haven't been activated yet
 
-    
+        if(TERMINAL1_SWITCH){
+            first_page_table[0xB8].p_base_addr = 0xB8;
+            vmem_page_table[0].p_base_addr = 0xB8; // set the current one to VMEM
+            vmem_page_table[1].p_base_addr = 0xBB; // set the others to the background
+            vmem_page_table[2].p_base_addr = 0xBC; // set the others to the background
+            asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+            asm volatile("movl %ebx, %cr3");
+            move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+            terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screenx/screeny
+            terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+            terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; //saving ogx/y
+            terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+            //updating everything for terminal 0
+            displayed_terminal = 0;
+            move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+            update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+            og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+            TERMINAL1_SWITCH = 0;
+            send_eoi(0);
+            return;
+        }else if(TERMINAL2_SWITCH){
+            first_page_table[0xB8].p_base_addr = 0xB8;
+            vmem_page_table[0].p_base_addr = 0xBA; // set the others to the background
+            vmem_page_table[1].p_base_addr = 0xB8; // set the current one to VMEM
+            vmem_page_table[2].p_base_addr = 0xBC; // set the others to the background
+            asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+            asm volatile("movl %ebx, %cr3");
+            move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+            terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal]; //saving screen x/y
+            terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+            terminal_processes[displayed_terminal].togx = og_x[displayed_terminal]; // 
+            terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+            displayed_terminal = 1;
+            move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+            update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+            og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+            TERMINAL2_SWITCH = 0;
+            send_eoi(0);
+            return;
+        }else if(TERMINAL3_SWITCH){
+            first_page_table[0xB8].p_base_addr = 0xB8;
+            vmem_page_table[0].p_base_addr = 0xBA; // set the current one to VMEM
+            vmem_page_table[1].p_base_addr = 0xBB; // set the others to the background
+            vmem_page_table[2].p_base_addr = 0xB8; // set the others to the background
+            asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
+            asm volatile("movl %ebx, %cr3");
+            move_four_kb((uint8_t *) VIDEO, (uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB); // saving the current vmem
+            terminal_processes[displayed_terminal].cursor_x = screen_x[displayed_terminal];
+            terminal_processes[displayed_terminal].cursor_y = screen_y[displayed_terminal];
+            terminal_processes[displayed_terminal].togx = og_x[displayed_terminal];
+            terminal_processes[displayed_terminal].togy = og_y[displayed_terminal];
+            displayed_terminal = 2;
+            move_four_kb((uint8_t *) TERMINAL1_MEM + displayed_terminal*FOUR_KB, (uint8_t *) VIDEO) ; //moving the stored vmem into displayed vmem
+            update_xy_display(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            update_cursor(terminal_processes[displayed_terminal].cursor_x, terminal_processes[displayed_terminal].cursor_y);
+            og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
+            og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
+            TERMINAL3_SWITCH = 0;
+            send_eoi(0);
+            return;
+        }
+
+
     //all is saved, time to change context!
     scheduled_terminal = (scheduled_terminal +1)% 3;
-    // map the video memory to the background buffer
-    //if display_term == sch
-    // if(displayed_terminal == scheduled_terminal){
-    //     first_page_table[0xB8].p_base_addr = 0xB8;
-    // }else{
-    //     first_page_table[0xB8].p_base_addr = (uint32_t)scheduled_terminal + 0xBA;
-    // }
-    // screen_x = terminal_processes[scheduled_terminal].cursor_x;  
-    // screen_y = terminal_processes[scheduled_terminal].cursor_y; 
-    // og_x = terminal_processes[scheduled_terminal].togx;  
-    // og_y = terminal_processes[scheduled_terminal].togy; 
     current_process_idx = terminal_processes[scheduled_terminal].active_process_PID;
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB

@@ -90,6 +90,12 @@ void paging_init()  {
     vmem_page_table[0].us = 1; // add a user page for vmem
     vmem_page_table[0].p = 1;
 
+    vmem_page_table[1].us = 1; // add a user page for vmem
+    vmem_page_table[1].p = 1;
+
+    vmem_page_table[2].us = 1; // add a user page for vmem
+    vmem_page_table[2].p = 1;
+
     loadPageDirectory((unsigned int *)page_directory);
     enableExtendedPageSize();
     enablePaging();
