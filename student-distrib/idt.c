@@ -258,16 +258,26 @@ void kb_handler() {
     }
 
     // if backspace is pressed
+    // if backspace is pressed
     if (key == 0x0E) {
         // if (displayed_terminal == scheduled_terminal) {
             uint16_t pos = get_cursor_position();
             x = pos % NUM_COLS;
             y = pos / NUM_COLS;
-            if(pos != 0){
-                if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
-                    if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
-
-                        if (x == 0 && y != 0) { // any other row
+            if(pos == 0){
+                send_eoi(1);
+                return;
+            }
+            // if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
+                if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
+                    if (SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1 && y == 0 && x <= 7)   {
+                        send_eoi(1);
+                        return;
+                    } 
+                    if (x == 0 && y != 0) { // any other row
+                        update_xy_display(NUM_COLS - 1, y-1);
+                        putc_kb(' ');
+                        if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
                             update_xy_display(NUM_COLS - 1, y-1);
                             update_cursor(NUM_COLS - 1, y-1);
                         }
@@ -282,11 +292,12 @@ void kb_handler() {
                         kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\t'; // code for not print anything
                     }
                 }
-            }
+            // }
         send_eoi(1);
         // sti();
         return;
     }
+
 
 
 
