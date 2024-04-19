@@ -21,7 +21,8 @@ extern void sys_handler();
 extern uint16_t og_x[3];
 extern uint16_t og_y[3];
 
-extern int setup[3];    //there has to be a separate setup value for each terminal
+extern int setup[3];    //there has to be a separate setup flag for each terminal. this was originally a single element, which was causing us to accidentally delete
+                        //the first shell prompt of a separate terminal by mistake
 extern int next_row_flag[3];
 // extern int send_eoi_kb_flag;
 extern int no_parent_shell_flag;

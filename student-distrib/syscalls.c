@@ -165,7 +165,13 @@ void sys_halt(uint8_t status) {
     current_process_idx = PCB_array[current_process_idx]->parent_PID;
     terminal_processes[scheduled_terminal].active_process_PID = current_process_idx;
     // this might be pretty sus ngl -- check this line out later if something breaks
+
     
+    //the lines below are necessary for scheduling. a background process needs to know these values below in order for the cursor to update correctly when switching back to that terminal
+    terminal_processes[scheduled_terminal].cursor_x = 7;
+    terminal_processes[scheduled_terminal].togx = 7;
+
+
     if(EXCEPTION_FLAG == 1)  {
         //if exception has occurred: put 256 in eax and return immediately 
         EXCEPTION_FLAG = 0;

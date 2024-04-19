@@ -8,4 +8,33 @@ Solution: Somehow, pushing values on the stack did not work. We changed our cont
 
 
 
-2. 
+2. Bug with terminal where, upon booting, switching to any of the other terminals and typing would be insanely slow unless an enter was pressed
+
+Solution: Was an issue with one of our flags. Didn't account for how the shell program would work with multiple terminals being scheduled. The fix was to set the flag equal to 1 whenever the user did a terminal switch
+
+
+
+3. Rapidly switching terminals with one running counter and the other running pingpong would cause counter to pagefault
+
+Solution: Added cli() and sti() in terminal_write -- before doing that, we were presumably doing a keyboard interrupt inside the terminal_write() and it was somehow messing everything up. My guess is that the keyboard interrupt somehow messed up the context of the terminal_write() - may have been due to PIT time interval. Not really sure
+
+
+
+4. Rapidly switching terminals with one running counter and the other running pingpong would also cause the newline characters in counter to be entered in pingpong, which messed up the resulting image of pingpong
+
+Solution: Added a flag in terminal_write() that indicated whether a terminal write was active -- if it was, the program would wait for the write to finish before attempting to putc a new character (?)
+
+
+
+5. At first, there was a 1/3 chance (which corresponds to the number of terminals active) that running 'hello' would read the correct string. It would sometimes read junk keyboard data from somewhere
+
+Solution: Added a check in terminal_read() that waited until the scheduled terminal was the same as the displayed terminal. basically, if displayed_terminal != scheduled_terminal, continue in a while loop until that condition is no longer true
+
+
+
+6. Running fish, clearing the screen with ctrl + l, and then backspacing would cause everything to freeze and die
+
+Solution: Added a check in keyboard_handler() that prevented backspacing if the current {x,y} position was {0,0}
+
+
+

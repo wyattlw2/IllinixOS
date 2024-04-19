@@ -34,52 +34,6 @@ int t_close() {
  *         int32_t nbytes - number of bytes 
  * Return Value: nbytes - number of bytes read
  * Function: fills up the buf buffer with characters from kb_buff */
-// int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
-//     int i; // loop index
-//     int arg_start = 0;
-//     int b = 0;
-//     int count = 0;
-//     int j = 0;
-
-//     while (1) {
-//         count = 0;
-//         for (i = 0; i < nbytes; i++) { // copy every character
-//             if (kb_buff[i] == '\n') {
-//                 b = 1;
-//                 break;
-//             }
-
-//             // if (!arg_start) { // if we haven't gotten to the argument yet
-//                 ((char*)buf)[i] = kb_buff[i];
-                // if (kb_buff[i] == ' ') {
-                //     // arg_start = i + 1;
-                //     ((char*)buf)[i] = '\0';
-                // }
-//                 count++;
-//             // } 
-            // else { // we're at the argument, start filling buffer
-            //     if(arg_start+j < 128)
-            //     get_args_buf[arg_start + j] = kb_buff[i];
-            //     j++;
-//             }
-
-//             if (CLEAR_SCREEN_FLAG == 1) { // we did this so that whenever we call crtl + l in shell, it is able to break out and we can see the 391OS>
-//                 ((char* )buf)[0] = '\0'; // set this so that shell doesn't try and execute whatever is in the buf, it recognizes it as empty and continues
-//                 b = 1;
-//                 CLEAR_SCREEN_FLAG = 0; // This could cause problems later, but its fine for now
-//                 break;
-//             }
-        
-//         if (b) {
-//             for (i = 0; i < nbytes; i++) { // clear every character
-//                 kb_buff[i] = '\t';
-//             }
-//             // break;
-//         }
-//     }
-//         return count;
-//     }
-
 int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     TERMINAL_READ_FLAG[displayed_terminal] = 1;
 
@@ -126,18 +80,6 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
             break;
         }
     }
-    // get_args_buf[0] = 'f';
-    // get_args_buf[1] = 'r';
-    // get_args_buf[2] = 'a';
-    // get_args_buf[3] = 'm';
-    // get_args_buf[4] = 'e';
-    // get_args_buf[5] = '0';
-    // get_args_buf[6] = '.';
-    // get_args_buf[7] = 't';
-    // get_args_buf[8] = 'x';
-    // get_args_buf[9] = 't';
-    // get_args_buf[10] = '\0';
-    // return 10;
     for(i=0; i<128; i++){
         get_args_buf[i] = ((char*)buf)[i];
     }
@@ -146,9 +88,6 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
     return count;
 }
 
-
-
-    
 
 
 /* int t_write(int32_t _fd, const void* buf, int32_t nbytes)
@@ -160,9 +99,6 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
  * Function: prints all the characters in buf to the screen */
 int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
     cli();
-    // if(displayed_terminal == scheduled_terminal){
-    //     TERMINAL_WRITE_FLAG[displayed_terminal] = 1;
-    // }
     int i; // loop index
     if (buf == NULL) {
         return -1;
@@ -173,10 +109,6 @@ int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
             putc(((char*)buf)[i]);
         }
     }
-    // for (i = 0; i < nbytes; i++) {
-    //     ((char*)buf)[i] = '\0';
-    // }
-    // TERMINAL_WRITE_FLAG[displayed_terminal] = 0;
     sti();
     return nbytes;
 }
