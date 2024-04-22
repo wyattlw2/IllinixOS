@@ -126,7 +126,7 @@ void schedule() {
             // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
             // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL1_SWITCH = 0;
-            TERMINAL_READ_FLAG[0] = 1;          
+            // TERMINAL_READ_FLAG[0] = 1;          
             terminal_processes[0].togx = 7;
             send_eoi(0);
             return;
@@ -151,7 +151,7 @@ void schedule() {
             // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
             // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL2_SWITCH = 0;             
-            TERMINAL_READ_FLAG[1] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
+            // TERMINAL_READ_FLAG[1] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
             terminal_processes[1].togx = 7;
             send_eoi(0);
             return;
@@ -176,7 +176,7 @@ void schedule() {
             // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
             // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL3_SWITCH = 0;
-            TERMINAL_READ_FLAG[2] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
+            // TERMINAL_READ_FLAG[2] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
             terminal_processes[2].togx = 7;
             send_eoi(0);
             return;

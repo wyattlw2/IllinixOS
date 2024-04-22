@@ -35,7 +35,7 @@ int t_close() {
  * Return Value: nbytes - number of bytes read
  * Function: fills up the buf buffer with characters from kb_buff */
 int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
-    TERMINAL_READ_FLAG[displayed_terminal] = 1;
+    TERMINAL_READ_FLAG[scheduled_terminal] = 1; //this also should be scheduled terminal instead of displayed terminal
 
     int i; // loop index
     // int j;
@@ -84,7 +84,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
         get_args_buf[i] = ((char*)buf)[i];
     }
 
-    TERMINAL_READ_FLAG[displayed_terminal] = 0;
+    TERMINAL_READ_FLAG[scheduled_terminal] = 0;
     return count;
 }
 
