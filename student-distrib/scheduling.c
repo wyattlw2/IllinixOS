@@ -34,9 +34,6 @@ void terminal_init(){
     terminal_processes[0].active_process_PID = 0;
     terminal_processes[1].active_process_PID = 1;
     terminal_processes[2].active_process_PID = 2;
-    SHELLPROMPT_DELETE_FLAG[0] = 0;
-    SHELLPROMPT_DELETE_FLAG[1] = 0;
-    SHELLPROMPT_DELETE_FLAG[2] = 0;
     int i;
     int j;
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
@@ -103,7 +100,7 @@ void pit_handler()  {
 
     schedule();
     
-    return; // hypotheticallu should never get here
+    return; // hypothetically should never get here
 }
 
 void schedule() {
@@ -129,7 +126,7 @@ void schedule() {
             // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
             // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL1_SWITCH = 0;
-            TERMINAL_READ_FLAG[0] = 1;          //NEEDED EVERY TIME WE SWITCH TERMINALS DUE TO HOW SHELL PROGRAM WORKS
+            TERMINAL_READ_FLAG[0] = 1;          //no longer needed, this line was also causing unintended behavior with typing during running programs
             terminal_processes[0].togx = 7;
             send_eoi(0);
             return;

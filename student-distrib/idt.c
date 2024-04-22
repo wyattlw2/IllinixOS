@@ -98,7 +98,6 @@ void kb_handler() {
 
     this is for if the visible terminal is constant
     scheduled terminal case is the inverse of the previous three cases
-    
     */
 
    
@@ -135,7 +134,7 @@ void kb_handler() {
     }
 
 
-    if(TERMINAL_READ_FLAG[displayed_terminal] == 0) {
+    if(TERMINAL_READ_FLAG[displayed_terminal] == 0) {   //we only allow the keyboard buffer to be populated if a terminal_read() is active
         send_eoi(1);
         // sti();
         return;
@@ -149,10 +148,7 @@ void kb_handler() {
         setup[displayed_terminal] = 0;
         next_row_flag[displayed_terminal] = 0;
     }
-    SHELLPROMPT_DELETE_FLAG[displayed_terminal] = 0; //This means -- do not delete in the x-coordinates corresponding to shell prompt location
-    if(y > og_y[displayed_terminal])    {
-        SHELLPROMPT_DELETE_FLAG[displayed_terminal] = 1;    //This means -- we are on a new line without a shell prompt, you can delete in the x-coordinates corresponding to shell prompt location
-    }
+    
     if(y == NUM_ROWS - 1 && og_y[displayed_terminal] == NUM_ROWS - 1 && next_row_flag[displayed_terminal] == 1)   {
         og_y[displayed_terminal] = NUM_ROWS - 2;    //fucking keyboard man
     }   
@@ -181,9 +177,7 @@ void kb_handler() {
     }
 
     // if backspace is pressed
-    // if backspace is pressed
     if (key == 0x0E) {
-        // if (displayed_terminal == scheduled_terminal) {
             uint16_t pos = get_cursor_position();
             x = pos % NUM_COLS;
             y = pos / NUM_COLS;
@@ -191,16 +185,15 @@ void kb_handler() {
                 send_eoi(1);
                 return;
             }
-            // if(TERMINAL_WRITE_FLAG[displayed_terminal] != 1){
-                if (((x-1 >= og_x[displayed_terminal]) && (y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal])) || SHELLPROMPT_DELETE_FLAG[displayed_terminal] == 1) {  //THIS LINE WAS CHANGED AT 6:55 PM ON 4/6/2024 TO REMOVE A COMPILER WARNING -- WE ADDED BRACKETS
+                // if (((y >= og_y[displayed_terminal] || y-1 >= og_y[displayed_terminal]))) {  //this line is malicious
                     if (kb_idx[displayed_terminal] <= 0)   {    //this is impossibe to be messed up by any race conditions or likewise issues,
-                        send_eoi(1);                            //due to how our keyboard driver was implemented. keyboard stuff is beyond the access
-                        return;                                 //of the scheduler
+                        send_eoi(1);                            //due to how our keyboard driver was implemented
+                        return;                                 
                     }           
                     if (x == 0 && y != 0) { // any other row
                         update_xy_display(NUM_COLS - 1, y-1);
                         putc_kb(' ');
-                        if (y-1 >= og_y[displayed_terminal]) { // anything below user_y space we can delete
+                        if (y >= og_y[displayed_terminal]) { // anything below user_y space we can delete
                             update_xy_display(NUM_COLS - 1, y-1);
                             update_cursor(NUM_COLS - 1, y-1);
                         }
@@ -214,10 +207,8 @@ void kb_handler() {
                         kb_idx[displayed_terminal] -= 1;
                         kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\t'; // code for not print anything
                     }
-                }
-            // }
+                // }
         send_eoi(1);
-        // sti();
         return;
     }
 

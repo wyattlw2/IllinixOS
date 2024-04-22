@@ -192,32 +192,7 @@ int32_t directory_read(int32_t fd, uint8_t * buf, uint32_t nbytes)    { // if nu
     return i;
 }
 
-//Assumes 32
-// int32_t directory_read_helper(uint32_t offset, uint8_t* buf, uint32_t length){
-    // return 0;
-    // int i;
-    // if(offset+length)
-    // for(i=offset; i<length; i++){
-        // uint32_t cur_dir_name_length = strlen(booting_info_block->dir_entries[0].file_name)
-        // buf[i-offset] = booting_info_block->dir_entries[]
-    // }
-    // int end = 0;
-    // int index = offset;
-    // while(end == 0){
-    //     int32_t current_file_index;
-    //     dentry_struct_t dentry;
-    //     for(i=0;i<index; i++){
-    //         if()
-    //         read_dentry_by_index( , &dentry)
-    //     }
 
-    //     buf[index] = 
-    //     index++;
-    //     if(index-offset >= length){
-    //         end = 1;
-    //     }
-    // }
-// }
 /*
 directory_write
 Description: This function is non functional because our file system is read only
@@ -338,11 +313,8 @@ Side Effects: the dentry is populated with the correct dentry based on the file 
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
     uint32_t number_of_inodes = booting_info_block->number_of_inodes;
     uint32_t number_of_data_blocks = booting_info_block->number_of_data_blocks;
-    //printf("\n passes the bootblock setup variables \n");
     inode_struct_t * inode_address = (inode_struct_t*)(booting_info_block + 1 + inode);
     uint32_t actual_length_in_bytes = inode_address->length_in_bytes;
-    // printf("\n The number of bytes is %d \n", actual_length_in_bytes);
-   // printf("\n passes the initial setup variables \n");
     if( offset<0 || length <=0){
         printf("\n Something is off with the length and offset values \n");
         return -1;
@@ -353,10 +325,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     }else{
         upperbound = offset+length;
     }
-    // uint32_t total_number_of_data_blocks = (actual_length_in_bytes/FOUR_KB);
     int i;
-    // int starting_data_block= offset/FOUR_KB; // ZERO INDEXED FROM THE LENGTH, ie if offset is zero, we at first block for the inode
-    // int ending_data_block = (offset+length)/FOUR_KB; // ENDING DATA BLOCK,
 
 
     //local datablock index refers to the index of the datablock in the inode, if offset is 0, this would be 0, 

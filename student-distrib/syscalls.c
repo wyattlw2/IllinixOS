@@ -105,6 +105,9 @@ int32_t sys_close(int32_t fd) {
 
 void sys_halt(uint8_t status) {
 
+    cli();  // added 4/21/2024 -- hopefully this fixes the extremely rare pagefault bug
+            // programs would sometimes pagefault while attempting to halt
+
     if(PCB_array[current_process_idx]->parent_PID == -1)   {
         // printf("\n Can't Close Shell!! \n");
         int8_t var[32] = {"shell"};

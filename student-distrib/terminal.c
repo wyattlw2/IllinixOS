@@ -98,6 +98,7 @@ int32_t t_read(int32_t fd, void* buf, int32_t nbytes) {
  *              -1 - failed print 
  * Function: prints all the characters in buf to the screen */
 int32_t t_write(int32_t _fd, const void* buf, int32_t nbytes) {
+    // TERMINAL_READ_FLAG[scheduled_terminal] = 0;
     cli();
     int i; // loop index
     if (buf == NULL) {
