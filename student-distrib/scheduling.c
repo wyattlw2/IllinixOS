@@ -126,7 +126,7 @@ void schedule() {
             // og_x[displayed_terminal] = terminal_processes[displayed_terminal].togx;
             // og_y[displayed_terminal] = terminal_processes[displayed_terminal].togy;
             TERMINAL1_SWITCH = 0;
-            TERMINAL_READ_FLAG[0] = 1;          //no longer needed, this line was also causing unintended behavior with typing during running programs
+            TERMINAL_READ_FLAG[0] = 1;          
             terminal_processes[0].togx = 7;
             send_eoi(0);
             return;

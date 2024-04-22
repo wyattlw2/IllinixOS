@@ -152,8 +152,9 @@ void sys_halt(uint8_t status) {
     page_directory[32].page_4mb.page_base_addr = PCB_array[current_process_idx]->parent_PID + PID_OFFSET_TO_GET_PHYSICAL_ADDRESS; //resetting the PID to be what it needs to be
     
     // vmem_page_table[0].p_base_addr = MEGABYTE_32_PHYSICAL + PCB_array[current_process_idx]->parent_PID;
-    kb_idx[displayed_terminal] = 0;
-    setup[displayed_terminal] = 1;
+
+    kb_idx[scheduled_terminal] = 0;     //this should not have been displayed terminal - lmao
+    setup[scheduled_terminal] = 1;
 
 
     asm volatile("movl %cr3, %ebx"); //gaslighting the system, thinking that the page directory has changed -- FLUSHES TLB
