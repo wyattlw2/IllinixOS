@@ -591,6 +591,7 @@ int32_t sys_vidmap(uint8_t ** screen_start) {
 //not done
 int32_t sys_set_handler(int32_t signum, void * handler_address) {
     printf("SYSCALL *SET_HANDLER* CALLED (SHOULD CORRESPOND TO SYSCALL 9)\n\n");
+    //this is a signals syscall moment
     return 0;
 }
 //not done

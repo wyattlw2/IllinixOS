@@ -157,7 +157,7 @@ int32_t rtc_write (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
 * Side Effects: None
 */
 int32_t rtc_open (const uint8_t* filename){ //Aadhesh
-    rtc_set_frequency(512); //Initialize RTC Frequency to 2 Hz
+    rtc_set_frequency(512); //Initialize RTC Frequency to 512 Hz
     return 0; //Return zero for success 
 }
 
