@@ -405,25 +405,25 @@ void file_open_test_cp3(){
 		printf("File Open Succeeded Successfully");
 	}
 }
-void vrtc_test(){
-	//init_rtc(); // init_rtc() is already called prior to launch_tests()
-	rtc_open(0); //Frequency is set to 2 Hz
-	clear();
-	printf("Frequency: %d\n", 2);
-	rtc_write(0,(void*)2,4);
+// void vrtc_test(){
+// 	//init_rtc(); // init_rtc() is already called prior to launch_tests()
+// 	rtc_open(0); //Frequency is set to 2 Hz
+// 	clear();
+// 	printf("Frequency: %d\n", 2);
+// 	rtc_write(0,(void*)2,4);
 
-	int j;
-	for(j = 1; j <= 1000; j++){
-		vrtc_process(0,(void*)j,4);
-		clear();
-	}
+// 	int j;
+// 	for(j = 1; j <= 1000; j++){
+// 		vrtc_process(0,(void*)j,4);
+// 		clear();
+// 	}
 
-	rtc_open(0); //Reset frequency
-	rtc_close(0);
-	clear();
-	printf("\n The vRTC Check Passed \n");
-	return;
-}
+// 	rtc_open(0); //Reset frequency
+// 	rtc_close(0);
+// 	clear();
+// 	printf("\n The vRTC Check Passed \n");
+// 	return;
+// }
 
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */

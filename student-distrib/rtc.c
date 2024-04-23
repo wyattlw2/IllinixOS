@@ -6,10 +6,10 @@
 #define     REGB                0x8B
 
 
-int rtc_int; //global rtc interrupt flag
-int vrtc_int; //global virtualization interrupt flag
-
-
+int rtc_int[3]; //global rtc interrupt flag
+// int vrtc_int; //global virtualization interrupt flag
+int RTC_COUNTER_MAX[3];
+// int rtc_test_flag;
 /*
 * Description: This function initializes the RTC.
 * Inputs: NONE
@@ -28,8 +28,10 @@ int vrtc_int; //global virtualization interrupt flag
     outb(REGB, RTC_PORT); //set the index again (a read will reset the index to register D)
     outb(prev | 0x40, CMOS); //write the previous value ORed with 0x40. This turns on bit 6 of register B
 
-    rtc_int = 0; //Initialize RTC interrupt flag
-    vrtc_int = 0; //Initialize virtualization interrupt flag
+    rtc_int[0] = 0; //Initialize RTC interrupt flag
+    rtc_int[1] = 0; //Initialize RTC interrupt flag
+    rtc_int[2] = 0; //Initialize RTC interrupt flag
+    // vrtc_int = 0; //Initialize virtualization interrupt flag
  }
 
 /*
@@ -39,14 +41,31 @@ int vrtc_int; //global virtualization interrupt flag
 * Side Effects: None
 */
 void rtc_handler(){
-    // cli();
+    cli();
     // test_interrupts();
     // putc('1');
-    rtc_int += 1;
+    // rtc_int[scheduled_terminal] += 3;
+    // rtc_test_flag = 1;
+    rtc_int[0] += 1;
+    rtc_int[1] += 1;
+    rtc_int[2] += 1;
+    if(rtc_int[0] >= RTC_COUNTER_MAX[0]){
+        // printf("RTC INIT VALUE")
+        RTC_FLAG[0] = 1;
+    }
+    if(rtc_int[1] >= RTC_COUNTER_MAX[1]){
+        // printf("RTC INIT VALUE")
+        RTC_FLAG[1] = 1;
+    }
+    if(rtc_int[2] >= RTC_COUNTER_MAX[2]){
+        // printf("RTC INIT VALUE")
+        RTC_FLAG[2] = 1;
+    }
     outb(0x0C, RTC_PORT); //select register C
     inb(CMOS); //just throw away contents
     //clear();
     send_eoi(8);
+    sti();
 }
 
 /* Description: This is a helper function created to set the rtc to a given frequency. It was created to handle RTC Open and RTC Write
@@ -87,9 +106,25 @@ int32_t rtc_set_frequency(int32_t frequency){ //created to handle rtc_write and 
 * Side Effects: None
 */
 int32_t rtc_read (int32_t fd, void* buf, int32_t nbytes){ //Aadhesh
-    int32_t curr = rtc_int; //Stores current rtc
-    while(curr == rtc_int){}; //Waits until rtc_int value is changed by the rtc_handler
+    // int32_t curr = 0; //Stores current rtc
+    // cli();
+    rtc_int[scheduled_terminal] = 0;
+    // sti();
+    while(1){
+        if(RTC_FLAG[scheduled_terminal] != 0){
+            break;
+        }
+
+    }; //Waits until rtc_int value is changed by the rtc_handler
+    // cli();
+    // printf("\n RTC READ TIME");
+    RTC_FLAG[scheduled_terminal] = 0;
+    rtc_int[scheduled_terminal] = 0;
+    // sti();
     return 0;
+
+    // sti();
+    
 }
 
 /* Description: This is RTC write
@@ -98,9 +133,22 @@ int32_t rtc_read (int32_t fd, void* buf, int32_t nbytes){ //Aadhesh
 * Side Effects: None
 */
 int32_t rtc_write (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
+    // rtc_set_frequency(1024);
+    // cli();
     int32_t* buffer = (int32_t *) buf; //added for pingpong RTC
     if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
-    return rtc_set_frequency(*buffer); //change frequency based on buf value 
+    int32_t new_freq = *buffer;
+    // printf("\n The value of the new frequency is : %d", new_freq);
+    // could add some checks to make sure this makes sense
+    // RTC_COUNTER_MAX[scheduled_terminal] = (1024/new_freq);
+    RTC_COUNTER_MAX[scheduled_terminal] = (512/new_freq);
+    // printf("\n The value of the counter is : %d", RTC_COUNTER_MAX[scheduled_terminal]);
+    rtc_int[scheduled_terminal] = 0;
+    // return rtc_set_frequency(*buffer); //change frequency based on buf value 
+    // sti();
+    // rtc_test_flag=0;
+    // rtc_set_frequency(*buffer);
+    return 0;
 }
 
 /* Description: This is RTC Open
@@ -109,7 +157,7 @@ int32_t rtc_write (int32_t fd, const void * buf, int32_t nbytes){ //Aadhesh
 * Side Effects: None
 */
 int32_t rtc_open (const uint8_t* filename){ //Aadhesh
-    rtc_set_frequency(2); //Initialize RTC Frequency to 2 Hz
+    rtc_set_frequency(512); //Initialize RTC Frequency to 2 Hz
     return 0; //Return zero for success 
 }
 
@@ -129,13 +177,13 @@ int32_t rtc_close (int32_t fd){ //Aadhesh
 * Side Effects: None
 */
 //DAVID TOOK OUT THE CONST FROM THE BUF 04/08/2024
-int32_t vrtc_process (int32_t fd, void * buf, int32_t nbytes){ //Aadhesh
-    if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
-    rtc_set_frequency(1024); //Set to max frequency
-    while(vrtc_int < *(int32_t *) buf){ // x virtual interrupts for 1 1024-Hz interrupt (x = buf)
-        rtc_read(fd,buf,nbytes);
-        vrtc_int++;
-    }
-    vrtc_int = 0; //virtual interrupt reset
-    return 0;
-}
+// int32_t vrtc_process (int32_t fd, void * buf, int32_t nbytes){ //Aadhesh
+//     if(nbytes != 4) return -1; //Return failure if more or less than 4 bytes passed in
+//     rtc_set_frequency(1024); //Set to max frequency
+//     while(vrtc_int < *(int32_t *) buf){ // x virtual interrupts for 1 1024-Hz interrupt (x = buf)
+//         rtc_read(fd,buf,nbytes);
+//         vrtc_int++;
+//     }
+//     vrtc_int = 0; //virtual interrupt reset
+//     return 0;
+// }

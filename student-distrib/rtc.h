@@ -4,7 +4,7 @@
 #include "lib.h"
 #include "i8259.h"
 
-int32_t rtc_int;
+int32_t RTC_FLAG[3];
 
 void init_rtc(void);
 void rtc_handler();
