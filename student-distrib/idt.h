@@ -17,6 +17,7 @@ void set_exception_params(idt_desc_t * idt_array_index, int vec);
 extern void exec_handler();
 extern void sys_handler();
 
+extern char kb_save[3][5][128];
 extern uint16_t og_x[3];    //used to keep track of original x/y positions respective to the terminal cursor
 extern uint16_t og_y[3];
 
