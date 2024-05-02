@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "types.h"
+#include "idt.h"
 
 #define     KEYBOARD_PORT       0x60
 #define     PIC_MASTER          0X21
@@ -34,6 +35,15 @@ void init_keyboard(){
     enable_cursor(0, 25);
     update_cursor(0, 0);
     update_xy(0, 0);
+    int i,j,k;
+    for(i = 0; i< 3; i++){
+        for(j = 0; j < 5; j++){
+            for(k=0; k<128; k++){
+                kb_save[i][j][k] = '\t';
+            }
+        }
+        
+    }
     //  Enable PIC Mask x01
     enable_irq(1);
     // uint32_t mask = inb(PIC_MASTER);        // read current value

@@ -77,7 +77,13 @@ uint16_t og_y[3];
 int next_row_flag[3];
 int setup[3] = {1, 1, 1};
 int no_parent_shell_flag=0;
+char kb_save[3][5][128];
+int up_arrow_counter[3] = {0,0,0};
 // int TERMINAL1_SWITCH =
+
+#define         MAX_SCREEN_X        80
+
+
 void kb_handler() {
     
     cli();
@@ -86,7 +92,7 @@ void kb_handler() {
     asm volatile("movl %ebx, %cr3");
     
     unsigned char key = inb(KEYBOARD_PORT);
-
+    // printf("Keycode: %d", (int)key);
 
     /*
     three main cases for changing video memory:
@@ -196,6 +202,74 @@ void kb_handler() {
             putc_kb(' ');
         }
     }
+    //Up arrow key is pressed
+    if (key == 0x48) {
+        int i;
+        int end_string = 128;
+        int end_pos_x;
+        int end_pos_y;
+        if(up_arrow_counter[displayed_terminal]>= 5){// counter is too high do nothing
+            send_eoi(1);
+            return;
+        }
+        // if(kb_save[displayed_terminal][0][0] != '\t'){ // if there isn't anything there don't try -- THIS MIGHT CAUSE ISSUES
+            // update_xy_display(og_x[displayed_terminal], og_y[displayed_terminal]);
+            // update_cursor(og_x[displayed_terminal], og_y[displayed_terminal]);
+            kb_idx[displayed_terminal] = 0;
+            // int screen_x_save = screen_x[displayed_terminal];
+            int screen_y_save = screen_y[displayed_terminal];
+            screen_x[displayed_terminal] = og_x[displayed_terminal]; // set them to og x and y for clearing
+            screen_y[displayed_terminal] = og_y[displayed_terminal];
+            for(i=0; i<128; i++){
+                
+                if(screen_x[displayed_terminal] == MAX_SCREEN_X-1 && screen_y[displayed_terminal] == screen_y_save){
+                    break;
+                }
+                // if(screen_y_save == 25-1 && MAX_SCREEN_X-1 == screen_x[displayed_terminal]){
+                //     break;
+                // }
+                putc_kb(' '); // don't over clear if we don't need to
+            }
+            screen_x[displayed_terminal] = og_x[displayed_terminal]; // set them to og x and y for new display
+            screen_y[displayed_terminal] = og_y[displayed_terminal];
+            for(i=0; i < 128; i++){
+                // kb_buff[displayed_terminal]
+                
+                kb_buff[displayed_terminal][i] = kb_save[displayed_terminal][up_arrow_counter[displayed_terminal]][i]; // figuring out which index of the kb_save is needed
+                if(kb_buff[displayed_terminal][i] == '\t' && i < end_string){
+                    end_string = i;
+                    // end_pos = get_cursor_position();
+                    end_pos_x = screen_x[displayed_terminal];
+                    end_pos_y = screen_y[displayed_terminal]; 
+                }
+                if(kb_buff[displayed_terminal][i] == '\t'){
+                    if(screen_x[displayed_terminal] == MAX_SCREEN_X-1){
+                        break;
+                    }
+                    // putc_kb(' '); // don't over clear if we don't need to
+                    
+                }else{
+                    putc_kb(kb_buff[displayed_terminal][i]);
+                }
+                kb_idx[displayed_terminal]++;
+
+            }
+            kb_idx[displayed_terminal] = end_string;
+            // int new_x = end_pos_x;
+            // int new_y = end_pos_y;
+            update_xy_display(end_pos_x, end_pos_y);
+            update_cursor(end_pos_x, end_pos_y);
+
+        // }
+        up_arrow_counter[displayed_terminal]++;
+        send_eoi(1);
+        return;
+    }else{
+        if(key != 0xC8){ // don't count the release scancode
+            up_arrow_counter[displayed_terminal] = 0;
+        }
+        
+    }
 
     // if backspace is pressed
     if (key == 0x0E) {
@@ -249,9 +323,29 @@ void kb_handler() {
             putc_kb('\n');
         }
         kb_buff[displayed_terminal][kb_idx[displayed_terminal]] = '\n';
+        if(kb_idx[displayed_terminal]== 0){ // if only enter is pressed, don't go through the process of moving the buffers
+            kb_idx[displayed_terminal] = 0;
+            setup[displayed_terminal] = 1;
+            send_eoi(1);
+            return;
+        }
         kb_idx[displayed_terminal] = 0;
         setup[displayed_terminal] = 1;
+        int i;
         
+        for(i=0; i < 128; i++){
+            kb_save[displayed_terminal][4][i] = kb_save[displayed_terminal][3][i]; // whatever was in 4 is now lost
+            kb_save[displayed_terminal][3][i] = kb_save[displayed_terminal][2][i];
+            kb_save[displayed_terminal][2][i] = kb_save[displayed_terminal][1][i];
+            kb_save[displayed_terminal][1][i] = kb_save[displayed_terminal][0][i];
+
+            if(kb_buff[displayed_terminal][i] != '\n'){
+                kb_save[displayed_terminal][0][i] = kb_buff[displayed_terminal][i];
+            }else{
+                kb_save[displayed_terminal][0][i] = '\t';
+            }
+            
+        }
         send_eoi(1);
         // sti();
 
@@ -303,7 +397,7 @@ void kb_handler() {
         // }
         // reset everything to top left of screen
         int i;
-        for(i = 0; i < 128; i++)   {
+        for(i = 0; i < 128-1; i++)   {
             kb_buff[displayed_terminal][i] = '\t';
         }
         kb_idx[displayed_terminal] = 0; //when we ctrl + l, we also want to reset the keyboard buffer
