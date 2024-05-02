@@ -10,5 +10,6 @@
         "idt.h": "c",
         "i8259.h": "c",
         "terminal.h": "c"
-    }
+    },
+    "git.mergeEditor": true
 }
