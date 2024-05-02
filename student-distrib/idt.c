@@ -126,6 +126,17 @@ void kb_handler() {
         return;
     }
 
+
+    // if ctrl + B is pressed (enable Severance quotes)
+    if(ctrl == 1 && key == 0x30)    {
+        SEVERANCE_QUOTE_FLAG[displayed_terminal] = 1;
+        send_eoi(1);
+        return;
+    }
+
+
+
+
     // if ctrl + C is pressed (manually halt a program)
     if(ctrl == 1 && key == 0x2E) {
         SIGQUIT_FLAG[displayed_terminal] = 1;

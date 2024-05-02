@@ -73,6 +73,7 @@ typedef struct terminal_info_t {
 terminal_info_t terminal_processes[3];
 
 int32_t SIGQUIT_FLAG[3];
+int32_t SEVERANCE_QUOTE_FLAG[3];
 
 
 #endif

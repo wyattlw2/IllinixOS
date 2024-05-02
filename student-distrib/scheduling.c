@@ -27,6 +27,12 @@ static char * video_mem1 = (char *) 0xBA000;
 static char * video_mem2 = (char *) 0xBB000;
 static char * video_mem3 = (char *) 0xBC000;
 
+const char severance_quotes[5][100]= {"You smug motherfucker.", 
+"Devon, I got her. Devon, shes here. I found her. I found your child. Im the one who found her!",
+"If you want a hug, go to hell and find your mother.",
+"Yeah, the egg bar is coveted as fuck.",
+"Thats ten points off."};
+
 void terminal_init(){
     no_parent_shell_flag = 1; // WE DO THIS BECAUSE WE EXPECT THE FIRST PROCESS TO BE CREATED TO BE A NO-PARENT SHELL
     displayed_terminal = 0;
@@ -103,9 +109,14 @@ void pit_handler()  {
     return; // hypothetically should never get here
 }
 
+int32_t RNG;
+
 void schedule() {
     //these cover whenever a few terminals haven't been activated yet
-
+    RNG++;
+    if(RNG >= 5)   {
+        RNG = 0;
+    }
         if(TERMINAL1_SWITCH){
             first_page_table[0xB8].p_base_addr = 0xB8;
             vmem_page_table[0].p_base_addr = 0xB8; // set the current one to physical VMEM
@@ -190,6 +201,11 @@ void schedule() {
         asm volatile("int $0x80");
     }
 
+    if(SEVERANCE_QUOTE_FLAG[scheduled_terminal] == 1)   {
+        printf((int8_t *)severance_quotes[RNG]);
+        printf("\n");
+        SEVERANCE_QUOTE_FLAG[scheduled_terminal] = 0;
+    }
     //all is saved, time to context switch!
     scheduled_terminal = (scheduled_terminal +1)% 3;
     current_process_idx = terminal_processes[scheduled_terminal].active_process_PID;
