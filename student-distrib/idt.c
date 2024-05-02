@@ -120,6 +120,27 @@ void kb_handler() {
         return;
     }
 
+    // if ctrl + C is pressed (manually halt a program)
+    if(ctrl == 1 && key == 0x2E) {
+        SIGQUIT_FLAG[displayed_terminal] = 1;
+        send_eoi(1);
+        return;
+    }
+
+    // if LEFT or RIGHT ctrl pressed
+    if (key == 0x1D) {
+        ctrl = 1;
+        send_eoi(1);
+        // sti();
+        return;
+    // if LEFT or RIGHT ctrl released
+    } else if (key == 0x9D) {
+        ctrl = 0;
+        send_eoi(1);
+        // sti();
+        return;
+    }
+
 
     // if alt is pressed
     if(key == 0x38){
@@ -238,19 +259,19 @@ void kb_handler() {
 
     }
 
-    // if LEFT or RIGHT ctrl pressed
-    if (key == 0x1D) {
-        ctrl = 1;
-        send_eoi(1);
-        // sti();
-        return;
-    // if LEFT or RIGHT ctrl released
-    } else if (key == 0x9D) {
-        ctrl = 0;
-        send_eoi(1);
-        // sti();
-        return;
-    }
+    // // if LEFT or RIGHT ctrl pressed
+    // if (key == 0x1D) {
+    //     ctrl = 1;
+    //     send_eoi(1);
+    //     // sti();
+    //     return;
+    // // if LEFT or RIGHT ctrl released
+    // } else if (key == 0x9D) {
+    //     ctrl = 0;
+    //     send_eoi(1);
+    //     // sti();
+    //     return;
+    // }
 
     // if right or left shift is pressed
     if (key == 0x36 || key == 0x2A) {

@@ -181,7 +181,14 @@ void schedule() {
             send_eoi(0);
             return;
         }
-
+    if(SIGQUIT_FLAG[scheduled_terminal] == 1)   {
+        SIGQUIT_FLAG[scheduled_terminal] = 0;
+        // current_process_idx = terminal_processes[scheduled_terminal].active_process_PID;
+        printf("FROM KEYBOARD: PROCESS RECEIVED SIGNAL 'SIGQUIT'\n");
+        send_eoi(0);
+        asm volatile("movl $1, %eax");
+        asm volatile("int $0x80");
+    }
 
     //all is saved, time to context switch!
     scheduled_terminal = (scheduled_terminal +1)% 3;
