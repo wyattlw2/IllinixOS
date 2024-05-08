@@ -1,3 +1,5 @@
+OVERVIEW
+-----
 This OS was created as a semester-long design project in ECE391 at UIUC. 
 
 IllinixOS is booted via GRUB inside of a QEMU virtual environment. Some details for QEMU setup are present in this repository, but downloading the required files may be impossible (unless you have a registered NetID in ECE391). You will also need to, at minimum, change the target path of test_nodebug to the compiled MP3 image, which is system-dependent.
