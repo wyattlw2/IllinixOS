@@ -15,7 +15,7 @@ Some technical details about the operating system:
 
 Advanced features that were implemented for extra credit:
 * Terminal history supported
-* Signals such as ctrl + C supported
+* SIGSTP (ctrl + C) supported
 * A "Severance" TV show quote generator, using RNG values based on PIT frequency
 
 Copying from this repository is not allowed. The section below covers plagiarism in greater detail.
