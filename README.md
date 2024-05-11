@@ -2,21 +2,23 @@ OVERVIEW
 -----
 This OS was created as a semester-long design project in ECE391 at UIUC. 
 
-IllinixOS is booted via GRUB inside of a QEMU virtual environment. Some details for QEMU setup are present in this repository, but downloading the required files may be impossible (unless you have a registered NetID in ECE391). You will also need to, at minimum, change the target path of test_nodebug to the compiled MP3 image, which is system-dependent.
+Illinix is booted via GRUB inside of a QEMU virtual environment. Some details for QEMU setup are present in this repository, but downloading the required files may be impossible unless you have a registered NetID in ECE391. You will also need to, at minimum, change the target path of test_nodebug to the compiled MP3 image, which is system-dependent.
 
 Some technical details about the operating system:
 * Uses IA-32 Intel Architecture
 * Interrupts supported via 8259A PIC
-* Round-robin scheduling policy via PIT
+* Round-robin scheduling policy implemented via PIT
 * Device drivers for keyboard, RTC, filesystem supported
-* User can run up to 6 programs at once
+* Boots with various programs installed, including grep, cat, ls, and more
+* User can add their own user-level programs
+* User can run up to 6 programs at once between 3 terminals (ALT+F1/2/3 to switch)
 
 Advanced features that were implemented for extra credit:
 * Terminal history supported
 * Signals such as ctrl + C supported
 * A "Severance" TV show quote generator, using RNG values based on PIT frequency
 
-Copying from this repository is NOT allowed. If you are found copying from this repository, you will be held liable for plagiarism, and any accompanying penalties. You will also feel cheated on completing MP3. The section below covers plagiarism in greater detail.
+Copying from this repository is not allowed. The section below covers plagiarism in greater detail.
 
 ACADEMIC INTEGRITY
 -----
